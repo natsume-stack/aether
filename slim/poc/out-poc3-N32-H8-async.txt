@@ -1,0 +1,711 @@
+{
+ "config": {
+  "HANG_MODE": "async",
+  "HANG_COUNT": 8,
+  "N_ISO": 32,
+  "TICK_MS": 50,
+  "DURATION_MS": 7000,
+  "TIMEOUT": 10000,
+  "HANG_FROM": 1500,
+  "HANG_MS": 3000,
+  "memMB": 512,
+  "cores": 8
+ },
+ "hangEvents": [
+  {
+   "atMs": 1500.5,
+   "msg": "isolate#0..#7 start while(true); form=async budget=3000ms"
+  },
+  {
+   "iso": 6,
+   "atMs": 3035.3,
+   "msg": "timeout FIRED",
+   "err": "Script execution timed out.",
+   "thisIsolateAlive": true,
+   "othersAlive": true
+  },
+  {
+   "iso": 4,
+   "atMs": 3035.6,
+   "msg": "timeout FIRED",
+   "err": "Script execution timed out.",
+   "thisIsolateAlive": true,
+   "othersAlive": true
+  },
+  {
+   "iso": 0,
+   "atMs": 3036,
+   "msg": "timeout FIRED",
+   "err": "Script execution timed out.",
+   "thisIsolateAlive": true,
+   "othersAlive": true
+  },
+  {
+   "iso": 5,
+   "atMs": 3035.7,
+   "msg": "timeout FIRED",
+   "err": "Script execution timed out.",
+   "thisIsolateAlive": true,
+   "othersAlive": true
+  },
+  {
+   "iso": 1,
+   "atMs": 3036.1,
+   "msg": "timeout FIRED",
+   "err": "Script execution timed out.",
+   "thisIsolateAlive": true,
+   "othersAlive": true
+  },
+  {
+   "iso": 2,
+   "atMs": 3036.1,
+   "msg": "timeout FIRED",
+   "err": "Script execution timed out.",
+   "thisIsolateAlive": true,
+   "othersAlive": true
+  },
+  {
+   "iso": 7,
+   "atMs": 3035.7,
+   "msg": "timeout FIRED",
+   "err": "Script execution timed out.",
+   "thisIsolateAlive": true,
+   "othersAlive": true
+  },
+  {
+   "iso": 3,
+   "atMs": 3036.1,
+   "msg": "timeout FIRED",
+   "err": "Script execution timed out.",
+   "thisIsolateAlive": true,
+   "othersAlive": true
+  }
+ ],
+ "victim_summary": {
+  "n": 24,
+  "worst_before_p50": 1.81,
+  "worst_during_p99": 152.8
+ },
+ "hanger_summary": {
+  "n": 8,
+  "worst_before_p50": 1.5,
+  "worst_during_p99": 3025.74
+ },
+ "perIsolate": [
+  {
+   "idx": 0,
+   "role": "HANGER",
+   "ticksBefore": 66,
+   "ticksDuring": 8,
+   "jitter_before_ms": {
+    "p50": 1.44,
+    "p99": 67.67,
+    "max": 67.67
+   },
+   "jitter_during_ms": {
+    "p50": 1.32,
+    "p99": 3010.38,
+    "max": 3010.38
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 1,
+   "role": "HANGER",
+   "ticksBefore": 67,
+   "ticksDuring": 8,
+   "jitter_before_ms": {
+    "p50": 0.99,
+    "p99": 49.13,
+    "max": 49.13
+   },
+   "jitter_during_ms": {
+    "p50": 1.5,
+    "p99": 3019.09,
+    "max": 3019.09
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 2,
+   "role": "HANGER",
+   "ticksBefore": 66,
+   "ticksDuring": 8,
+   "jitter_before_ms": {
+    "p50": 1.31,
+    "p99": 42.37,
+    "max": 42.37
+   },
+   "jitter_during_ms": {
+    "p50": 1.74,
+    "p99": 3025.51,
+    "max": 3025.51
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 3,
+   "role": "HANGER",
+   "ticksBefore": 65,
+   "ticksDuring": 8,
+   "jitter_before_ms": {
+    "p50": 1.22,
+    "p99": 27.58,
+    "max": 27.58
+   },
+   "jitter_during_ms": {
+    "p50": 1.67,
+    "p99": 3025.74,
+    "max": 3025.74
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 4,
+   "role": "HANGER",
+   "ticksBefore": 66,
+   "ticksDuring": 8,
+   "jitter_before_ms": {
+    "p50": 1.23,
+    "p99": 38.76,
+    "max": 38.76
+   },
+   "jitter_during_ms": {
+    "p50": 1.62,
+    "p99": 3015.06,
+    "max": 3015.06
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 5,
+   "role": "HANGER",
+   "ticksBefore": 66,
+   "ticksDuring": 8,
+   "jitter_before_ms": {
+    "p50": 1.44,
+    "p99": 38.02,
+    "max": 38.02
+   },
+   "jitter_during_ms": {
+    "p50": 1.68,
+    "p99": 3016.31,
+    "max": 3016.31
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 6,
+   "role": "HANGER",
+   "ticksBefore": 67,
+   "ticksDuring": 8,
+   "jitter_before_ms": {
+    "p50": 1.15,
+    "p99": 54.55,
+    "max": 54.55
+   },
+   "jitter_during_ms": {
+    "p50": 1.62,
+    "p99": 3016.42,
+    "max": 3016.42
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 7,
+   "role": "HANGER",
+   "ticksBefore": 65,
+   "ticksDuring": 8,
+   "jitter_before_ms": {
+    "p50": 1.5,
+    "p99": 50,
+    "max": 50
+   },
+   "jitter_during_ms": {
+    "p50": 1.62,
+    "p99": 3012.38,
+    "max": 3012.38
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 8,
+   "role": "victim",
+   "ticksBefore": 65,
+   "ticksDuring": 42,
+   "jitter_before_ms": {
+    "p50": 1.3,
+    "p99": 38.81,
+    "max": 38.81
+   },
+   "jitter_during_ms": {
+    "p50": 22.85,
+    "p99": 142.17,
+    "max": 142.17
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 9,
+   "role": "victim",
+   "ticksBefore": 65,
+   "ticksDuring": 42,
+   "jitter_before_ms": {
+    "p50": 1.55,
+    "p99": 40.01,
+    "max": 40.01
+   },
+   "jitter_during_ms": {
+    "p50": 24.89,
+    "p99": 151.6,
+    "max": 151.6
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 10,
+   "role": "victim",
+   "ticksBefore": 66,
+   "ticksDuring": 41,
+   "jitter_before_ms": {
+    "p50": 1.69,
+    "p99": 27.82,
+    "max": 27.82
+   },
+   "jitter_during_ms": {
+    "p50": 23.77,
+    "p99": 152.62,
+    "max": 152.62
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 11,
+   "role": "victim",
+   "ticksBefore": 65,
+   "ticksDuring": 43,
+   "jitter_before_ms": {
+    "p50": 1.48,
+    "p99": 38.02,
+    "max": 38.02
+   },
+   "jitter_during_ms": {
+    "p50": 19.62,
+    "p99": 102.66,
+    "max": 102.66
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 12,
+   "role": "victim",
+   "ticksBefore": 64,
+   "ticksDuring": 43,
+   "jitter_before_ms": {
+    "p50": 1.57,
+    "p99": 25.71,
+    "max": 25.71
+   },
+   "jitter_during_ms": {
+    "p50": 19.01,
+    "p99": 134.26,
+    "max": 134.26
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 13,
+   "role": "victim",
+   "ticksBefore": 64,
+   "ticksDuring": 44,
+   "jitter_before_ms": {
+    "p50": 1.43,
+    "p99": 43.54,
+    "max": 43.54
+   },
+   "jitter_during_ms": {
+    "p50": 20.19,
+    "p99": 142.19,
+    "max": 142.19
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 14,
+   "role": "victim",
+   "ticksBefore": 64,
+   "ticksDuring": 42,
+   "jitter_before_ms": {
+    "p50": 1.42,
+    "p99": 68.17,
+    "max": 68.17
+   },
+   "jitter_during_ms": {
+    "p50": 25.2,
+    "p99": 113.63,
+    "max": 113.63
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 15,
+   "role": "victim",
+   "ticksBefore": 65,
+   "ticksDuring": 40,
+   "jitter_before_ms": {
+    "p50": 1.64,
+    "p99": 68.53,
+    "max": 68.53
+   },
+   "jitter_during_ms": {
+    "p50": 25.71,
+    "p99": 113.63,
+    "max": 113.63
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 16,
+   "role": "victim",
+   "ticksBefore": 65,
+   "ticksDuring": 41,
+   "jitter_before_ms": {
+    "p50": 1.47,
+    "p99": 38.99,
+    "max": 38.99
+   },
+   "jitter_during_ms": {
+    "p50": 26.23,
+    "p99": 133.52,
+    "max": 133.52
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 17,
+   "role": "victim",
+   "ticksBefore": 64,
+   "ticksDuring": 41,
+   "jitter_before_ms": {
+    "p50": 1.61,
+    "p99": 90.96,
+    "max": 90.96
+   },
+   "jitter_during_ms": {
+    "p50": 17.88,
+    "p99": 131.65,
+    "max": 131.65
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 18,
+   "role": "victim",
+   "ticksBefore": 65,
+   "ticksDuring": 40,
+   "jitter_before_ms": {
+    "p50": 1.69,
+    "p99": 70.75,
+    "max": 70.75
+   },
+   "jitter_during_ms": {
+    "p50": 26.78,
+    "p99": 102.72,
+    "max": 102.72
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 19,
+   "role": "victim",
+   "ticksBefore": 64,
+   "ticksDuring": 43,
+   "jitter_before_ms": {
+    "p50": 1.6,
+    "p99": 26.68,
+    "max": 26.68
+   },
+   "jitter_during_ms": {
+    "p50": 19.62,
+    "p99": 120.01,
+    "max": 120.01
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 20,
+   "role": "victim",
+   "ticksBefore": 65,
+   "ticksDuring": 41,
+   "jitter_before_ms": {
+    "p50": 1.6,
+    "p99": 43.85,
+    "max": 43.85
+   },
+   "jitter_during_ms": {
+    "p50": 22.29,
+    "p99": 152.8,
+    "max": 152.8
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 21,
+   "role": "victim",
+   "ticksBefore": 64,
+   "ticksDuring": 42,
+   "jitter_before_ms": {
+    "p50": 1.43,
+    "p99": 45.99,
+    "max": 45.99
+   },
+   "jitter_during_ms": {
+    "p50": 25.73,
+    "p99": 111.78,
+    "max": 111.78
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 22,
+   "role": "victim",
+   "ticksBefore": 66,
+   "ticksDuring": 43,
+   "jitter_before_ms": {
+    "p50": 1.61,
+    "p99": 39.63,
+    "max": 39.63
+   },
+   "jitter_during_ms": {
+    "p50": 22.26,
+    "p99": 112.41,
+    "max": 112.41
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 23,
+   "role": "victim",
+   "ticksBefore": 64,
+   "ticksDuring": 41,
+   "jitter_before_ms": {
+    "p50": 1.59,
+    "p99": 26.6,
+    "max": 26.6
+   },
+   "jitter_during_ms": {
+    "p50": 25.75,
+    "p99": 140.35,
+    "max": 140.35
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 24,
+   "role": "victim",
+   "ticksBefore": 65,
+   "ticksDuring": 41,
+   "jitter_before_ms": {
+    "p50": 1.52,
+    "p99": 40.86,
+    "max": 40.86
+   },
+   "jitter_during_ms": {
+    "p50": 23.03,
+    "p99": 107.74,
+    "max": 107.74
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 25,
+   "role": "victim",
+   "ticksBefore": 65,
+   "ticksDuring": 40,
+   "jitter_before_ms": {
+    "p50": 1.58,
+    "p99": 68.62,
+    "max": 68.62
+   },
+   "jitter_during_ms": {
+    "p50": 26.88,
+    "p99": 108.47,
+    "max": 108.47
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 26,
+   "role": "victim",
+   "ticksBefore": 66,
+   "ticksDuring": 42,
+   "jitter_before_ms": {
+    "p50": 1.55,
+    "p99": 30.46,
+    "max": 30.46
+   },
+   "jitter_during_ms": {
+    "p50": 22.01,
+    "p99": 117.81,
+    "max": 117.81
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 27,
+   "role": "victim",
+   "ticksBefore": 66,
+   "ticksDuring": 41,
+   "jitter_before_ms": {
+    "p50": 1.36,
+    "p99": 27.71,
+    "max": 27.71
+   },
+   "jitter_during_ms": {
+    "p50": 23.85,
+    "p99": 109.1,
+    "max": 109.1
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 28,
+   "role": "victim",
+   "ticksBefore": 66,
+   "ticksDuring": 40,
+   "jitter_before_ms": {
+    "p50": 1.41,
+    "p99": 40.17,
+    "max": 40.17
+   },
+   "jitter_during_ms": {
+    "p50": 29.35,
+    "p99": 151.3,
+    "max": 151.3
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 29,
+   "role": "victim",
+   "ticksBefore": 65,
+   "ticksDuring": 43,
+   "jitter_before_ms": {
+    "p50": 1.42,
+    "p99": 32.33,
+    "max": 32.33
+   },
+   "jitter_during_ms": {
+    "p50": 22.86,
+    "p99": 118.59,
+    "max": 118.59
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 30,
+   "role": "victim",
+   "ticksBefore": 65,
+   "ticksDuring": 40,
+   "jitter_before_ms": {
+    "p50": 1.81,
+    "p99": 43.41,
+    "max": 43.41
+   },
+   "jitter_during_ms": {
+    "p50": 27.76,
+    "p99": 137.61,
+    "max": 137.61
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 31,
+   "role": "victim",
+   "ticksBefore": 65,
+   "ticksDuring": 42,
+   "jitter_before_ms": {
+    "p50": 1.79,
+    "p99": 43.63,
+    "max": 43.63
+   },
+   "jitter_during_ms": {
+    "p50": 20.99,
+    "p99": 110.29,
+    "max": 110.29
+   },
+   "callErrors": 0,
+   "firstError": null
+  }
+ ],
+ "mainEventLoopDelay_ms": {
+  "p50": 20.32,
+  "p99": 86.84,
+  "max": 108.27
+ },
+ "post_hang_health": [
+  "0:OK tick=448",
+  "1:OK tick=454",
+  "2:OK tick=448",
+  "3:OK tick=442",
+  "4:OK tick=448",
+  "5:OK tick=448",
+  "6:OK tick=454",
+  "7:OK tick=442",
+  "8:OK tick=646",
+  "9:OK tick=646",
+  "10:OK tick=646",
+  "11:OK tick=652",
+  "12:OK tick=646",
+  "13:OK tick=652",
+  "14:OK tick=640",
+  "15:OK tick=634",
+  "16:OK tick=640",
+  "17:OK tick=634",
+  "18:OK tick=634",
+  "19:OK tick=646",
+  "20:OK tick=640",
+  "21:OK tick=640",
+  "22:OK tick=658",
+  "23:OK tick=634",
+  "24:OK tick=640",
+  "25:OK tick=634",
+  "26:OK tick=652",
+  "27:OK tick=646",
+  "28:OK tick=640",
+  "29:OK tick=652",
+  "30:OK tick=634",
+  "31:OK tick=646"
+ ]
+}

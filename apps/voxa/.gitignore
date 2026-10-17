@@ -1,0 +1,12 @@
+.next
+node_modules
+
+# i18n compiled files
+lang/build
+
+# Local Env
+.env.local
+.env.*.local
+
+# typescript incremental build
+tsconfig.tsbuildinfo

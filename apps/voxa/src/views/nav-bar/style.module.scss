@@ -1,0 +1,192 @@
+@use '../colors.module.scss' as c;
+@use '../texts.module.scss' as t;
+
+$projectWidth: 350px;
+$minMidPadding: 24px;
+$navBarMargin: 8px;
+
+.navBar {
+  .toolBar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    margin-left: $navBarMargin;
+    width: calc(100% - $projectWidth - $minMidPadding - $navBarMargin * 2);
+    margin-right: $minMidPadding;
+
+    .scrollBar {
+      display: flex;
+      overflow-x: scroll;
+      overflow-y: hidden;
+      &::-webkit-scrollbar {
+        height: 2px;
+      }
+      &::-webkit-scrollbar-thumb {
+        background-color: c.$textWhiteTertiary;
+        border-radius: 2px;
+      }
+      &::-webkit-scrollbar-thumb:hover {
+        background: c.$textWhiteSecondary;
+      }
+      &::-webkit-scrollbar-thumb:active {
+        background: c.$textWhitePrimary;
+      }
+    }
+  }
+
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 52px;
+  background-color: c.$surface3;
+  color: rgba(255, 255, 255, 0.75);
+
+  pointer-events: initial;
+
+  @include t.b14;
+
+  grid-area: navBar;
+
+  .fileMenuBtn {
+    width: 32px;
+    height: 32px;
+    margin-right: 10px;
+    flex: none;
+
+    svg {
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  .tools {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-left: 24px;
+    margin-bottom: -2px;
+    flex: none;
+  }
+
+  .tool {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: fit-content;
+    flex: none;
+
+    .axisButtons {
+      margin-left: 7px;
+    }
+  }
+
+  .divider {
+    border: 1px solid #464741;
+    height: 10px;
+  }
+
+  .size,
+  .axis {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin: 10px 0px;
+    flex: none;
+
+    .btn {
+      width: 32px;
+      height: 32px;
+
+      & > svg {
+        width: 20px;
+        height: 20px;
+      }
+    }
+
+    .axisInputs {
+      margin: 0px 7px;
+    }
+  }
+
+  .hitBoxMode {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin: 10px 0px;
+    flex: none;
+
+    .hitBoxModeTabs {
+      margin-left: 7px;
+      border-radius: 4px;
+      background: c.$opacityWhite9;
+
+      :global(.boxButton.boxButtonIcon p) {
+        margin: 0;
+        padding: 8px;
+        font-family: unset;
+        @include t.b12;
+      }
+
+      :global(.boxTabTabPanel.boxTabTabIcon.boxTabActivated p) {
+        @include t.h12;
+        color: c.$textWhitePrimary;
+      }
+
+      .hitBoxModeTab {
+        width: fit-content;
+      }
+    }
+  }
+
+  .project {
+    margin-right: $navBarMargin;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    gap: 8px;
+
+    flex: none;
+    width: $projectWidth;
+
+    input {
+      width: 180px;
+    }
+
+    .loading {
+      width: 16px;
+      height: 16px;
+    }
+
+    .button {
+      font-weight: 400;
+      font-size: 14px;
+      line-height: 17px;
+
+      &.save::after {
+        border-color: c.$primary80 transparent c.$primary80 c.$primary80;
+      }
+    }
+  }
+
+  .skinTitle {
+    @include t.h12;
+    color: c.$primary100;
+    font-weight: 700;
+    margin-left: 4px;
+  }
+}
+
+.tooltip {
+  position: relative;
+  width: 100%;
+  max-width: 258px;
+}

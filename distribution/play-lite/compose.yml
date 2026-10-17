@@ -1,0 +1,264 @@
+# BOX3 最小开服包（play-lite）：只跑「能被玩家游玩的地图服务」
+#
+# 与出厂全栈的差异（有意为之）：
+#   - 不含 server-manager：不挂载 /var/run/docker.sock、没有 user:"0:0" 常驻容器。
+#     地图运行时由 Play 内置调度器以共享 Node 子进程方式启动（见
+#     apps/local-engine/src/launcher.js：没有 BOX_RUNTIME_MANAGER_URL 时回落到共享运行时）。
+#   - 不含 creator / voxa：创作与语音不在开服机上跑。
+#   - 含 player-auth-portal（登录门户）：注册/登录接口对浏览器强制要求服务端密钥
+#     x-box-player-auth-key（apps/game/server/player-auth-security.ts），浏览器拿不到它，
+#     真实玩家自助注册/登录必须经门户代跑。门户自身无特权、无挂载卷。
+#   - 常驻服务 = play + player-service + player-auth-portal + managed-postgres
+#     （身份与地图数据都需要 PostgreSQL）。
+#
+# 用法：复制 .env.example 为 .env，填入三个必填值，然后 docker compose up -d。
+name: ${BOX_LITE_PROJECT_NAME:-box3-lite}
+
+services:
+  managed-postgres:
+    image: ${BOX_POSTGRES_IMAGE:-docker.m.daocloud.io/library/postgres:16-alpine}
+    restart: unless-stopped
+    read_only: true
+    # postgres 镜像需要写自己的数据目录、pg_wal 与 /var/run/postgresql 套接字目录。
+    tmpfs:
+      - /tmp:mode=1777
+      - /var/run/postgresql:mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - FSETID
+      - KILL
+      - SETGID
+      - SETUID
+      - DAC_OVERRIDE
+      - SYS_NICE
+    mem_limit: ${BOX_MANAGED_POSTGRES_MEMORY_LIMIT:-512m}
+    cpus: ${BOX_MANAGED_POSTGRES_CPU_LIMIT:-1.0}
+    pids_limit: ${BOX_MANAGED_POSTGRES_PIDS_LIMIT:-256}
+    environment:
+      POSTGRES_DB: ${BOX_MANAGED_POSTGRES_DATABASE:-box_lite}
+      POSTGRES_USER: ${BOX_MANAGED_POSTGRES_USER:-box_lite}
+      POSTGRES_PASSWORD: ${BOX_MANAGED_POSTGRES_PASSWORD:?请在 .env 中设置 BOX_MANAGED_POSTGRES_PASSWORD}
+    volumes:
+      - box-lite-postgres-data:/var/lib/postgresql/data
+    ports:
+      - "${BOX_BIND_IP:-127.0.0.1}:${BOX_MANAGED_POSTGRES_HOST_PORT:-4132}:5432"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "PGPASSWORD=\"$$POSTGRES_PASSWORD\" psql -h 127.0.0.1 -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\" -Atqc 'SELECT 1' | grep -qx 1",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  player-service:
+    image: ${BOX_PLAYER_SERVICE_IMAGE:-box-local-engine-player-service}:${BOX_IMAGE_TAG:-v2026.1.4-linux-amd64}
+    pull_policy: never
+    platform: ${BOX_PLAY_PLATFORM:-linux/amd64}
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: ${BOX_PLAYER_SERVICE_MEMORY_LIMIT:-1g}
+    cpus: ${BOX_PLAYER_SERVICE_CPU_LIMIT:-1.0}
+    pids_limit: ${BOX_PLAYER_SERVICE_PIDS_LIMIT:-256}
+    depends_on:
+      managed-postgres:
+        condition: service_healthy
+    environment:
+      BOX_DEPLOYMENT_MODE: player-service
+      NEXT_PUBLIC_APP_ENV: ${NEXT_PUBLIC_APP_ENV:-development}
+      NEXT_PUBLIC_APP_EDITION: ${NEXT_PUBLIC_APP_EDITION:-createra}
+      NEXT_PUBLIC_APP_REGION: ${NEXT_PUBLIC_APP_REGION:-cn}
+      BOX_PLAY_ADMIN_TOKEN: ${BOX_PLAY_ADMIN_TOKEN:-}
+      PERMISSION_TOKEN_SECRET: ${PERMISSION_TOKEN_SECRET:?请在 .env 中设置 PERMISSION_TOKEN_SECRET}
+      BOX_SERVER_PUBLIC_URL: ${BOX_PLAYER_SERVICE_PUBLIC_URL:-http://127.0.0.1:4124}
+      BOX_PLAYER_SERVICE_PUBLIC_URL: ${BOX_PLAYER_SERVICE_PUBLIC_URL:-http://127.0.0.1:4124}
+      BOX_PLAY_PUBLIC_URL: ${BOX_PLAY_PUBLIC_URL:-http://127.0.0.1:4121}
+      # Player Service 把地图管理调用代理给 Play，必须用 Docker 内部 DNS；
+      # 公网回环地址会解析到 Player Service 自己。
+      BOX_PLAY_INTERNAL_URL: http://play:3000
+      BOX_PLAYER_LOGIN_URL: ${BOX_PLAYER_LOGIN_URL:-http://127.0.0.1:${BOX_AUTH_PORTAL_PORT:-4125}}
+      BOX_PLAYER_AUTH_API_KEY: ${BOX_PLAYER_AUTH_API_KEY:?请在 .env 中设置 BOX_PLAYER_AUTH_API_KEY}
+      BOX_PLAYER_AUTH_ALLOWED_ORIGINS: ${BOX_PLAYER_AUTH_ALLOWED_ORIGINS:-}
+      BOX_TRUST_PROXY: ${BOX_TRUST_PROXY:-false}
+      BOX_RUNTIME_IDENTITY_TTL_MS: ${BOX_RUNTIME_IDENTITY_TTL_MS:-300000}
+      BOX_DATABASE_URL: ${BOX_DATABASE_URL:?请在 .env 中设置 BOX_DATABASE_URL}
+      BOX_IDENTITY_DATABASE_SCHEMA: ${BOX_IDENTITY_DATABASE_SCHEMA:-box_identity}
+      BOX_PLAYER_REGISTRATION_ENABLED: ${BOX_PLAYER_REGISTRATION_ENABLED:-true}
+      BOX_LOGIN_RATE_LIMIT_MAX_ATTEMPTS: ${BOX_LOGIN_RATE_LIMIT_MAX_ATTEMPTS:-10}
+      BOX_LOGIN_RATE_LIMIT_WINDOW_MS: ${BOX_LOGIN_RATE_LIMIT_WINDOW_MS:-300000}
+      BOX_REGISTRATION_RATE_LIMIT_MAX_ATTEMPTS: ${BOX_REGISTRATION_RATE_LIMIT_MAX_ATTEMPTS:-5}
+      BOX_REGISTRATION_RATE_LIMIT_WINDOW_MS: ${BOX_REGISTRATION_RATE_LIMIT_WINDOW_MS:-3600000}
+      BOX_PLAYER_COOKIE_DOMAIN: ${BOX_PLAYER_COOKIE_DOMAIN:-}
+      BOX_DATABASE_POOL_SIZE: ${BOX_DATABASE_POOL_SIZE:-4}
+      BOX_DATABASE_SSL: ${BOX_DATABASE_SSL:-false}
+      BOX_DATABASE_SSL_REJECT_UNAUTHORIZED: ${BOX_DATABASE_SSL_REJECT_UNAUTHORIZED:-true}
+    ports:
+      - "${BOX_BIND_IP:-127.0.0.1}:${BOX_PLAYER_SERVICE_PORT:-4124}:3213"
+
+  player-auth-portal:
+    image: ${BOX_AUTH_PORTAL_IMAGE:-box-local-engine-player-auth-portal}:${BOX_IMAGE_TAG:-v2026.1.4-linux-amd64}
+    pull_policy: never
+    platform: ${BOX_PLAY_PLATFORM:-linux/amd64}
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: ${BOX_AUTH_PORTAL_MEMORY_LIMIT:-128m}
+    cpus: ${BOX_AUTH_PORTAL_CPU_LIMIT:-0.5}
+    pids_limit: ${BOX_AUTH_PORTAL_PIDS_LIMIT:-64}
+    depends_on:
+      player-service:
+        condition: service_healthy
+    environment:
+      # 必填（server/config.ts）：BOX_PLAYER_AUTH_API_KEY >= 16 字符、
+      # BOX_PLAYER_SERVICE_INTERNAL_URL 为合法 HTTP URL，缺失或非法直接启动失败。
+      # 其余均有代码内默认值；BOX_* 标准变量优先，旧 AUTH_DEMO_* 不再需要。
+      BOX_APP_BASE_PATH: ${BOX_AUTH_PORTAL_BASE_PATH:-}
+      BOX_PUBLIC_SERVICE_PREFIXES_BY_ORIGIN: ${BOX_PUBLIC_SERVICE_PREFIXES_BY_ORIGIN:-{}}
+      NODE_OPTIONS: --max-old-space-size=${BOX_AUTH_PORTAL_NODE_HEAP_MB:-96}
+      HOST: 0.0.0.0
+      PORT: 3214
+      BOX_PLAYER_SERVICE_INTERNAL_URL: http://player-service:3213
+      BOX_PLAYER_AUTH_API_KEY: ${BOX_PLAYER_AUTH_API_KEY:?请在 .env 中设置 BOX_PLAYER_AUTH_API_KEY}
+      BOX_AUTH_PORTAL_PUBLIC_URL: ${BOX_AUTH_PORTAL_PUBLIC_URL:-http://127.0.0.1:${BOX_AUTH_PORTAL_PORT:-4125}}
+      BOX_PLAY_PUBLIC_URL: ${BOX_PLAY_PUBLIC_URL:-http://127.0.0.1:${BOX_PLAY_PORT:-4121}}
+      # 本包不含 creator：留空，门户不会向创作端做登录回传。
+      BOX_CREATOR_PUBLIC_URL: ${BOX_CREATOR_PUBLIC_URL:-}
+      BOX_PLAYER_REGISTRATION_ENABLED: ${BOX_PLAYER_REGISTRATION_ENABLED:-true}
+      BOX_AUTH_PORTAL_REQUEST_TIMEOUT_MS: ${BOX_AUTH_PORTAL_REQUEST_TIMEOUT_MS:-10000}
+      BOX_TRUST_PROXY: ${BOX_TRUST_PROXY:-false}
+    ports:
+      - "${BOX_BIND_IP:-127.0.0.1}:${BOX_AUTH_PORTAL_PORT:-4125}:3214"
+    healthcheck:
+      # 门户健康检查与上游解耦（server/portal.ts）：/api/health-check 恒 200。
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3214/api/health-check').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+
+  play-storage-init:
+    image: ${BOX_PLAY_IMAGE:-box-local-engine-play}:${BOX_IMAGE_TAG:-v2026.1.4-linux-amd64}
+    pull_policy: never
+    # 唯一需要 root 的容器：一次性修正宿主绑定挂载的属主，跑完即退出（Exited (0)）。
+    # 长驻服务全部以镜像默认的非 root 用户（UID 1000）运行。
+    user: "0:0"
+    entrypoint: []
+    command:
+      - sh
+      - -c
+      - >-
+        mkdir -p /app/play-runtime-cache /app/play-worlds
+        && mkdir -p /app/apps/local-engine/data/blobs
+        && chown -R 1000:1000 /app/play-runtime-cache /app/play-worlds /app/apps/local-engine/data
+    restart: "no"
+    network_mode: none
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+    volumes:
+      - box-lite-play-runtime-cache:/app/play-runtime-cache
+      - "${BOX_LITE_DATA_DIRECTORY:-./data}/apps/local-engine/data:/app/apps/local-engine/data"
+      - type: bind
+        source: "${BOX_LITE_DATA_DIRECTORY:-./data}/apps/local-engine/play-worlds"
+        target: /app/play-worlds
+        bind:
+          create_host_path: true
+
+  play:
+    image: ${BOX_PLAY_IMAGE:-box-local-engine-play}:${BOX_IMAGE_TAG:-v2026.1.4-linux-amd64}
+    pull_policy: never
+    platform: ${BOX_PLAY_PLATFORM:-linux/amd64}
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: ${BOX_PLAY_MEMORY_LIMIT:-4g}
+    cpus: ${BOX_PLAY_CPU_LIMIT:-2.0}
+    pids_limit: ${BOX_PLAY_PIDS_LIMIT:-1024}
+    depends_on:
+      player-service:
+        condition: service_healthy
+      play-storage-init:
+        condition: service_completed_successfully
+    environment:
+      BOX_DEPLOYMENT_MODE: play
+      # 故意不设置 BOX_RUNTIME_MANAGER_URL / BOX_RUNTIME_MANAGER_TOKEN：
+      # Play 会回落到内置的共享 Node 运行时调度器，因此无需 server-manager、
+      # 无需 Docker socket。声明 container 隔离的地图会记一条告警后照常跑。
+      BOX_PLAY_LIBRARY_PATH: /app/play-worlds
+      BOX_PLAY_ADMIN_TOKEN: ${BOX_PLAY_ADMIN_TOKEN:-}
+      BOX_LOCAL_PLAYER_LIMIT: ${BOX_LOCAL_PLAYER_LIMIT:-70}
+      PERMISSION_TOKEN_SECRET: ${PERMISSION_TOKEN_SECRET:?请在 .env 中设置 PERMISSION_TOKEN_SECRET}
+      BOX_SERVER_PUBLIC_URL: ${BOX_PLAY_PUBLIC_URL:-http://127.0.0.1:4121}
+      BOX_PLAYER_SERVICE_INTERNAL_URL: http://player-service:3213
+      BOX_PLAYER_SERVICE_PUBLIC_URL: ${BOX_PLAYER_SERVICE_PUBLIC_URL:-http://127.0.0.1:4124}
+      BOX_PLAY_PUBLIC_URL: ${BOX_PLAY_PUBLIC_URL:-http://127.0.0.1:4121}
+      BOX_PLAYER_LOGIN_URL: ${BOX_PLAYER_LOGIN_URL:-http://127.0.0.1:${BOX_AUTH_PORTAL_PORT:-4125}}
+      BOX_TRUST_PROXY: ${BOX_TRUST_PROXY:-false}
+      BOX_SESSION_TTL_MS: ${BOX_SESSION_TTL_MS:-60000}
+      BOX_RUNTIME_IDENTITY_TTL_MS: ${BOX_RUNTIME_IDENTITY_TTL_MS:-300000}
+      BOX_SCRIPT_HEAP_MB: ${BOX_SCRIPT_HEAP_MB:-512}
+      SCRIPT_MEMORY_LIMIT: ${BOX_SCRIPT_MEMORY_MB:-512}
+      BOX_PLAYER_REVOCATION_POLL_MS: ${BOX_PLAYER_REVOCATION_POLL_MS:-1000}
+      BOX_SESSION_RATE_LIMIT_PER_MINUTE: ${BOX_SESSION_RATE_LIMIT_PER_MINUTE:-60}
+      BOX_CREATE_SESSION_TIMEOUT_MS: ${BOX_CREATE_SESSION_TIMEOUT_MS:-120000}
+      BOX_PLAY_MAX_RUNTIMES: ${BOX_PLAY_MAX_RUNTIMES:-8}
+      BOX_PLAY_PREWARM_RUNTIMES: ${BOX_PLAY_PREWARM_RUNTIMES:-0}
+      BOX_RUNTIME_IDLE_TIMEOUT_MS: ${BOX_RUNTIME_IDLE_TIMEOUT_MS:-900000}
+      BOX_RUNTIME_START_TIMEOUT_MS: ${BOX_RUNTIME_START_TIMEOUT_MS:-1800000}
+      BOX_TELEPORT_MAX_ROOMS: ${BOX_TELEPORT_MAX_ROOMS:-64}
+      BOX_TELEPORT_ROOM_IDLE_TIMEOUT_MS: ${BOX_TELEPORT_ROOM_IDLE_TIMEOUT_MS:-900000}
+      BOX_RUNTIME_CACHE_PATH: /app/play-runtime-cache
+      BOX_DATABASE_URL: ${BOX_DATABASE_URL:?请在 .env 中设置 BOX_DATABASE_URL}
+      BOX_DATABASE_SCHEMA: ${BOX_DATABASE_SCHEMA:-box_engine}
+      BOX_DATABASE_POOL_SIZE: ${BOX_DATABASE_POOL_SIZE:-4}
+      BOX_DATABASE_SSL: ${BOX_DATABASE_SSL:-false}
+      BOX_DATABASE_SSL_REJECT_UNAUTHORIZED: ${BOX_DATABASE_SSL_REJECT_UNAUTHORIZED:-true}
+      BOX_DATA_STORAGE_LOCK_TIMEOUT_MS: ${BOX_DATA_STORAGE_LOCK_TIMEOUT_MS:-10000}
+      BOX_DATA_STORAGE_NAMESPACE_PREFIX: ${BOX_DATA_STORAGE_NAMESPACE_PREFIX:-}
+      REDIS_HOST: ${REDIS_HOST:-}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_DB: ${REDIS_DB:-0}
+      STORAGE_CACHE_REDIS_DB: ${STORAGE_CACHE_REDIS_DB:-1}
+      STORAGE_CACHE_REDIS_TTL: ${STORAGE_CACHE_REDIS_TTL:-240}
+    ports:
+      - "${BOX_BIND_IP:-127.0.0.1}:${BOX_PLAY_PORT:-4121}:3000"
+    volumes:
+      - type: bind
+        source: "${BOX_LITE_DATA_DIRECTORY:-./data}/apps/local-engine/play-worlds"
+        target: /app/play-worlds
+        bind:
+          create_host_path: true
+      # Play 载入地图时写本地内容 blob，此目录必须可写；运行时仍是 UID 1000。
+      - "${BOX_LITE_DATA_DIRECTORY:-./data}/apps/local-engine/data:/app/apps/local-engine/data"
+      - box-lite-play-runtime-cache:/app/play-runtime-cache
+
+volumes:
+  box-lite-postgres-data:
+  box-lite-play-runtime-cache:

@@ -1,0 +1,152 @@
+$primary100: #ffffff;
+$primary99: #f8ffe5;
+$primary95: #d1ff98;
+$primary90: #9afc17;
+$primary80: #81de00;
+$primary70: #6ec000;
+$primary60: #5ca200;
+$primary50: #4b8600;
+$primary40: #3a6a00;
+$primary30: #2a5000;
+$primary20: #1b3700;
+$primary10: #0d2000;
+$primary0: #000000;
+
+$secondary100: #ffffff;
+$secondary99: #f8ffe5;
+$secondary95: #e9f5d6;
+$secondary90: #dbe7c8;
+$secondary80: #bfcbad;
+$secondary70: #a4af93;
+$secondary60: #8a957a;
+$secondary50: #707b61;
+$secondary40: #576249;
+$secondary30: #404a34;
+$secondary20: #2a331f;
+$secondary10: #151e0b;
+$secondary0: #000000;
+
+$background5: #404040;
+$background4: #333333;
+$background3: #262626;
+$background2: #1a1a1a;
+$background1: #0d0d0d;
+$background0: #000000;
+
+$surface5: #404040;
+$surface4: #333333;
+$surface3: #262626;
+$surface2: #1a1a1a;
+$surface1: #0d0d0d;
+$surface0: #000000;
+
+$error100: #ffffff;
+$error99: #fff6f4;
+$error95: #ffece8;
+$error90: #fddcdc;
+$error80: #fbaca3;
+$error70: #f98981;
+$error60: #f65252;
+$error50: #f53f3f;
+$error40: #cf2b31;
+$error30: #a81b24;
+$error20: #5c0914;
+$error10: #410001;
+$error0: #000000;
+
+$caution100: #ffffff;
+$caution99: #fffff7;
+$caution95: #feffe8;
+$caution90: #fefebe;
+$caution80: #fdfa94;
+$caution70: #fcf26b;
+$caution60: #fbe842;
+$caution50: #fadc19;
+$caution40: #cfaf0f;
+$caution30: #a38408;
+$caution20: #4d3800;
+$caution10: #433719;
+$caution0: #000000;
+
+$success100: #ffffff;
+$success99: #eef8eb;
+$success95: #ddf1d7;
+$success90: #bbe4ae;
+$success80: #9ad686;
+$success70: #78c95d;
+$success60: #56bb35;
+$success50: #3b9422;
+$success40: #246e14;
+$success30: #134709;
+$success20: #1a3810;
+$success10: #153014;
+$success0: #000000;
+
+$axisY: #32e844;
+$axisX: #e83232;
+$axisZ: #00c2ff;
+
+// Text colors
+$textWhitePrimary: #ffffff;
+$textWhiteSecondary: rgba(255, 255, 255, 0.75);
+$textWhiteTertiary: rgba(255, 255, 255, 0.5);
+$textWhiteDisabled: rgba(255, 255, 255, 0.25);
+
+$textBlackPrimary: rgba(0, 0, 0, 0.95);
+$textBlackSecondary: rgba(0, 0, 0, 0.8);
+$textBlackTertiary: rgba(0, 0, 0, 0.65);
+$textBlackDisabled: rgba(255, 255, 255, 0.25);
+
+$neutral100: #ffffff;
+$neutral99: #fdfcf4;
+$neutral95: #fdfcf4;
+$neutral90: #e4e3db;
+$neutral80: #c7c7bf;
+$neutral70: #acaca4;
+$neutral60: #91918a;
+$neutral50: #777771;
+$neutral40: #5e5f59;
+$neutral30: #464741;
+$neutral20: #30312c;
+$neutral10: #1b1c18;
+$neutral0: #000000;
+
+$opacityWhite100: #ffffff;
+$opacityWhite90: rgba(255, 255, 255, 0.9);
+$opacityWhite80: rgba(255, 255, 255, 0.8);
+$opacityWhite70: rgba(255, 255, 255, 0.7);
+$opacityWhite60: rgba(255, 255, 255, 0.6);
+$opacityWhite50: rgba(255, 255, 255, 0.5);
+$opacityWhite40: rgba(255, 255, 255, 0.4);
+$opacityWhite30: rgba(255, 255, 255, 0.3);
+$opacityWhite21: rgba(255, 255, 255, 0.21);
+$opacityWhite18: rgba(255, 255, 255, 0.18);
+$opacityWhite15: rgba(255, 255, 255, 0.15);
+$opacityWhite12: rgba(255, 255, 255, 0.12);
+$opacityWhite9: rgba(255, 255, 255, 0.09);
+$opacityWhite6: rgba(255, 255, 255, 0.06);
+$opacityWhite3: rgba(255, 255, 255, 0.03);
+$opacityWhite0: rgba(255, 255, 255, 0);
+
+$gradientIconActive: linear-gradient(
+  90deg,
+  rgba(116, 223, 49, 0.4) 0%,
+  rgba(116, 223, 49, 0.15) 100%
+);
+$gradientIconNormal: linear-gradient(360deg, #e1e1e1 0%, #b5b5b5 100%);
+
+$gradientBlue: linear-gradient(
+  360deg,
+  rgba(0, 194, 255, 0.2) 0%,
+  rgba(0, 194, 255, 0) 100%
+);
+$gradientGreen: linear-gradient(
+  360deg,
+  rgba(50, 232, 68, 0.2) 0%,
+  rgba(50, 232, 68, 0) 100%
+);
+$gradientRed: linear-gradient(
+  360deg,
+  rgba(232, 50, 50, 0.2) 0%,
+  rgba(232, 50, 50, 0) 100%
+);

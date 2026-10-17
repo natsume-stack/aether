@@ -1,0 +1,179 @@
+.managed-install-card,
+.managed-connection-card {
+    margin-bottom: 0;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--panel-soft);
+}
+
+.managed-install-card {
+    min-height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 14px;
+}
+
+.managed-connection-heading > div {
+    min-width: 0;
+}
+
+.managed-install-card strong,
+.managed-connection-heading strong,
+.managed-connection-heading small {
+    display: block;
+}
+
+.managed-install-card strong {
+    margin: 0;
+    font-size: 13px;
+}
+
+.managed-connection-heading strong {
+    margin: 5px 0 2px;
+    font-size: 13px;
+}
+
+.managed-connection-heading small {
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.managed-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 650;
+}
+
+.managed-state::before {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    content: '';
+}
+
+.managed-state.running {
+    color: var(--success);
+}
+
+.managed-state.stopped {
+    color: var(--accent-hover);
+}
+
+.managed-connection-heading {
+    min-height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 14px;
+}
+
+.managed-connection-details {
+    border-top: 1px solid var(--border);
+}
+
+.managed-connection-details summary {
+    padding: 12px 14px;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.managed-connection-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+}
+
+.managed-connection-grid > div {
+    min-width: 0;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+}
+
+.managed-connection-grid > div:nth-child(odd):not(.connection-url) {
+    border-right: 1px solid var(--border);
+}
+
+.managed-connection-grid > div.connection-url,
+.managed-connection-grid > div:nth-last-child(1) {
+    border-bottom: 0;
+}
+
+.managed-connection-grid .connection-url {
+    grid-column: 1 / -1;
+}
+
+.external-nginx-info .managed-connection-grid code {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.managed-connection-grid dt {
+    margin-bottom: 4px;
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.managed-connection-grid dd {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+.managed-connection-grid code {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--text);
+    font:
+        11px/1.5 'SFMono-Regular',
+        Consolas,
+        monospace;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.copy-connection {
+    width: 24px;
+    height: 24px;
+    display: grid;
+    flex: 0 0 auto;
+    place-items: center;
+    margin-left: auto;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition:
+        color 140ms ease,
+        transform 140ms var(--ease-out);
+}
+
+.copy-connection svg {
+    width: 14px;
+    height: 14px;
+}
+
+.copy-connection:active {
+    transform: scale(0.94);
+}
+
+.copy-connection.copied {
+    color: var(--success);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .copy-connection:hover {
+        color: var(--text);
+    }
+}

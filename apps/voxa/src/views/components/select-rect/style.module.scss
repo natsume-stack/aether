@@ -1,0 +1,9 @@
+@use '../../colors.module.scss' as colors;
+
+.selectRect {
+  position: fixed;
+  background-color: transparent;
+  border: 1px solid colors.$primary80;
+  background: rgba(colors.$primary80, 0.1);
+  z-index: 11;
+}

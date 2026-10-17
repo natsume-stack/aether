@@ -1,0 +1,125 @@
+services:
+  player-service:
+    image: box-local-engine-player-service:${BOX_IMAGE_TAG:-2026.1.4}
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: ${BOX_PLAYER_SERVICE_MEMORY_LIMIT:-1g}
+    cpus: ${BOX_PLAYER_SERVICE_CPU_LIMIT:-1.0}
+    pids_limit: ${BOX_PLAYER_SERVICE_PIDS_LIMIT:-256}
+    environment:
+      BOX_DEPLOYMENT_MODE: player-service
+      NEXT_PUBLIC_APP_ENV: development
+      NEXT_PUBLIC_APP_EDITION: createra
+      NEXT_PUBLIC_APP_REGION: cn
+      BOX_PLAY_ADMIN_TOKEN: ${BOX_PLAY_ADMIN_TOKEN:-}
+      PERMISSION_TOKEN_SECRET: ${PERMISSION_TOKEN_SECRET:?请在 .env 中设置 PERMISSION_TOKEN_SECRET}
+      BOX_SERVER_PUBLIC_URL: ${BOX_PLAYER_SERVICE_PUBLIC_URL:-http://127.0.0.1:3124}
+      BOX_PLAYER_SERVICE_PUBLIC_URL: ${BOX_PLAYER_SERVICE_PUBLIC_URL:-http://127.0.0.1:3124}
+      BOX_PLAY_PUBLIC_URL: ${BOX_PLAY_PUBLIC_URL:-http://127.0.0.1:3121}
+      BOX_PLAYER_LOGIN_URL: ${BOX_PLAYER_LOGIN_URL:-}
+      BOX_PLAYER_AUTH_API_KEY: ${BOX_PLAYER_AUTH_API_KEY:?请在 .env 中设置 BOX_PLAYER_AUTH_API_KEY}
+      BOX_PLAYER_AUTH_ALLOWED_ORIGINS: ${BOX_PLAYER_AUTH_ALLOWED_ORIGINS:-}
+      BOX_TRUST_PROXY: ${BOX_TRUST_PROXY:-false}
+      BOX_RUNTIME_IDENTITY_TTL_MS: ${BOX_RUNTIME_IDENTITY_TTL_MS:-300000}
+      BOX_DATABASE_URL: ${BOX_DATABASE_URL:?请在 .env 中设置 BOX_DATABASE_URL}
+      BOX_IDENTITY_DATABASE_SCHEMA: ${BOX_IDENTITY_DATABASE_SCHEMA:-box_identity}
+      BOX_PLAYER_REGISTRATION_ENABLED: ${BOX_PLAYER_REGISTRATION_ENABLED:-true}
+      BOX_LOGIN_RATE_LIMIT_MAX_ATTEMPTS: ${BOX_LOGIN_RATE_LIMIT_MAX_ATTEMPTS:-10}
+      BOX_LOGIN_RATE_LIMIT_WINDOW_MS: ${BOX_LOGIN_RATE_LIMIT_WINDOW_MS:-300000}
+      BOX_REGISTRATION_RATE_LIMIT_MAX_ATTEMPTS: ${BOX_REGISTRATION_RATE_LIMIT_MAX_ATTEMPTS:-5}
+      BOX_REGISTRATION_RATE_LIMIT_WINDOW_MS: ${BOX_REGISTRATION_RATE_LIMIT_WINDOW_MS:-3600000}
+      BOX_PLAYER_COOKIE_DOMAIN: ${BOX_PLAYER_COOKIE_DOMAIN:-}
+      BOX_DATABASE_POOL_SIZE: ${BOX_DATABASE_POOL_SIZE:-4}
+      BOX_DATABASE_SSL: ${BOX_DATABASE_SSL:-false}
+      BOX_DATABASE_SSL_REJECT_UNAUTHORIZED: ${BOX_DATABASE_SSL_REJECT_UNAUTHORIZED:-true}
+    ports:
+      - "${BOX_PLAYER_SERVICE_HOST_IP:-127.0.0.1}:${BOX_PLAYER_SERVICE_PORT:-3124}:3213"
+
+  play-storage-init:
+    image: box-local-engine-play:${BOX_IMAGE_TAG:-2026.1.4}
+    user: "0:0"
+    command:
+      - sh
+      - -c
+      - mkdir -p /app/play-runtime-cache && chown -R 1000:1000 /app/play-runtime-cache
+    restart: "no"
+    network_mode: none
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+    volumes:
+      - box-play-runtime-cache:/app/play-runtime-cache
+
+  play:
+    image: box-local-engine-play:${BOX_IMAGE_TAG:-2026.1.4}
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: ${BOX_PLAY_MEMORY_LIMIT:-4g}
+    cpus: ${BOX_PLAY_CPU_LIMIT:-2.0}
+    pids_limit: ${BOX_PLAY_PIDS_LIMIT:-1024}
+    depends_on:
+      player-service:
+        condition: service_healthy
+      play-storage-init:
+        condition: service_completed_successfully
+    environment:
+      BOX_DEPLOYMENT_MODE: play
+      BOX_PLAY_LIBRARY_PATH: /app/play-worlds
+      BOX_PLAY_ADMIN_TOKEN: ${BOX_PLAY_ADMIN_TOKEN:-}
+      BOX_LOCAL_PLAYER_LIMIT: ${BOX_LOCAL_PLAYER_LIMIT:-70}
+      PERMISSION_TOKEN_SECRET: ${PERMISSION_TOKEN_SECRET:?请在 .env 中设置 PERMISSION_TOKEN_SECRET}
+      BOX_SERVER_PUBLIC_URL: ${BOX_PLAY_PUBLIC_URL:-http://127.0.0.1:3121}
+      BOX_PLAYER_SERVICE_INTERNAL_URL: http://player-service:3213
+      BOX_PLAYER_SERVICE_PUBLIC_URL: ${BOX_PLAYER_SERVICE_PUBLIC_URL:-http://127.0.0.1:3124}
+      BOX_PLAY_PUBLIC_URL: ${BOX_PLAY_PUBLIC_URL:-http://127.0.0.1:3121}
+      BOX_PLAYER_LOGIN_URL: ${BOX_PLAYER_LOGIN_URL:-}
+      BOX_TRUST_PROXY: ${BOX_TRUST_PROXY:-false}
+      BOX_SESSION_TTL_MS: ${BOX_SESSION_TTL_MS:-60000}
+      BOX_RUNTIME_IDENTITY_TTL_MS: ${BOX_RUNTIME_IDENTITY_TTL_MS:-300000}
+      BOX_SCRIPT_HEAP_MB: ${BOX_SCRIPT_HEAP_MB:-512}
+      SCRIPT_MEMORY_LIMIT: ${BOX_SCRIPT_MEMORY_MB:-512}
+      BOX_PLAYER_REVOCATION_POLL_MS: ${BOX_PLAYER_REVOCATION_POLL_MS:-1000}
+      BOX_SESSION_RATE_LIMIT_PER_MINUTE: ${BOX_SESSION_RATE_LIMIT_PER_MINUTE:-60}
+      BOX_CREATE_SESSION_TIMEOUT_MS: ${BOX_CREATE_SESSION_TIMEOUT_MS:-120000}
+      BOX_PLAY_MAX_RUNTIMES: ${BOX_PLAY_MAX_RUNTIMES:-8}
+      BOX_PLAY_PREWARM_RUNTIMES: ${BOX_PLAY_PREWARM_RUNTIMES:-0}
+      BOX_RUNTIME_IDLE_TIMEOUT_MS: ${BOX_RUNTIME_IDLE_TIMEOUT_MS:-900000}
+      BOX_RUNTIME_START_TIMEOUT_MS: ${BOX_RUNTIME_START_TIMEOUT_MS:-1800000}
+      BOX_TELEPORT_MAX_ROOMS: ${BOX_TELEPORT_MAX_ROOMS:-64}
+      BOX_TELEPORT_ROOM_IDLE_TIMEOUT_MS: ${BOX_TELEPORT_ROOM_IDLE_TIMEOUT_MS:-900000}
+      BOX_RUNTIME_CACHE_PATH: /app/play-runtime-cache
+      BOX_DATABASE_URL: ${BOX_DATABASE_URL:?请在 .env 中设置 BOX_DATABASE_URL}
+      BOX_DATABASE_SCHEMA: ${BOX_DATABASE_SCHEMA:-box_engine}
+      BOX_DATABASE_POOL_SIZE: ${BOX_DATABASE_POOL_SIZE:-4}
+      BOX_DATABASE_SSL: ${BOX_DATABASE_SSL:-false}
+      BOX_DATABASE_SSL_REJECT_UNAUTHORIZED: ${BOX_DATABASE_SSL_REJECT_UNAUTHORIZED:-true}
+      BOX_DATA_STORAGE_LOCK_TIMEOUT_MS: ${BOX_DATA_STORAGE_LOCK_TIMEOUT_MS:-10000}
+      BOX_DATA_STORAGE_NAMESPACE_PREFIX: ${BOX_DATA_STORAGE_NAMESPACE_PREFIX:-}
+      REDIS_HOST: ${REDIS_HOST:-}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_DB: ${REDIS_DB:-0}
+      STORAGE_CACHE_REDIS_DB: ${STORAGE_CACHE_REDIS_DB:-1}
+      STORAGE_CACHE_REDIS_TTL: ${STORAGE_CACHE_REDIS_TTL:-240}
+    ports:
+      - "${BOX_PLAY_HOST_IP:-127.0.0.1}:${BOX_PLAY_PORT:-3121}:3000"
+    volumes:
+      - type: bind
+        source: ./play-worlds
+        target: /app/play-worlds
+        bind:
+          create_host_path: true
+      - box-play-runtime-cache:/app/play-runtime-cache
+
+volumes:
+  box-play-runtime-cache:

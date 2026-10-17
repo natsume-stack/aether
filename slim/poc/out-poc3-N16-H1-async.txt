@@ -1,0 +1,351 @@
+{
+ "config": {
+  "HANG_MODE": "async",
+  "HANG_COUNT": 1,
+  "N_ISO": 16,
+  "TICK_MS": 50,
+  "DURATION_MS": 7000,
+  "TIMEOUT": 10000,
+  "HANG_FROM": 1500,
+  "HANG_MS": 3000,
+  "memMB": 512,
+  "cores": 8
+ },
+ "hangEvents": [
+  {
+   "atMs": 1500.2,
+   "msg": "isolate#0..#0 start while(true); form=async budget=3000ms"
+  },
+  {
+   "iso": 0,
+   "atMs": 3024.4,
+   "msg": "timeout FIRED",
+   "err": "Script execution timed out.",
+   "thisIsolateAlive": true,
+   "othersAlive": true
+  }
+ ],
+ "victim_summary": {
+  "n": 15,
+  "worst_before_p50": 4.88,
+  "worst_during_p99": 127.28
+ },
+ "hanger_summary": {
+  "n": 1,
+  "worst_before_p50": 2.19,
+  "worst_during_p99": 2993.02
+ },
+ "perIsolate": [
+  {
+   "idx": 0,
+   "role": "HANGER",
+   "ticksBefore": 49,
+   "ticksDuring": 7,
+   "jitter_before_ms": {
+    "p50": 2.19,
+    "p99": 326.68,
+    "max": 326.68
+   },
+   "jitter_during_ms": {
+    "p50": 16.17,
+    "p99": 2993.02,
+    "max": 2993.02
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 1,
+   "role": "victim",
+   "ticksBefore": 54,
+   "ticksDuring": 53,
+   "jitter_before_ms": {
+    "p50": 3.69,
+    "p99": 120.98,
+    "max": 120.98
+   },
+   "jitter_during_ms": {
+    "p50": 9.66,
+    "p99": 80.01,
+    "max": 80.01
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 2,
+   "role": "victim",
+   "ticksBefore": 49,
+   "ticksDuring": 51,
+   "jitter_before_ms": {
+    "p50": 3.57,
+    "p99": 226.88,
+    "max": 226.88
+   },
+   "jitter_during_ms": {
+    "p50": 9.13,
+    "p99": 121.42,
+    "max": 121.42
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 3,
+   "role": "victim",
+   "ticksBefore": 48,
+   "ticksDuring": 52,
+   "jitter_before_ms": {
+    "p50": 1.7,
+    "p99": 265.46,
+    "max": 265.46
+   },
+   "jitter_during_ms": {
+    "p50": 13.55,
+    "p99": 62.89,
+    "max": 62.89
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 4,
+   "role": "victim",
+   "ticksBefore": 51,
+   "ticksDuring": 53,
+   "jitter_before_ms": {
+    "p50": 2.03,
+    "p99": 162.92,
+    "max": 162.92
+   },
+   "jitter_during_ms": {
+    "p50": 10.24,
+    "p99": 68.4,
+    "max": 68.4
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 5,
+   "role": "victim",
+   "ticksBefore": 51,
+   "ticksDuring": 51,
+   "jitter_before_ms": {
+    "p50": 4.02,
+    "p99": 163.9,
+    "max": 163.9
+   },
+   "jitter_during_ms": {
+    "p50": 11.72,
+    "p99": 63.92,
+    "max": 63.92
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 6,
+   "role": "victim",
+   "ticksBefore": 51,
+   "ticksDuring": 51,
+   "jitter_before_ms": {
+    "p50": 2.7,
+    "p99": 185.45,
+    "max": 185.45
+   },
+   "jitter_during_ms": {
+    "p50": 10.6,
+    "p99": 121.68,
+    "max": 121.68
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 7,
+   "role": "victim",
+   "ticksBefore": 50,
+   "ticksDuring": 48,
+   "jitter_before_ms": {
+    "p50": 2.22,
+    "p99": 216.13,
+    "max": 216.13
+   },
+   "jitter_during_ms": {
+    "p50": 11.95,
+    "p99": 127.28,
+    "max": 127.28
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 8,
+   "role": "victim",
+   "ticksBefore": 48,
+   "ticksDuring": 50,
+   "jitter_before_ms": {
+    "p50": 3.06,
+    "p99": 300.62,
+    "max": 300.62
+   },
+   "jitter_during_ms": {
+    "p50": 9.57,
+    "p99": 121.16,
+    "max": 121.16
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 9,
+   "role": "victim",
+   "ticksBefore": 50,
+   "ticksDuring": 52,
+   "jitter_before_ms": {
+    "p50": 4.88,
+    "p99": 217.12,
+    "max": 217.12
+   },
+   "jitter_during_ms": {
+    "p50": 14.07,
+    "p99": 69.43,
+    "max": 69.43
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 10,
+   "role": "victim",
+   "ticksBefore": 49,
+   "ticksDuring": 51,
+   "jitter_before_ms": {
+    "p50": 2.21,
+    "p99": 184.52,
+    "max": 184.52
+   },
+   "jitter_during_ms": {
+    "p50": 14.68,
+    "p99": 68.4,
+    "max": 68.4
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 11,
+   "role": "victim",
+   "ticksBefore": 52,
+   "ticksDuring": 51,
+   "jitter_before_ms": {
+    "p50": 3.84,
+    "p99": 160.08,
+    "max": 160.08
+   },
+   "jitter_during_ms": {
+    "p50": 12.22,
+    "p99": 122.72,
+    "max": 122.72
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 12,
+   "role": "victim",
+   "ticksBefore": 48,
+   "ticksDuring": 51,
+   "jitter_before_ms": {
+    "p50": 2.38,
+    "p99": 217.46,
+    "max": 217.46
+   },
+   "jitter_during_ms": {
+    "p50": 10.47,
+    "p99": 127.16,
+    "max": 127.16
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 13,
+   "role": "victim",
+   "ticksBefore": 50,
+   "ticksDuring": 52,
+   "jitter_before_ms": {
+    "p50": 2.32,
+    "p99": 184.3,
+    "max": 184.3
+   },
+   "jitter_during_ms": {
+    "p50": 9.94,
+    "p99": 121.16,
+    "max": 121.16
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 14,
+   "role": "victim",
+   "ticksBefore": 48,
+   "ticksDuring": 53,
+   "jitter_before_ms": {
+    "p50": 1.73,
+    "p99": 240.9,
+    "max": 240.9
+   },
+   "jitter_during_ms": {
+    "p50": 10.36,
+    "p99": 65.76,
+    "max": 65.76
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 15,
+   "role": "victim",
+   "ticksBefore": 50,
+   "ticksDuring": 52,
+   "jitter_before_ms": {
+    "p50": 4.54,
+    "p99": 240.22,
+    "max": 240.22
+   },
+   "jitter_during_ms": {
+    "p50": 9.2,
+    "p99": 87.64,
+    "max": 87.64
+   },
+   "callErrors": 0,
+   "firstError": null
+  }
+ ],
+ "mainEventLoopDelay_ms": {
+  "p50": 20.61,
+  "p99": 96.21,
+  "max": 224.79
+ },
+ "post_hang_health": [
+  "0:OK tick=340",
+  "1:OK tick=646",
+  "2:OK tick=604",
+  "3:OK tick=604",
+  "4:OK tick=628",
+  "5:OK tick=616",
+  "6:OK tick=616",
+  "7:OK tick=592",
+  "8:OK tick=592",
+  "9:OK tick=616",
+  "10:OK tick=604",
+  "11:OK tick=622",
+  "12:OK tick=598",
+  "13:OK tick=616",
+  "14:OK tick=610",
+  "15:OK tick=616"
+ ]
+}

@@ -1,0 +1,106 @@
+.player-admin-filterbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.player-admin-pagination {
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #edf0f4;
+}
+.player-admin-table-pagination {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #edf0f4;
+}
+.player-admin-filterbar > .ant-input-affix-wrapper {
+    flex: 1 1 360px;
+    min-width: 240px;
+}
+.player-admin-filterbar > .ant-select {
+    flex: 0 0 140px;
+}
+@media (max-width: 1240px) {
+    .player-admin-filterbar {
+        flex-wrap: wrap;
+    }
+    .player-admin-filterbar > .ant-input-affix-wrapper {
+        flex-basis: 100%;
+    }
+}
+.player-admin-overview-card {
+    margin-top: 18px;
+}
+.player-admin-table .ant-table-thead > tr > th {
+    color: #626d80;
+    background: #f8f9fb;
+    font-size: 12px;
+    font-weight: 600;
+}
+.player-admin-panel .ant-table-thead > tr > th {
+    padding-top: 11px;
+    padding-bottom: 11px;
+    color: #626d80;
+    background: var(--player-admin-subtle);
+    border-bottom-color: #e8ecf1;
+    font-size: 12px;
+    font-weight: 600;
+}
+.player-admin-panel .ant-table-tbody > tr > td {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    color: var(--player-admin-text);
+    border-bottom-color: #edf0f4;
+}
+.player-admin-panel .ant-table-tbody > tr:last-child > td {
+    border-bottom: 0;
+}
+.player-admin-panel .ant-table-tbody > tr:hover > td {
+    background: #f6f9fd;
+}
+.player-admin-table .ant-table-tbody > tr > td {
+    color: #354158;
+}
+.player-admin-table .ant-table-tbody > tr {
+    cursor: pointer;
+}
+.player-admin-table .ant-table-tbody > tr:hover > td {
+    background: #f5f9ff;
+}
+.player-admin-batchbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 16px;
+    padding: 10px 12px 10px 16px;
+    background: #f0f7ff;
+    border: 1px solid #b7d7ff;
+    border-radius: 3px;
+    color: #354158;
+}
+.player-admin-batchbar strong {
+    color: #1677ff;
+}
+.player-admin-player {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 180px;
+}
+.player-admin-player-name {
+    color: #1d2940;
+    font-weight: 600;
+}
+.player-admin-player-meta {
+    margin-top: 2px;
+    color: #8992a2;
+    font-size: 12px;
+}

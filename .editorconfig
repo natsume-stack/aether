@@ -1,0 +1,31 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.md]
+trim_trailing_whitespace = false
+
+[Makefile]
+indent_style = tab
+
+# Owned source; upstream and generated files retain their existing conventions.
+[{apps/deployment-manager,apps/player-admin,apps/player-launcher,packages/deployment-routing,packages/player-policy,packages/realtime-client,scripts,tools/repo-tooling,services/game-server/scripts/fixtures/anticheat}/**/*.{js,cjs,mjs,ts,tsx,mts,cts,css,less}]
+indent_size = 4
+
+[apps/player-auth-portal/{src,server,scripts,test}/**/*.{js,cjs,mjs,ts,tsx,mts,cts,css,less}]
+indent_size = 4
+
+[apps/local-engine/{src,scripts}/**/*.{js,cjs,mjs,ts,tsx,mts,cts,css,less}]
+indent_size = 4
+
+[{docs,apps/deployment-manager,apps/player-admin,apps/player-launcher,apps/player-auth-portal,apps/local-engine,packages/deployment-routing,packages/player-policy,packages/realtime-client}/**/*.md]
+indent_size = 4
+
+[{.prettierrc.cjs,.eslintrc.cjs,README.md,CONTRIBUTING.md,apps/voxa/README.md,apps/server-manager-rust/README.md,apps/manager-core/README.md,internals/apis/README.md}]
+indent_size = 4

@@ -1,0 +1,85 @@
+@use '../colors.module.scss' as c;
+@use '../texts.module.scss' as t;
+
+.bottomBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-width: 0; // 允许溢出
+
+  pointer-events: initial;
+  background-color: c.$background1;
+
+  grid-area: bottomBar;
+
+  border-left: 1px solid #000;
+  border-right: 1px solid #000;
+
+  .btn {
+    padding: 2px;
+    border-radius: 4px;
+  }
+
+  .leftSide {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    & > * {
+      margin-left: 6px;
+      margin-right: 6px;
+    }
+
+    .divider {
+      width: 1px;
+      height: 20px;
+      border: 1px solid c.$opacityWhite9;
+    }
+  }
+
+  .scrollBar {
+    display: flex;
+    flex-direction: row-reverse;
+    overflow-x: scroll;
+    margin-left: 16px;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .rightSide {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 6px;
+    flex: none;
+    height: 100%;
+
+    & > * {
+      margin: 0px 6px;
+    }
+
+    .dropDown {
+      width: 108px;
+      height: 24px;
+      @include t.b12;
+
+      :global(.boxMenu) {
+        position: relative;
+        bottom: 60px;
+
+        justify-content: flex-start;
+        align-items: center;
+
+        p {
+          @include t.b14;
+        }
+      }
+    }
+  }
+}
+
+.tooltip {
+  position: relative;
+  width: 100%;
+}

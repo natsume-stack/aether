@@ -1,0 +1,46 @@
+@use '../../colors.module.scss' as colors;
+@use '../../texts.module.scss' as texts;
+
+.floatBtn {
+  font-family: Rubik, MiSans;
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+
+  height: 26px;
+
+  background-color: colors.$background4;
+  border: 1px solid colors.$opacityWhite6;
+  border-radius: 4px;
+
+  pointer-events: initial;
+
+  > svg {
+    height: 16px;
+    width: 16px;
+    fill: colors.$textWhiteSecondary;
+  }
+
+  > span {
+    margin-left: 4px;
+    color: colors.$textWhiteSecondary;
+    @include texts.b12;
+  }
+}
+
+.floatBtn {
+  &:hover {
+    background-color: colors.$background5;
+  }
+
+  &:active {
+    background-color: colors.$background3;
+  }
+
+  // 目前没有这个状态
+  &:disabled {
+    background-color: colors.$background2;
+  }
+}

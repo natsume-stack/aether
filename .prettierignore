@@ -1,0 +1,67 @@
+# Dependencies and build output
+.git/
+**/node_modules/
+**/.rush/
+**/.next/
+**/dist/
+**/dist-electron/
+**/release-electron/
+**/rush-logs/
+**/coverage/
+**/target/
+**/*.tsbuildinfo
+apps/game/html-report/
+
+# Runtime and user data
+.local-data/
+apps/local-engine/data/
+apps/local-engine/projects/
+apps/local-engine/play-worlds/
+apps/local-engine/backups/
+apps/local-engine/.build-lock/
+apps/local-engine/runtime-cache/
+apps/voxa/data/
+apps/migrator/
+apps/deployment-manager/src-tauri/gen/
+apps/deployment-manager/src-tauri/target/
+apps/player-admin/src/.umi/
+apps/player-admin/src/.umi-production/
+
+# Generated and binary-heavy assets
+apps/game/public/
+apps/game/assets/
+apps/voxa/public/
+apps/voxa/assets/
+**/*.glsl
+**/*.frag
+**/*.vert
+**/*.min.js
+# Generated runtime and browser assets for the standalone login portal.
+# Their source files remain covered by formatting checks.
+apps/player-auth-portal/build/
+apps/player-auth-portal/public/app.js
+apps/player-auth-portal/public/styles.css
+apps/player-auth-portal/public/theme.js
+pnpm-lock.yaml
+common/config/rush/pnpm-lock.yaml
+common/config/rush/repo-state.json
+common/scripts/
+common/temp/
+
+# Compose files are validated as distributable text templates. Keep their
+# double-quoted interpolation syntax stable for the release regression checks.
+docker-compose.yml
+distribution/play/compose.yml
+
+# These directories are synchronized from boxes. Format them only as part of
+# an explicit upstream-alignment change, otherwise a formatter creates a large
+# compatibility-only diff.
+apps/game/
+apps/voxa/
+services/game-server/
+internals/
+packages/*
+!packages/deployment-routing/
+!packages/player-policy/
+!packages/realtime-client/
+types/

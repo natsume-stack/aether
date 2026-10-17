@@ -1,0 +1,9 @@
+{
+  "image": "box-local-engine-server-manager",
+  "imageTag": "v2026.1.4-linux-amd64",
+  "platform": "linux/amd64",
+  "archive": "box-local-engine-image-server-manager-amd64-4cb908cee3d9f097e4f7e6f310158e313ab4fc1fc462d3cb170e770b73322179.tar.gz",
+  "sha256": "4cb908cee3d9f097e4f7e6f310158e313ab4fc1fc462d3cb170e770b73322179",
+  "size": 83924951,
+  "contentTag": "box-local-engine-server-manager:launcher-content-a073810d2cb43e1e1b3dafdfab8618048f25d1e452554a4ecbe05d998e58e00f"
+}

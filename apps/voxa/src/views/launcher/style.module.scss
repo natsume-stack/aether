@@ -1,0 +1,87 @@
+@use '../colors.module.scss' as color;
+@use '../texts.module.scss' as text;
+
+.launcher {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 11;
+
+  width: 100vw;
+  height: 100vh;
+
+  background-color: #000;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  .logo {
+    position: relative;
+    width: 128px;
+    height: 128px;
+
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .shadow {
+      position: absolute;
+      top: 0;
+      left: 0;
+      animation: loading 2s linear infinite;
+
+      @keyframes loading {
+        0% {
+          transform: scale(1);
+          opacity: 0.3;
+        }
+
+        50% {
+          transform: scale(8);
+          opacity: 0;
+        }
+
+        100% {
+          transform: scale(8);
+          opacity: 0;
+        }
+      }
+    }
+  }
+
+  .bottom {
+    position: absolute;
+    bottom: 48px;
+
+    width: fit-content;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    button {
+      margin-bottom: 24px;
+
+      p {
+        color: color.$primary20;
+        @include text.b16;
+      }
+    }
+
+    p {
+      @include text.b12;
+      color: color.$opacityWhite70;
+
+      &.exit {
+        color: color.$secondary80;
+
+        cursor: pointer;
+        text-decoration-line: underline;
+      }
+    }
+  }
+}

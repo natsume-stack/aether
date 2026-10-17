@@ -1,0 +1,42 @@
+{
+ "hostPid": 1,
+ "memLimitMB": 512,
+ "siblings": 4,
+ "baselineRSS_MB": 53.3,
+ "allHealthyBefore": true,
+ "uncaughtException": {
+  "surfaced": "uncaught author error at top level",
+  "catastrophicCallbacks": 0,
+  "hostAlive": true,
+  "siblingsHealthy": "4/4",
+  "failedSiblings": [],
+  "rss_MB": 56.6,
+  "sameIsolateStillUsable": true
+ },
+ "oom": {
+  "outcome": "THREW",
+  "err": "Array buffer allocation failed",
+  "isDisposed": false,
+  "catastrophicCallbacks": [],
+  "hostAlive": true,
+  "siblingsHealthy": "4/4",
+  "failedSiblings": [],
+  "rssBefore_MB": 56.8,
+  "rssDuring_MB": 592.3,
+  "peakHWM_MB": 592,
+  "isolateV8Heap_MB": 0.7,
+  "disposeThrew": false,
+  "rssAfterDispose_MB": 54.5,
+  "rssReclaimed_MB": 537.9,
+  "isDisposedAfter": true
+ },
+ "concurrentOOM": {
+  "launched": 4,
+  "rssBefore_MB": 59,
+  "peakHWM_MB": 2200.7,
+  "rssAfterDispose_MB": 2173.6,
+  "hostAlive": true,
+  "survivorsStillHealthy": "4/4"
+ },
+ "finalHostRSS_MB": 2174.2
+}

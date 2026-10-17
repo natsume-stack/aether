@@ -1,0 +1,55 @@
+.toast {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 20px;
+    grid-template-rows: auto auto;
+    align-items: start;
+    gap: 4px 8px;
+    width: min(440px, calc(100vw - 48px));
+    min-height: 38px;
+    padding: 10px 8px 10px 12px;
+    border: 1px solid color-mix(in srgb, var(--success) 28%, var(--border));
+    border-radius: 7px;
+    background: var(--panel);
+    box-shadow: 0 10px 26px color-mix(in srgb, #000 16%, transparent);
+    font-size: 12px;
+}
+.toast span {
+    grid-column: 1;
+    grid-row: 1;
+    color: var(--success);
+    font-weight: 650;
+}
+.toast.danger {
+    border-color: color-mix(in srgb, var(--danger) 38%, var(--border));
+}
+.toast.danger span {
+    color: var(--danger);
+}
+.toast small {
+    grid-column: 1;
+    grid-row: 2;
+    color: var(--muted);
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+.toast button {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    width: 20px;
+    height: 20px;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 17px;
+    line-height: 1;
+}
+.toast button:hover {
+    background: var(--panel-soft);
+    color: var(--text);
+}

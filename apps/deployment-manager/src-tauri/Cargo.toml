@@ -1,0 +1,32 @@
+[package]
+name = "box-local-engine-manager"
+version = "2026.1.4"
+description = "Native deployment manager for BOX Local Engine"
+authors = ["BOX Local Engine contributors"]
+edition = "2021"
+license = "MIT"
+
+[lib]
+name = "box_local_engine_manager_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+box-manager-core = { path = "../../manager-core" }
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+postgres = "0.19.14"
+rand = "0.8"
+redis = "1.7.0"
+reqwest = { version = "0.13", features = ["blocking"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+tauri = { version = "2", features = [] }
+urlencoding = "2"
+zip = { version = "2.4.2", default-features = false, features = ["deflate"] }
+
+[profile.release]
+debug = false
+strip = "symbols"

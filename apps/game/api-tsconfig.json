@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "downlevelIteration": true,
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "jsx": "react",
+    "lib": ["dom", "es6", "es2015", "es5", "esnext"],
+    "moduleResolution": "node",
+    "noImplicitReturns": true,
+    "noImplicitAny": false,
+    "noImplicitThis": true,
+    "alwaysStrict": false,
+    "strictBindCallApply": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictPropertyInitialization": true,
+    "skipLibCheck": true,
+    "outDir": "./scripts/assets/api/js",
+    "plugins": [
+      {
+        "name": "tslint-language-service"
+      }
+    ],
+    "target": "ESNext",
+    "baseUrl": "."
+  },
+  "include": ["../../internals/schema/api/**/*.ts"]
+}

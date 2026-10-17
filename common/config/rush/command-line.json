@@ -1,0 +1,274 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/rush/v5/command-line.schema.json",
+  "commands": [
+    {
+      "commandKind": "bulk",
+      "name": "build",
+      "summary": "Build projects in dependency order.",
+      "enableParallelism": true,
+      "incremental": true,
+      "ignoreMissingScript": true,
+      "allowWarningsInSuccessfulBuild": true
+    },
+    {
+      "commandKind": "global",
+      "name": "dev",
+      "summary": "Start the complete source development stack.",
+      "shellCommand": "node scripts/dev-all.js"
+    },
+    {
+      "commandKind": "global",
+      "name": "dev-creator",
+      "summary": "Start the Creator source development stack.",
+      "shellCommand": "node scripts/dev-all.js --creator-only"
+    },
+    {
+      "commandKind": "global",
+      "name": "workspace-check",
+      "summary": "Check main project registration and workspace dependencies.",
+      "shellCommand": "node scripts/rush-project-command.js workspace-check"
+    },
+    {
+      "commandKind": "global",
+      "name": "dev-admin",
+      "summary": "Prepare dependencies and start the player administration frontend.",
+      "shellCommand": "node scripts/rush-project-command.js dev-admin"
+    },
+    {
+      "commandKind": "global",
+      "name": "dev-manager",
+      "summary": "Prepare dependencies and start the deployment manager frontend.",
+      "shellCommand": "node scripts/rush-project-command.js dev-manager"
+    },
+    {
+      "commandKind": "global",
+      "name": "dev-player-launcher",
+      "summary": "Prepare dependencies and start the native player launcher with Vite.",
+      "shellCommand": "node scripts/rush-project-command.js dev-player-launcher"
+    },
+    {
+      "commandKind": "global",
+      "name": "api-generate",
+      "summary": "Generate the shared HTTP API contract and client.",
+      "shellCommand": "node scripts/rush-project-command.js api-generate"
+    },
+    {
+      "commandKind": "global",
+      "name": "api-check",
+      "summary": "Check the shared HTTP API contract and generated client.",
+      "shellCommand": "node scripts/rush-project-command.js api-check"
+    },
+    {
+      "commandKind": "global",
+      "name": "api-build",
+      "summary": "Build the shared HTTP API package.",
+      "shellCommand": "node scripts/rush-project-command.js api-build"
+    },
+    {
+      "commandKind": "global",
+      "name": "api-docs",
+      "summary": "Start the standalone Swagger documentation server.",
+      "shellCommand": "node scripts/rush-project-command.js api-docs"
+    },
+    {
+      "commandKind": "global",
+      "name": "package-player-launcher",
+      "summary": "Build a standalone player launcher installer.",
+      "shellCommand": "node scripts/rush-project-command.js package-player-launcher"
+    },
+    {
+      "commandKind": "global",
+      "name": "deploy-service",
+      "summary": "Start a configured service using existing Docker images.",
+      "shellCommand": "node scripts/rush-project-command.js deploy-service"
+    },
+    {
+      "commandKind": "global",
+      "name": "format",
+      "summary": "Format the repository.",
+      "shellCommand": "node scripts/repo-tasks.js format"
+    },
+    {
+      "commandKind": "global",
+      "name": "format-check",
+      "summary": "Check repository formatting.",
+      "shellCommand": "node scripts/repo-tasks.js format-check"
+    },
+    {
+      "commandKind": "global",
+      "name": "lint",
+      "summary": "Lint all maintained source surfaces.",
+      "shellCommand": "node scripts/repo-tasks.js lint"
+    },
+    {
+      "commandKind": "global",
+      "name": "typecheck",
+      "summary": "Run repository type checks.",
+      "shellCommand": "node scripts/repo-tasks.js typecheck"
+    },
+    {
+      "commandKind": "global",
+      "name": "test",
+      "summary": "Run the complete regression suite.",
+      "shellCommand": "node scripts/repo-tasks.js test"
+    },
+    {
+      "commandKind": "global",
+      "name": "integration-check",
+      "summary": "Run integration and distribution checks.",
+      "shellCommand": "node scripts/repo-tasks.js check"
+    },
+    {
+      "commandKind": "global",
+      "name": "verify",
+      "summary": "Check formatting, syntax and code style without builds or regressions.",
+      "shellCommand": "node scripts/repo-tasks.js verify"
+    },
+    {
+      "commandKind": "global",
+      "name": "version-check",
+      "summary": "Verify synchronized product versions.",
+      "shellCommand": "node scripts/sync-root-version.js --check"
+    },
+    {
+      "commandKind": "global",
+      "name": "package-images",
+      "summary": "Build and export all offline images.",
+      "shellCommand": "node scripts/rush-command.js package-images"
+    },
+    {
+      "commandKind": "global",
+      "name": "export-images",
+      "summary": "Export the existing complete image set.",
+      "shellCommand": "node scripts/export-current-images.js"
+    },
+    {
+      "commandKind": "global",
+      "name": "package-desktop",
+      "summary": "Build a desktop offline package.",
+      "shellCommand": "node scripts/rush-command.js package-desktop"
+    },
+    {
+      "commandKind": "global",
+      "name": "package-web",
+      "summary": "Build a headless Linux server package.",
+      "shellCommand": "node scripts/rush-command.js package-web"
+    }
+  ],
+  "parameters": [
+    {
+      "parameterKind": "flag",
+      "longName": "--infra",
+      "description": "Start the disposable development PostgreSQL and Redis services.",
+      "associatedCommands": ["dev", "dev-creator"]
+    },
+    {
+      "parameterKind": "flag",
+      "longName": "--no-admin",
+      "description": "Do not start the optional player administration frontend.",
+      "associatedCommands": ["dev", "dev-creator"]
+    },
+    {
+      "parameterKind": "flag",
+      "longName": "--native",
+      "description": "Start the deployment manager through its existing Tauri development command.",
+      "associatedCommands": ["dev-manager"]
+    },
+    {
+      "parameterKind": "flag",
+      "longName": "--dry-run",
+      "description": "Print the selected project and dependency preparation plan without starting processes.",
+      "associatedCommands": [
+        "dev-admin",
+        "dev-manager",
+        "dev-player-launcher",
+        "api-generate",
+        "api-check",
+        "api-build",
+        "api-docs",
+        "package-player-launcher",
+        "deploy-service"
+      ]
+    },
+    {
+      "parameterKind": "choice",
+      "longName": "--architecture",
+      "description": "Target Linux architecture.",
+      "alternatives": [
+        {
+          "name": "amd64",
+          "description": "Linux AMD64"
+        },
+        {
+          "name": "arm64",
+          "description": "Linux ARM64"
+        }
+      ],
+      "associatedCommands": ["package-images", "package-web"],
+      "required": true
+    },
+    {
+      "parameterKind": "string",
+      "longName": "--service",
+      "argumentName": "SERVICE",
+      "description": "Image service name, or configured service to start with deploy-service.",
+      "associatedCommands": ["package-images", "deploy-service"]
+    },
+    {
+      "parameterKind": "choice",
+      "longName": "--target",
+      "description": "Desktop target platform and architecture.",
+      "alternatives": [
+        {
+          "name": "windows-amd64",
+          "description": "Windows x64"
+        },
+        {
+          "name": "windows-arm64",
+          "description": "Windows ARM64"
+        },
+        {
+          "name": "macos-amd64",
+          "description": "macOS Intel"
+        },
+        {
+          "name": "macos-arm64",
+          "description": "macOS Apple Silicon"
+        },
+        {
+          "name": "linux-amd64",
+          "description": "Linux x64"
+        },
+        {
+          "name": "linux-arm64",
+          "description": "Linux ARM64"
+        }
+      ],
+      "associatedCommands": ["package-desktop", "package-player-launcher"]
+    },
+    {
+      "parameterKind": "string",
+      "longName": "--archive",
+      "argumentName": "ARCHIVE",
+      "description": "Optional existing image archive path.",
+      "associatedCommands": ["package-desktop", "package-web"]
+    },
+    {
+      "parameterKind": "choice",
+      "longName": "--mode",
+      "description": "slim: OSS 按需下载；local: 携带当前本地镜像用于开发测试。",
+      "alternatives": [
+        {
+          "name": "slim",
+          "description": "精简发行包"
+        },
+        {
+          "name": "local",
+          "description": "本地镜像开发测试包"
+        }
+      ],
+      "defaultValue": "slim",
+      "associatedCommands": ["package-desktop", "package-web"]
+    }
+  ]
+}

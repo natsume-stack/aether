@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ES2015",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "lib": ["dom", "es2015"],
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "sourceMap": false,
+    "removeComments": true,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "noUnusedLocals": true,
+    "noImplicitReturns": false,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "downlevelIteration": true,
+    // 需要编译仓库内的依赖
+    "rootDir": "../../../../"
+  },
+  "files": ["../../src/utils/script-server/ivm2/ivm2-script-entry.ts"],
+  "exclude": ["../../node_modules/*"]
+}

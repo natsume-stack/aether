@@ -1,0 +1,91 @@
+@media (max-width: 1040px) {
+    .secret-row {
+        grid-template-columns: minmax(170px, 0.75fr) minmax(220px, 1.25fr);
+        gap: 10px 18px;
+    }
+
+    .secret-actions {
+        grid-column: 2;
+        justify-self: end;
+    }
+
+    .network-primary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .player-service-card {
+        grid-template-columns: 1fr;
+    }
+
+    main {
+        padding-inline: 22px;
+    }
+
+    .runtime-mode-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .runtime-list {
+        column-count: 1;
+    }
+
+    .runtime-mode + .runtime-mode {
+        border-top: 1px solid var(--border);
+        border-left: 0;
+    }
+}
+
+@media (max-width: 560px) {
+    .secret-row {
+        grid-template-columns: 1fr;
+        gap: 9px;
+    }
+
+    .secret-actions {
+        grid-column: 1;
+        justify-self: start;
+    }
+
+    .runtime-mode {
+        grid-template-columns: 1fr;
+        row-gap: 8px;
+    }
+
+    .runtime-mode > .runtime-destroy {
+        justify-self: start;
+    }
+}
+
+@media (max-width: 760px) {
+    .network-access-card {
+        grid-template-columns: 1fr;
+    }
+
+    .network-access-card .access-choice {
+        justify-self: start;
+    }
+
+    .overview-start-options,
+    .overview-support-groups {
+        grid-template-columns: 1fr;
+    }
+
+    .overview-owner-secret {
+        justify-content: flex-start;
+    }
+
+    .overview-required {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}

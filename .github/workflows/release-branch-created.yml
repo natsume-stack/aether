@@ -1,0 +1,33 @@
+name: Route release branch creation
+run-name: Release branch / ${{ github.event.ref }}
+'on':
+  create: {}
+permissions:
+  contents: read
+  actions: write
+jobs:
+  dispatch:
+    if: github.event.ref_type == 'branch'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Start the matching product release
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const ref = context.payload.ref;
+            const workflow = /^release\/v\d{4}\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$/.test(ref)
+              ? 'release.yml'
+              : /^player-release\/v\d{4}\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$/.test(ref)
+                ? 'player-launcher-release.yml'
+                : null;
+            if (!workflow) {
+              core.notice('No release dispatched: the branch must exactly match release/vYYYY.N.P or player-release/vYYYY.N.P. Check for spaces or invisible characters.');
+              return;
+            }
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: workflow,
+              ref,
+            });
+            core.notice(`Started ${workflow} for ${ref}.`);

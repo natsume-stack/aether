@@ -1,0 +1,29 @@
+@use '../../../colors.module.scss' as colors;
+
+.keyframe {
+  width: 1px;
+  height: 100%;
+
+  position: absolute;
+  top: 0;
+
+  .shape {
+    height: 100%;
+
+    border-radius: 3px;
+
+    background-color: colors.$success90;
+  }
+
+  &:hover .shape {
+    background-color: colors.$success95;
+  }
+
+  &:not(:hover).matchingTime .shape {
+    background-color: colors.$success50;
+  }
+
+  &:not(:hover).selected .shape {
+    background-color: colors.$success100;
+  }
+}

@@ -1,0 +1,523 @@
+name: Build and Release BOX3 Local Engine
+run-name: Engine / ${{ github.ref_name }}
+'on':
+  push:
+    branches:
+      - staging
+      - 'release/v*'
+  workflow_dispatch:
+    inputs:
+      rebuild_images:
+        description: Rebuild staging images and installers instead of reusing this commit
+        type: boolean
+        required: false
+        default: false
+permissions:
+  contents: read
+defaults:
+  run:
+    shell: bash
+concurrency:
+  group: engine-release-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  OSS_BUCKET: ${{ secrets.ALIYUN_OSS_BUCKET }}
+  OSS_ENDPOINT: ${{ secrets.ALIYUN_OSS_ENDPOINT }}
+  OSS_ACCESS_KEY_ID: ${{ secrets.ALIYUN_OSS_ACCESS_KEY_ID }}
+  OSS_ACCESS_KEY_SECRET: ${{ secrets.ALIYUN_OSS_ACCESS_KEY_SECRET }}
+  AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+  AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+  BOX_BUILD_CHANNEL: ${{ github.ref == 'refs/heads/staging' && 'staging' || 'production' }}
+jobs:
+  validate-release:
+    if: >-
+      github.ref == 'refs/heads/staging' ||
+      (startsWith(github.ref, 'refs/heads/release/v') &&
+       (github.event_name != 'push' || github.event.created != true))
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.identity.outputs.version }}
+      tag: ${{ steps.identity.outputs.tag }}
+      prefix: ${{ steps.identity.outputs.prefix }}
+      channel: ${{ steps.identity.outputs.channel }}
+      releasePrefix: ${{ steps.identity.outputs.releasePrefix }}
+      downloadBaseUrl: ${{ steps.identity.outputs.downloadBaseUrl }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+      - name: Check current release source
+        run: node scripts/check-public-repository.js
+      - name: Validate release version and OSS configuration
+        run: |
+          node scripts/sync-root-version.js --check
+          for variable_name in OSS_BUCKET OSS_ENDPOINT OSS_ACCESS_KEY_ID OSS_ACCESS_KEY_SECRET; do
+            if [ -z "${!variable_name:-}" ]; then
+              echo "Missing required GitHub Actions secret for $variable_name." >&2
+              exit 1
+            fi
+          done
+          case "$OSS_BUCKET" in
+            oss://*|*/*)
+              echo 'ALIYUN_OSS_BUCKET must contain only the bucket name.' >&2
+              exit 1
+              ;;
+          esac
+          case "$OSS_ENDPOINT" in
+            http://*|https://*|*/*)
+              echo 'ALIYUN_OSS_ENDPOINT must be an OSS endpoint hostname without a protocol or path.' >&2
+              exit 1
+              ;;
+          esac
+      - name: Resolve build channel and immutable production identity
+        id: identity
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node scripts/release-context.js engine
+          node scripts/release-context.js check-notes
+          if [ "$BOX_BUILD_CHANNEL" = production ]; then
+            node scripts/github-build-gate.js release engine
+          fi
+  images:
+    env:
+      BOX_RELEASE_TAG: ${{ needs.validate-release.outputs.tag }}
+      OSS_BUILD_PREFIX: ${{ needs.validate-release.outputs.prefix }}
+      BOX_BUILD_CHANNEL: ${{ needs.validate-release.outputs.channel }}
+      BOX_BUILD_VERSION: ${{ needs.validate-release.outputs.version }}
+      BOX_BUILD_COMMIT: ${{ github.sha }}
+      BOX_BUILD_SOURCE: github-actions
+      BOX_ALLOW_DIRTY_RELEASE: ${{ github.ref == 'refs/heads/staging' && 'true' || 'false' }}
+      FORCE_REBUILD: ${{ github.ref == 'refs/heads/staging' && inputs.rebuild_images || false }}
+    needs: validate-release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - architecture: amd64
+            runner: ubuntu-24.04
+          - architecture: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+      - name: Prepare the channel version
+        run: node scripts/release-context.js prepare
+      - uses: docker/setup-buildx-action@v4
+      - name: Free temporary runner disk space
+        run: |
+          echo 'Disk usage before cleanup:'
+          df -h
+          # GitHub-hosted runners are disposable. Remove preinstalled SDKs and
+          # stale Docker data so Rush/pnpm can unpack production dependencies.
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc \
+            /usr/local/share/powershell /usr/local/lib/heroku
+          docker system prune --all --force --volumes || true
+          docker builder prune --all --force || true
+          echo 'Disk usage after cleanup:'
+          df -h
+      - name: Check cached image archive in Aliyun OSS
+        id: image-cache
+        run: |
+          if [ "$FORCE_REBUILD" = true ]; then
+            echo "cache-hit=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if ! command -v ossutil >/dev/null 2>&1; then
+            curl -fsSL https://gosspublic.alicdn.com/ossutil/install.sh | sudo bash
+          fi
+          ossutil config -i "$OSS_ACCESS_KEY_ID" -k "$OSS_ACCESS_KEY_SECRET" -e "https://$OSS_ENDPOINT"
+          archive="box-local-engine-images-${{ env.BOX_RELEASE_TAG }}-linux-${{ matrix.architecture }}.tar.gz"
+          object="oss://$OSS_BUCKET/$OSS_BUILD_PREFIX/$archive"
+          if ossutil stat "$object" >/tmp/oss-stat.txt 2>&1; then
+            echo "cache-hit=true" >> "$GITHUB_OUTPUT"
+            echo "Found cached image archive: $archive"
+          elif ossutil cp "$object" "$archive" >/tmp/oss-cache-download.txt 2>&1; then
+            # Some RAM policies allow GetObject but not HeadObject (used by
+            # `stat`). A successful download is still a valid cache hit.
+            echo "cache-hit=true" >> "$GITHUB_OUTPUT"
+            echo "Found cached image archive by download: $archive"
+          else
+            echo "cache-hit=false" >> "$GITHUB_OUTPUT"
+            echo "No cached image archive found: $archive"
+            cat /tmp/oss-stat.txt || true
+            cat /tmp/oss-cache-download.txt || true
+          fi
+      - name: Build offline images
+        if: steps.image-cache.outputs.cache-hit != 'true'
+        env:
+          BOX_IMAGE_TAG: ${{ env.BOX_RELEASE_TAG }}-linux-${{ matrix.architecture }}
+          BOX_PLAY_PLATFORM: linux/${{ matrix.architecture }}
+        run: |
+          # Keep the OCI labels embedded in every image aligned with this
+          # release. The desktop launcher reads these labels after importing
+          # the offline archive; without them it can only report `unknown`
+          # and incorrectly categorises a GitHub build as a local build.
+          export BOX_BUILD_VERSION="${{ env.BOX_RELEASE_TAG }}"
+          export BOX_BUILD_COMMIT="${{ github.sha }}"
+          export BOX_BUILD_DATE="$(TZ=Asia/Shanghai date +'%Y-%m-%dT%H:%M:%S%:z')"
+          export BOX_BUILD_SOURCE="github-actions"
+          # Build one service at a time and discard its intermediate BuildKit
+          # cache immediately. The loaded image is retained for image save,
+          # while Rush's pnpm tree and Next standalone tracing layers cannot
+          # accumulate until a later Creator/Play build exhausts runner disk.
+          for service in player-service player-auth-portal server-manager creator play voxa; do
+            docker compose build "$service"
+            docker builder prune --all --force
+          done
+          docker image save \
+            "box-local-engine-player-service:${BOX_IMAGE_TAG}" \
+            "box-local-engine-player-auth-portal:${BOX_IMAGE_TAG}" \
+            "box-local-engine-server-manager:${BOX_IMAGE_TAG}" \
+            "box-local-engine-creator:${BOX_IMAGE_TAG}" \
+            "box-local-engine-play:${BOX_IMAGE_TAG}" \
+            "box-local-engine-voxa:${BOX_IMAGE_TAG}" \
+            | gzip -1 > "box-local-engine-images-${BOX_IMAGE_TAG}.tar.gz"
+          # Keep the builder empty before artifact upload as a final safeguard.
+          docker builder prune --all --force
+      - name: Build and upload per-service image downloads
+        run: |
+          archive="box-local-engine-images-${{ env.BOX_RELEASE_TAG }}-linux-${{ matrix.architecture }}.tar.gz"
+          if ! test -f "$archive"; then
+            ossutil cp "oss://$OSS_BUCKET/$OSS_BUILD_PREFIX/$archive" "$archive"
+          fi
+          catalog="box-local-engine-images-${{ env.BOX_RELEASE_TAG }}-linux-${{ matrix.architecture }}.json"
+          node scripts/build-image-downloads.js "$archive" '${{ matrix.architecture }}' "$catalog"
+          if [ "$BOX_BUILD_CHANNEL" = staging ]; then
+            node scripts/staging-build-context.js prepare "$catalog" '${{ matrix.architecture }}'
+          fi
+          for image in box-local-engine-image-*.tar.gz; do
+            ossutil cp "$image" "oss://$OSS_BUCKET/$OSS_BUILD_PREFIX/" --update
+          done
+          ossutil cp "$catalog" "oss://$OSS_BUCKET/$OSS_BUILD_PREFIX/" --update
+      - name: Upload images to Aliyun OSS
+        if: steps.image-cache.outputs.cache-hit != 'true'
+        run: |
+          if ! command -v ossutil >/dev/null 2>&1; then
+            curl -fsSL https://gosspublic.alicdn.com/ossutil/install.sh | sudo bash
+          fi
+          ossutil config -i "$OSS_ACCESS_KEY_ID" -k "$OSS_ACCESS_KEY_SECRET" -e "https://$OSS_ENDPOINT"
+          ossutil cp "box-local-engine-images-${{ env.BOX_RELEASE_TAG }}-linux-${{ matrix.architecture }}.tar.gz" \
+            "oss://$OSS_BUCKET/$OSS_BUILD_PREFIX/" --update
+  desktop:
+    env:
+      BOX_RELEASE_TAG: ${{ needs.validate-release.outputs.tag }}
+      OSS_BUILD_PREFIX: ${{ needs.validate-release.outputs.prefix }}
+      BOX_BUILD_CHANNEL: ${{ needs.validate-release.outputs.channel }}
+      BOX_BUILD_VERSION: ${{ needs.validate-release.outputs.version }}
+      BOX_BUILD_COMMIT: ${{ github.sha }}
+      BOX_BUILD_SOURCE: github-actions
+      BOX_ALLOW_DIRTY_RELEASE: ${{ github.ref == 'refs/heads/staging' && 'true' || 'false' }}
+      FORCE_REBUILD: ${{ github.ref == 'refs/heads/staging' && inputs.rebuild_images || false }}
+    needs:
+      - images
+      - validate-release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: windows-amd64
+            architecture: amd64
+            runner: windows-2022
+          - target: windows-arm64
+            architecture: arm64
+            runner: windows-11-arm
+          - target: macos-arm64
+            architecture: arm64
+            runner: macos-14
+          - target: linux-amd64
+            architecture: amd64
+            runner: ubuntu-22.04
+          - target: linux-arm64
+            architecture: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+      - name: Prepare the channel version
+        run: node scripts/release-context.js prepare
+      - name: Check cached desktop installer in Aliyun OSS
+        id: desktop-cache
+        shell: bash
+        run: |
+          if [ "$FORCE_REBUILD" = true ]; then
+            echo "cache-hit=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if ! command -v ossutil >/dev/null 2>&1; then
+            if [[ "${{ matrix.target }}" == windows-* ]]; then
+              aws --version
+            elif command -v sudo >/dev/null 2>&1; then
+              curl -fsSL https://gosspublic.alicdn.com/ossutil/install.sh | sudo bash
+            else
+              curl -fsSL https://gosspublic.alicdn.com/ossutil/install.sh | bash
+            fi
+          fi
+          version="$(node -p "require('./apps/deployment-manager/package.json').version")"
+          installer="BOX-Local-Engine-${version}-${{ matrix.target }}.zip"
+          object="oss://$OSS_BUCKET/$OSS_BUILD_PREFIX/desktop-lightweight-${{ github.sha }}/$installer"
+          if [[ "${{ matrix.target }}" == windows-* ]]; then
+            export AWS_ACCESS_KEY_ID="$OSS_ACCESS_KEY_ID" AWS_SECRET_ACCESS_KEY="$OSS_ACCESS_KEY_SECRET"
+            aws configure set default.s3.addressing_style virtual
+            aws configure set default.s3.payload_signing_enabled false
+            if aws s3api head-object --bucket "$OSS_BUCKET" --key "$OSS_BUILD_PREFIX/desktop-lightweight-${{ github.sha }}/$installer" --endpoint-url "https://$OSS_ENDPOINT" >/tmp/desktop-stat.txt 2>&1; then
+              echo "cache-hit=true" >> "$GITHUB_OUTPUT"
+              echo "Found cached desktop installer: $installer"
+            elif aws s3api get-object --bucket "$OSS_BUCKET" --key "$OSS_BUILD_PREFIX/desktop-lightweight-${{ github.sha }}/$installer" "$RUNNER_TEMP/$installer" --endpoint-url "https://$OSS_ENDPOINT" >/tmp/desktop-cache-download.txt 2>&1; then
+              echo "cache-hit=true" >> "$GITHUB_OUTPUT"
+              echo "Found cached desktop installer by download: $installer"
+            else
+              echo "cache-hit=false" >> "$GITHUB_OUTPUT"
+              echo "No cached desktop installer found: $installer"
+            fi
+          else
+            ossutil config -i "$OSS_ACCESS_KEY_ID" \
+              -k "$OSS_ACCESS_KEY_SECRET" \
+              -e "https://$OSS_ENDPOINT"
+            if ossutil stat "$object" >/tmp/desktop-stat.txt 2>&1; then
+              echo "cache-hit=true" >> "$GITHUB_OUTPUT"
+              echo "Found cached desktop installer: $installer"
+            elif ossutil cp "$object" "$RUNNER_TEMP/$installer" >/tmp/desktop-cache-download.txt 2>&1; then
+              echo "cache-hit=true" >> "$GITHUB_OUTPUT"
+              echo "Found cached desktop installer by download: $installer"
+            else
+              echo "No cached desktop installer found: $installer"
+              cat /tmp/desktop-stat.txt || true
+              cat /tmp/desktop-cache-download.txt || true
+              echo "cache-hit=false" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+      - name: Check Windows ZIP packaging before compilation
+        if: steps.desktop-cache.outputs.cache-hit != 'true' && runner.os == 'Windows'
+        run: node --test --test-name-pattern='Windows ZIPs' scripts/build-desktop-offline-installer.test.js
+      - name: Install desktop dependencies
+        if: steps.desktop-cache.outputs.cache-hit != 'true'
+        run: node common/scripts/install-run-rush.js install --to '@box/deployment-manager'
+      - name: Install Linux desktop dependencies
+        if: steps.desktop-cache.outputs.cache-hit != 'true' && startsWith(matrix.target, 'linux-')
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf zip
+      - name: Download desktop image catalog from Aliyun OSS
+        if: steps.desktop-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          # Only the small JSON catalog is needed; no image archives enter the launcher.
+          echo "Downloading desktop image catalog (JSON only)"
+          mkdir -p apps/local-engine/dist/images
+          if ! command -v ossutil >/dev/null 2>&1; then
+            if [[ "${{ matrix.target }}" == windows-* ]]; then
+              aws --version
+            elif command -v sudo >/dev/null 2>&1; then
+              curl -fsSL https://gosspublic.alicdn.com/ossutil/install.sh | sudo bash
+            else
+              curl -fsSL https://gosspublic.alicdn.com/ossutil/install.sh | bash
+            fi
+          fi
+          if [[ "${{ matrix.target }}" == windows-* ]]; then
+            export AWS_ACCESS_KEY_ID="$OSS_ACCESS_KEY_ID" AWS_SECRET_ACCESS_KEY="$OSS_ACCESS_KEY_SECRET"
+            aws configure set default.s3.addressing_style virtual
+            aws configure set default.s3.payload_signing_enabled false
+            aws s3api get-object --bucket "$OSS_BUCKET" \
+              --key "$OSS_BUILD_PREFIX/box-local-engine-images-${{ env.BOX_RELEASE_TAG }}-linux-${{ matrix.architecture }}.json" \
+              "apps/local-engine/dist/images/box-local-engine-images-${{ env.BOX_RELEASE_TAG }}-linux-${{ matrix.architecture }}.json" \
+              --endpoint-url "https://$OSS_ENDPOINT"
+          else
+            ossutil config -i "$OSS_ACCESS_KEY_ID" -k "$OSS_ACCESS_KEY_SECRET" -e "https://$OSS_ENDPOINT"
+            ossutil cp "oss://$OSS_BUCKET/$OSS_BUILD_PREFIX/box-local-engine-images-${{ env.BOX_RELEASE_TAG }}-linux-${{ matrix.architecture }}.json" \
+              apps/local-engine/dist/images/
+          fi
+      - name: Build lightweight desktop launcher
+        if: steps.desktop-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          catalog="apps/local-engine/dist/images/box-local-engine-images-${{ env.BOX_RELEASE_TAG }}-linux-${{ matrix.architecture }}.json"
+          test -f "$catalog"
+          node common/scripts/install-run-rush.js package-desktop \
+            --target '${{ matrix.target }}' \
+            --archive "$catalog"
+      - name: Upload desktop installer to Aliyun OSS
+        if: steps.desktop-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          if ! command -v ossutil >/dev/null 2>&1; then
+            if [[ "${{ matrix.target }}" == windows-* ]]; then
+              aws --version
+            elif command -v sudo >/dev/null 2>&1; then
+              curl -fsSL https://gosspublic.alicdn.com/ossutil/install.sh | sudo bash
+            else
+              curl -fsSL https://gosspublic.alicdn.com/ossutil/install.sh | bash
+            fi
+          fi
+          if [[ "${{ matrix.target }}" == windows-* ]]; then
+            export AWS_ACCESS_KEY_ID="$OSS_ACCESS_KEY_ID" AWS_SECRET_ACCESS_KEY="$OSS_ACCESS_KEY_SECRET"
+            aws configure set default.s3.addressing_style virtual
+            aws configure set default.s3.payload_signing_enabled false
+            for installer in apps/local-engine/dist/desktop-installers/*.zip; do
+              aws s3api put-object --bucket "$OSS_BUCKET" --key "$OSS_BUILD_PREFIX/desktop-lightweight-${{ github.sha }}/$(basename "$installer")" --body "$installer" --endpoint-url "https://$OSS_ENDPOINT"
+            done
+          else
+            ossutil config -i "$OSS_ACCESS_KEY_ID" -k "$OSS_ACCESS_KEY_SECRET" -e "https://$OSS_ENDPOINT"
+            ossutil cp apps/local-engine/dist/desktop-installers/ "oss://$OSS_BUCKET/$OSS_BUILD_PREFIX/desktop-lightweight-${{ github.sha }}/" --recursive --update
+          fi
+  headless-server:
+    env:
+      BOX_RELEASE_TAG: ${{ needs.validate-release.outputs.tag }}
+      OSS_BUILD_PREFIX: ${{ needs.validate-release.outputs.prefix }}
+      BOX_BUILD_CHANNEL: ${{ needs.validate-release.outputs.channel }}
+      BOX_BUILD_VERSION: ${{ needs.validate-release.outputs.version }}
+      BOX_BUILD_COMMIT: ${{ github.sha }}
+      BOX_BUILD_SOURCE: github-actions
+      BOX_ALLOW_DIRTY_RELEASE: ${{ github.ref == 'refs/heads/staging' && 'true' || 'false' }}
+    needs:
+      - images
+      - validate-release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - architecture: amd64
+            runner: ubuntu-24.04
+          - architecture: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+      - name: Prepare the channel version
+        run: node scripts/release-context.js prepare
+      - name: Download Server Manager image catalog from Aliyun OSS
+        run: |
+          mkdir -p apps/local-engine/dist/images
+          if ! command -v ossutil >/dev/null 2>&1; then
+            curl -fsSL https://gosspublic.alicdn.com/ossutil/install.sh | sudo bash
+          fi
+          ossutil config -i "$OSS_ACCESS_KEY_ID" -k "$OSS_ACCESS_KEY_SECRET" -e "https://$OSS_ENDPOINT"
+          catalog="apps/local-engine/dist/images/box-local-engine-images-${{ env.BOX_RELEASE_TAG }}-linux-${{ matrix.architecture }}.json"
+          ossutil cp "oss://$OSS_BUCKET/$OSS_BUILD_PREFIX/$(basename "$catalog")" "$catalog"
+      - name: Install headless package tools
+        run: sudo apt-get update && sudo apt-get install -y zip
+      - name: Build headless Linux server package
+        env:
+          BOX_BUILD_COMMIT: ${{ github.sha }}
+          BOX_BUILD_SOURCE: github-actions
+        run: |
+          export BOX_BUILD_DATE="$(TZ=Asia/Shanghai date +'%Y-%m-%dT%H:%M:%S%:z')"
+          catalog="apps/local-engine/dist/images/box-local-engine-images-${{ env.BOX_RELEASE_TAG }}-linux-${{ matrix.architecture }}.json"
+          node scripts/build-headless-server-package.js '${{ matrix.architecture }}' --catalog "$catalog"
+          version=$(node -p "require('./package.json').version")
+          node scripts/verify-headless-server-package.js \
+            "apps/local-engine/dist/server-packages/BOX3-Engine-Server-${version}-linux-${{ matrix.architecture }}"
+      - name: Upload server package to Aliyun OSS
+        run: |
+          if ! command -v ossutil >/dev/null 2>&1; then
+            curl -fsSL https://gosspublic.alicdn.com/ossutil/install.sh | sudo bash
+          fi
+          ossutil config -i "$OSS_ACCESS_KEY_ID" -k "$OSS_ACCESS_KEY_SECRET" -e "https://$OSS_ENDPOINT"
+          ossutil cp apps/local-engine/dist/server-packages/ "oss://$OSS_BUCKET/$OSS_BUILD_PREFIX/" --recursive --update
+  publish:
+    env:
+      BOX_RELEASE_TAG: ${{ needs.validate-release.outputs.tag }}
+      OSS_BUILD_PREFIX: ${{ needs.validate-release.outputs.prefix }}
+      BOX_BUILD_CHANNEL: ${{ needs.validate-release.outputs.channel }}
+      BOX_BUILD_VERSION: ${{ needs.validate-release.outputs.version }}
+      BOX_BUILD_COMMIT: ${{ github.sha }}
+      BOX_BUILD_SOURCE: github-actions
+      BOX_ALLOW_DIRTY_RELEASE: ${{ github.ref == 'refs/heads/staging' && 'true' || 'false' }}
+      OSS_SERVER_RELEASE_PREFIX: ${{ needs.validate-release.outputs.releasePrefix }}
+    needs:
+      - desktop
+      - headless-server
+      - validate-release
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+      - name: Prepare the channel version
+        run: node scripts/release-context.js prepare
+      - name: Download release packages from Aliyun OSS
+        run: |
+          if ! command -v ossutil >/dev/null 2>&1; then
+            curl -fsSL https://gosspublic.alicdn.com/ossutil/install.sh | sudo bash
+          fi
+          ossutil config -i "$OSS_ACCESS_KEY_ID" -k "$OSS_ACCESS_KEY_SECRET" -e "https://$OSS_ENDPOINT"
+          mkdir -p release-files
+          version="${BOX_RELEASE_TAG#v}"
+          for target in windows-amd64 windows-arm64 macos-arm64 linux-amd64 linux-arm64; do
+            file="BOX-Local-Engine-${version}-${target}.zip"
+            ossutil cp "oss://$OSS_BUCKET/$OSS_BUILD_PREFIX/desktop-lightweight-${{ github.sha }}/$file" "release-files/$file"
+          done
+          for architecture in amd64 arm64; do
+            file="BOX3-Engine-Server-${version}-linux-${architecture}.zip"
+            ossutil cp "oss://$OSS_BUCKET/$OSS_BUILD_PREFIX/$file" "release-files/$file"
+            catalog="box-local-engine-images-${BOX_RELEASE_TAG}-linux-${architecture}.json"
+            ossutil cp "oss://$OSS_BUCKET/$OSS_BUILD_PREFIX/$catalog" "release-files/$catalog"
+            node -e 'for (const image of require("./" + process.argv[1]).images) console.log(image.archive)' "release-files/$catalog" > /tmp/image-downloads.txt
+            while IFS= read -r image; do
+              ossutil cp "oss://$OSS_BUCKET/$OSS_BUILD_PREFIX/$image" "release-files/$image"
+            done < /tmp/image-downloads.txt
+          done
+      - name: Render the channel bootstrap installer and release notes
+        run: |
+          node scripts/render-bootstrap-installer.js release-files/install.sh
+          chmod +x release-files/install.sh
+          node scripts/render-release-notes.js "${BOX_RELEASE_TAG#v}" release-files/RELEASE-NOTES.md "$(TZ=Asia/Shanghai date +'%Y-%m-%d')"
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ env.BOX_RELEASE_TAG }}
+          target_commitish: ${{ github.sha }}
+          generate_release_notes: true
+          body_path: release-files/RELEASE-NOTES.md
+          files: |
+            release-files/install.sh
+            release-files/BOX-Local-Engine-*.zip
+            release-files/BOX3-Engine-Server-*.zip
+        if: startsWith(github.ref, 'refs/heads/release/v')
+      - name: Publish channel packages and latest pointers to OSS
+        run: |
+          version="${BOX_RELEASE_TAG#v}"
+          node scripts/build-release-manifest.js "$version" release-files/latest.json "$(TZ=Asia/Shanghai date +'%Y-%m-%d')"
+          printf '%s\n' "$version" > release-files/latest.txt
+          for target in windows-amd64 windows-arm64 macos-arm64 linux-amd64 linux-arm64; do
+            ossutil cp "release-files/BOX-Local-Engine-${version}-${target}.zip" \
+              "oss://$OSS_BUCKET/$OSS_SERVER_RELEASE_PREFIX/" --update
+          done
+          for architecture in amd64 arm64; do
+            # Publish the pinned desktop image archives before updating latest pointers.
+            catalog="release-files/box-local-engine-images-v${version}-linux-${architecture}.json"
+            node -e 'for (const image of require("./" + process.argv[1]).images) console.log(image.archive)' "$catalog" > /tmp/image-downloads.txt
+            while IFS= read -r image; do
+              test -f "release-files/$image"
+              ossutil cp "release-files/$image" "oss://$OSS_BUCKET/$OSS_SERVER_RELEASE_PREFIX/" --update
+            done < /tmp/image-downloads.txt
+            server_package="release-files/BOX3-Engine-Server-${version}-linux-${architecture}.zip"
+            test -f "$server_package"
+            ossutil cp "$server_package" \
+              "oss://$OSS_BUCKET/$OSS_SERVER_RELEASE_PREFIX/" --update
+          done
+          ossutil cp release-files/install.sh \
+            "oss://$OSS_BUCKET/$OSS_SERVER_RELEASE_PREFIX/install.sh" --update
+          ossutil cp release-files/latest.json \
+            "oss://$OSS_BUCKET/$OSS_SERVER_RELEASE_PREFIX/latest.json" --meta Cache-Control:no-cache --update
+          ossutil cp release-files/latest.json \
+            "oss://$OSS_BUCKET/$OSS_SERVER_RELEASE_PREFIX/latest-server.json" --meta Cache-Control:no-cache --update
+          # Publish latest.txt last so clients never observe a version before
+          # both architecture packages and the matching installer are ready.
+          ossutil cp release-files/latest.txt \
+            "oss://$OSS_BUCKET/$OSS_SERVER_RELEASE_PREFIX/latest.txt" --update

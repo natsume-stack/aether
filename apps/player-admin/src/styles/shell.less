@@ -1,0 +1,189 @@
+:root {
+    --player-admin-ink: #182033;
+    --player-admin-text: #354158;
+    --player-admin-muted: #727b8d;
+    --player-admin-line: #e3e7ed;
+    --player-admin-surface: #ffffff;
+    --player-admin-subtle: #f8f9fb;
+    --player-admin-blue: #2474e8;
+    color: var(--player-admin-ink);
+    background: #f6f7f9;
+    font-family: Inter, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+* {
+    box-sizing: border-box;
+}
+body {
+    margin: 0;
+    min-width: 1120px;
+    background: #f6f7f9;
+}
+.player-admin-shell {
+    min-height: 100vh;
+    background: #f6f7f9;
+}
+.player-admin-shell > .ant-layout {
+    margin-left: 224px;
+    min-height: 100vh;
+    width: calc(100% - 224px);
+    background: #f6f7f9;
+}
+.player-admin-sider {
+    position: fixed !important;
+    inset: 0 auto 0 0;
+    z-index: 20;
+    height: 100vh;
+    overflow-y: auto;
+    background: #172033 !important;
+    box-shadow: none;
+    border-right: 1px solid #2b3548;
+}
+.player-admin-brand {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 22px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 650;
+}
+.player-admin-brand-mark {
+    display: grid;
+    width: 26px;
+    height: 26px;
+    place-items: center;
+    border-radius: 4px;
+    background: #2f7df6;
+    color: #fff;
+    font-weight: 800;
+}
+.player-admin-brand-mark {
+    background: url('../../../deployment-manager/public/logo512.png') center / contain no-repeat;
+    color: transparent;
+}
+.player-admin-brand {
+    font-size: 0;
+}
+.player-admin-brand::after {
+    content: 'BOX3 后台管理';
+    color: currentColor;
+    font-size: 15px;
+    font-weight: 650;
+}
+.player-admin-sider .ant-menu {
+    background: transparent;
+    border-right: 0;
+}
+.player-admin-sider .ant-menu-submenu-title,
+.player-admin-sider .ant-menu-item {
+    height: 42px;
+    margin: 0 !important;
+    line-height: 42px;
+}
+.player-admin-sider .ant-menu-sub {
+    background: #101a2b !important;
+}
+.player-admin-sider .ant-menu-sub .ant-menu-item {
+    min-width: 0;
+    padding-left: 52px !important;
+    color: #aeb8ca;
+    font-size: 13px;
+}
+.player-admin-sider .ant-menu-item-selected {
+    background: #248bf5 !important;
+    color: #fff !important;
+}
+.player-admin-sider .ant-menu-submenu-selected > .ant-menu-submenu-title {
+    color: #fff;
+}
+.player-admin-sider .ant-menu-submenu-arrow {
+    color: #8f9bb0;
+}
+.player-admin-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    height: 64px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    background: #fff;
+    border-bottom: 1px solid #e5e8ee;
+}
+.player-admin-header > .ant-space {
+    margin-left: auto;
+}
+.player-admin-actor-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #4e5a70;
+    font-size: 13px;
+}
+.player-admin-content {
+    min-height: calc(100vh - 64px);
+    padding: 28px 32px 40px;
+    background: #f6f7f9;
+}
+.player-admin-page-toolbar {
+    min-height: 40px;
+    margin-bottom: 20px;
+}
+.player-admin-page-toolbar > .ant-col:last-child > .ant-space,
+.player-admin-page-toolbar > .ant-col:last-child > .ant-btn {
+    justify-content: flex-end;
+}
+.player-admin-page-title {
+    margin: 0;
+    color: #182033;
+    font-size: 22px;
+    font-weight: 650;
+    line-height: 30px;
+}
+.player-admin-page-subtitle,
+.player-admin-muted {
+    color: #727b8d;
+    font-size: 13px;
+}
+.player-admin-page-subtitle {
+    margin-top: 5px;
+}
+.player-admin-stat,
+.player-admin-panel {
+    overflow: hidden;
+    background: var(--player-admin-surface);
+    border: 1px solid var(--player-admin-line);
+    border-radius: 4px;
+    box-shadow: none;
+}
+.player-admin-stat {
+    height: 100%;
+}
+.player-admin-stat .ant-statistic-title {
+    color: #727b8d;
+    font-size: 13px;
+}
+.player-admin-stat .ant-statistic-content {
+    color: #182033;
+    font-size: 25px;
+    font-weight: 650;
+}
+.player-admin-panel .ant-card-head {
+    min-height: 56px;
+    padding: 0 24px;
+    border-bottom-color: #e5e8ee;
+}
+.player-admin-panel .ant-card-head-title {
+    color: #263249;
+    font-weight: 600;
+}
+.player-admin-panel .ant-card-extra {
+    display: flex;
+    min-height: 55px;
+    align-items: center;
+}
+.player-admin-panel .ant-card-body {
+    padding: 20px 24px 24px;
+}

@@ -1,0 +1,22 @@
+{
+  "name": "@box/deployment-manager",
+  "version": "2026.1.4",
+  "private": true,
+  "description": "Native installer and operations console for BOX3 Engine",
+  "license": "MIT",
+  "scripts": {
+    "dev": "node ../../scripts/sync-root-version.js && vite",
+    "build": "node ../../scripts/sync-root-version.js && node ../../scripts/check-deployment-manager-structure.js && npm --prefix ../../internals/apis run build && vite build",
+    "check": "node ../../scripts/sync-root-version.js --check && node ../../scripts/check-deployment-manager-structure.js && npm --prefix ../../internals/apis run build && vite build",
+    "test": "node --test ../../scripts/deployment-manager-auth.test.js ../../scripts/deployment-manager-ui.test.js ../../scripts/deployment-manager-configuration-scenarios.test.js ../../scripts/deployment-manager-transport.test.js ../../scripts/deployment-manager-event-permissions.test.js",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@box/apis": "workspace:0.2.0",
+    "@tauri-apps/api": "^2.8.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.8.0",
+    "vite": "^7.1.0"
+  }
+}

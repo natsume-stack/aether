@@ -1,0 +1,810 @@
+{
+  "+PxnGS": {
+    "defaultMessage": "切换到部件（自身）坐标系",
+    "description": "Animator local axis mode button description"
+  },
+  "+itf/D": {
+    "defaultMessage": "保存",
+    "description": "Save button"
+  },
+  "+oquv5": {
+    "defaultMessage": "删除",
+    "description": "Confirm text of removing motion"
+  },
+  "/ZqIi6": {
+    "defaultMessage": "图片部件",
+    "description": "Animator tool add object 2D"
+  },
+  "01V4Kr": {
+    "defaultMessage": "开启在X轴上的镜像编辑",
+    "description": "Mirror X Button Tooltip Text"
+  },
+  "1EuXM8": {
+    "defaultMessage": "发布",
+    "description": "Publish button"
+  },
+  "1nRmF9": {
+    "defaultMessage": "颜色定位",
+    "description": "toolColorPicker"
+  },
+  "1nw1MI": {
+    "defaultMessage": "复制选中的部件",
+    "description": "Animator tool make a copy description"
+  },
+  "1yAbzn": {
+    "defaultMessage": "移动",
+    "description": "Animator tool move title"
+  },
+  "24xvzO": {
+    "defaultMessage": "自定义",
+    "description": "HitBox Mode Button Custom"
+  },
+  "26V8lc": {
+    "defaultMessage": "区域框选",
+    "description": "toolSelectRect"
+  },
+  "2J/zM8": {
+    "defaultMessage": "调整体素方体的高度",
+    "description": "toolExtrudeDescription"
+  },
+  "2JJw80": {
+    "defaultMessage": "部件框大小",
+    "description": "Workspace Size Inputs"
+  },
+  "2h9toY": {
+    "defaultMessage": "沿X/Y/Z轴移动体素",
+    "description": "toolMoveDescription"
+  },
+  "2xmCan": {
+    "defaultMessage": "保存失败",
+    "description": "Title of failing to save model"
+  },
+  "3yrrDx": {
+    "defaultMessage": "简体中文",
+    "description": "File menu set language as zh-Hans"
+  },
+  "4Ekn9t": {
+    "defaultMessage": "撤销",
+    "description": "Undo"
+  },
+  "4fc2TC": {
+    "defaultMessage": "工程导出失败",
+    "description": "VOXA project export error"
+  },
+  "5L7Io3": {
+    "defaultMessage": "面拉伸",
+    "description": "toolExtrude"
+  },
+  "5RUrbt": {
+    "defaultMessage": "搭建体素方体",
+    "description": "toolAttachBoxDescription"
+  },
+  "6U/+tg": {
+    "defaultMessage": "语言",
+    "description": "File Menu Language"
+  },
+  "6vK2wk": {
+    "defaultMessage": "保留",
+    "description": "Confirm clearing unused colors when import"
+  },
+  "77VQFq": {
+    "defaultMessage": "相对轴心进行等比缩放",
+    "description": "Animator tool scale description"
+  },
+  "8OjT+I": {
+    "defaultMessage": "删除组",
+    "description": "Delete color group of palette"
+  },
+  "8Ons8Q": {
+    "defaultMessage": "删除",
+    "description": "Timeline context menu delete"
+  },
+  "8ssL5K": {
+    "defaultMessage": "列表拖拽操作仅在模型编辑模式下可用",
+    "description": "motion mode drag tooltip text"
+  },
+  "90/w0s": {
+    "defaultMessage": "创建动画",
+    "description": "Create motion when animation is empty"
+  },
+  "9Tfd42": {
+    "defaultMessage": "模型工程和皮肤工程不能互相导入",
+    "description": "VOXA project import type mismatch"
+  },
+  "9df2WV": {
+    "defaultMessage": "数据统计",
+    "description": "Animator profiler button"
+  },
+  "9eObJ7": {
+    "defaultMessage": "正交视角",
+    "description": "Orthogonal Camera"
+  },
+  "9yPUBc": {
+    "defaultMessage": "体消除",
+    "description": "toolEraseBox"
+  },
+  "ANoAvh": {
+    "defaultMessage": "删除",
+    "description": "Confirm deleting palette group"
+  },
+  "Aa8Nms": {
+    "defaultMessage": "扩展色板",
+    "description": "buttonMoreColor"
+  },
+  "AfnN/J": {
+    "defaultMessage": "部件框",
+    "description": "Animator skin skinNodes box button"
+  },
+  "Axmmmz": {
+    "defaultMessage": "移动",
+    "description": "toolMoveTitle"
+  },
+  "B7Tzcf": {
+    "defaultMessage": "保存成功",
+    "description": "Save model successfully"
+  },
+  "BAcX6N": {
+    "defaultMessage": "地平面",
+    "description": "Animator grid button"
+  },
+  "BcmDEV": {
+    "defaultMessage": "世界坐标系",
+    "description": "Param panel tab global mode"
+  },
+  "BnQ1I0": {
+    "defaultMessage": "开启在Y轴上的镜像编辑",
+    "description": "Mirror Y Button Tooltip Text"
+  },
+  "C+pxqH": {
+    "defaultMessage": "Z轴翻转",
+    "description": "Flip Z Button Tooltip Title"
+  },
+  "DMQNe5": {
+    "defaultMessage": "透明 :",
+    "description": "profile hasTransparent"
+  },
+  "DOmSVx": {
+    "defaultMessage": "模型锚点设置",
+    "description": "Animator model pivot mode button title"
+  },
+  "E3MdK1": {
+    "defaultMessage": "自动裁剪",
+    "description": "Trim Button Tooltip Title"
+  },
+  "EuXQXN": {
+    "defaultMessage": "沿X轴方向翻转",
+    "description": "Flip X Button Tooltip Text"
+  },
+  "Ew4vy+": {
+    "defaultMessage": "换肤模式",
+    "description": "Skin mode title"
+  },
+  "EyVzxe": {
+    "defaultMessage": "隐藏边缘线",
+    "description": "Hide Voxel Edges"
+  },
+  "F/RH8h": {
+    "defaultMessage": "切换到世界坐标系",
+    "description": "Animator global axis mode button description"
+  },
+  "FJ14PD": {
+    "defaultMessage": "下一帧",
+    "description": "Motion button next keyframe"
+  },
+  "G20sfi": {
+    "defaultMessage": "X轴翻转",
+    "description": "Flip X Button Tooltip Title"
+  },
+  "G8uRxi": {
+    "defaultMessage": "昨天",
+    "description": "Yesterday"
+  },
+  "GM6rFc": {
+    "defaultMessage": "模型面 :",
+    "description": "profile faces"
+  },
+  "GRcKUy": {
+    "defaultMessage": "返回",
+    "description": "Switch App Button"
+  },
+  "GeHFts": {
+    "defaultMessage": "普通部件",
+    "description": "Animator tool add object 3D"
+  },
+  "GhIhYl": {
+    "defaultMessage": "新建骨骼",
+    "description": "Contextmenu create bone"
+  },
+  "GhU34t": {
+    "defaultMessage": "取消",
+    "description": "Cancel text of removing motion"
+  },
+  "GpE5YP": {
+    "defaultMessage": "透视",
+    "description": "Perspective Camera"
+  },
+  "H6lILh": {
+    "defaultMessage": "请选择其他名称",
+    "description": "Toast description when renaming motion with duplicated name"
+  },
+  "HDFxU6": {
+    "defaultMessage": "Z轴旋转",
+    "description": "Rotate Z Button Tooltip Title"
+  },
+  "HEC2QX": {
+    "defaultMessage": "初始帧",
+    "description": "Motion button first keyframe"
+  },
+  "Hds+xH": {
+    "defaultMessage": "重试",
+    "description": "Retry launching"
+  },
+  "HvhCsP": {
+    "defaultMessage": "模式",
+    "description": "HitBox Mode Buttons"
+  },
+  "I+LWSY": {
+    "defaultMessage": "工程导入成功",
+    "description": "VOXA project import success"
+  },
+  "I2zGOR": {
+    "defaultMessage": "导入工程",
+    "description": "File menu import VOXA project"
+  },
+  "J7uU3S": {
+    "defaultMessage": "创建一个新的部件",
+    "description": "Animator tool create description"
+  },
+  "JPZxkQ": {
+    "defaultMessage": "导入VOX",
+    "description": "File menu import VOX as object"
+  },
+  "JThcHR": {
+    "defaultMessage": "框选想要进行操作的体素",
+    "description": "toolSelectVoxelDescription"
+  },
+  "JaWlC1": {
+    "defaultMessage": "体建造",
+    "description": "toolAttachBox"
+  },
+  "JtBxpG": {
+    "defaultMessage": "开启在Z轴上的镜像编辑",
+    "description": "Mirror Z Button Tooltip Text"
+  },
+  "Juy5Ri": {
+    "defaultMessage": "确认清除组中所有未使用的颜色?",
+    "description": "Content of clearing unused colors when import"
+  },
+  "Koo5Va": {
+    "defaultMessage": "Y轴镜像",
+    "description": "Mirror Y Button Tooltip Title"
+  },
+  "Kvb1oz": {
+    "defaultMessage": "播放",
+    "description": "Motion button play"
+  },
+  "L+PAOT": {
+    "defaultMessage": "缩放",
+    "description": "Animator tool scale title"
+  },
+  "L42Lgw": {
+    "defaultMessage": "复制",
+    "description": "Contextmenu make a copy"
+  },
+  "LK2Wbr": {
+    "defaultMessage": "动画",
+    "description": "Title of animation interpolation selector"
+  },
+  "LMhuMV": {
+    "defaultMessage": "清除",
+    "description": "clearUnusedColorsConfirm"
+  },
+  "LZKom8": {
+    "defaultMessage": "重做",
+    "description": "Redo"
+  },
+  "Lhk1um": {
+    "defaultMessage": "重命名",
+    "description": "Contextmenu rename object or bone"
+  },
+  "LioR8d": {
+    "defaultMessage": "复制",
+    "description": "Motion list context menu make a copy"
+  },
+  "M1NfDd": {
+    "defaultMessage": "绕X轴旋转90°",
+    "description": "Rotate X Button Tooltip Text"
+  },
+  "MPzBxk": {
+    "defaultMessage": "油漆桶",
+    "description": "toolPaintBucket"
+  },
+  "MxT1bL": {
+    "defaultMessage": "有{count}个未绑定骨骼的部件，无法保存该皮肤",
+    "description": "Content of free skin saving"
+  },
+  "NLc9C0": {
+    "defaultMessage": "恢复",
+    "description": "Title of confirm restoring history version"
+  },
+  "O1CTZL": {
+    "defaultMessage": "删除动画",
+    "description": "Title of removing motion"
+  },
+  "O9kYOP": {
+    "defaultMessage": "外部部件预览",
+    "description": "Display Background Objects"
+  },
+  "OAtVgC": {
+    "defaultMessage": "复制",
+    "description": "Animator tool make a copy title"
+  },
+  "OMir+P": {
+    "defaultMessage": "前往处理",
+    "description": "Go to handle"
+  },
+  "Owa8DK": {
+    "defaultMessage": "Y轴翻转",
+    "description": "Flip Y Button Tooltip Title"
+  },
+  "OzL5QW": {
+    "defaultMessage": "清除未使用颜色",
+    "description": "clearUnusedColorsTitle"
+  },
+  "PUsa7p": {
+    "defaultMessage": "创建动画",
+    "description": "Motion button create motion"
+  },
+  "Q/WzNR": {
+    "defaultMessage": "骨骼节点",
+    "description": "Hierarchy Timelines"
+  },
+  "Q60eBG": {
+    "defaultMessage": "动画",
+    "description": "Animator mode button for motion"
+  },
+  "QHIqcY": {
+    "defaultMessage": "发光",
+    "description": "Palette Emissive"
+  },
+  "QKw0WL": {
+    "defaultMessage": "保存失败",
+    "description": "Title of free skin saving"
+  },
+  "QM0nNf": {
+    "defaultMessage": "今天",
+    "description": "Today"
+  },
+  "QzHEB8": {
+    "defaultMessage": "没有模型不能裁剪边界区域",
+    "description": "Trim Without Model Toast"
+  },
+  "R4U6jD": {
+    "defaultMessage": "骨骼",
+    "description": "Animator skeleton button"
+  },
+  "RNMl92": {
+    "defaultMessage": "点击后重置缩放参数的数值",
+    "description": "Reset Scale"
+  },
+  "Ruj5aG": {
+    "defaultMessage": "旋转",
+    "description": "Animator tool rotate title"
+  },
+  "S28eK1": {
+    "defaultMessage": "通过点击或点击-拖动来消除体素点、线",
+    "description": "toolEraseVoxelDescription"
+  },
+  "SXejwi": {
+    "defaultMessage": "导入",
+    "description": "File Menu Import"
+  },
+  "SrY68m": {
+    "defaultMessage": "重试",
+    "description": "Retry saving model"
+  },
+  "T8YJJ7": {
+    "defaultMessage": "显示边缘线",
+    "description": "Show Voxel Edges"
+  },
+  "Tee9Mp": {
+    "defaultMessage": "创建",
+    "description": "Animator tool create title"
+  },
+  "Uu2DmJ": {
+    "defaultMessage": "删除颜色组",
+    "description": "Title of deleting palette group with items"
+  },
+  "UvGGoD": {
+    "defaultMessage": "沿X/Y/Z轴移动部件",
+    "description": "Animator tool move description"
+  },
+  "V0byM+": {
+    "defaultMessage": "绕Y轴旋转90°",
+    "description": "Rotate Y Button Tooltip Text"
+  },
+  "VCHjZI": {
+    "defaultMessage": "参数",
+    "description": "Parameter Collapse Panel"
+  },
+  "VX+6Js": {
+    "defaultMessage": "导出GLTF",
+    "description": "File menu export GLTF"
+  },
+  "VmouEB": {
+    "defaultMessage": "重置碰撞框",
+    "description": "Reset Hit box"
+  },
+  "W25hyc": {
+    "defaultMessage": "编组",
+    "description": "Contextmenu group selection"
+  },
+  "WKn/ni": {
+    "defaultMessage": "重命名",
+    "description": "Motion list context menu rename"
+  },
+  "WYq8HP": {
+    "defaultMessage": "框选想要进行操作的区域",
+    "description": "toolSelectRectDescription"
+  },
+  "XcCe1n": {
+    "defaultMessage": "清除未使用的颜色",
+    "description": "Title of clearing unused colors when import"
+  },
+  "XtU5VP": {
+    "defaultMessage": "删除",
+    "description": "Contextmenu delete"
+  },
+  "XzNosL": {
+    "defaultMessage": "体素框选",
+    "description": "toolSelectVoxel"
+  },
+  "Y2hTfK": {
+    "defaultMessage": "恢复",
+    "description": "Restore successfully"
+  },
+  "YTJpWz": {
+    "defaultMessage": "{ hasTransparent, select, true {有} other {无} }",
+    "description": "profile hasTransparent value"
+  },
+  "YTM+9K": {
+    "defaultMessage": "用历史版本覆盖当前项目",
+    "description": "Content of confirm restoring history version"
+  },
+  "Yk1f0H": {
+    "defaultMessage": "消除体素方体",
+    "description": "toolEraseBoxDescription"
+  },
+  "ZajeL5": {
+    "defaultMessage": "暂停",
+    "description": "Motion button pause"
+  },
+  "ZiKFVA": {
+    "defaultMessage": "创建关键帧",
+    "description": "Motion button create keyframe"
+  },
+  "b1wB8u": {
+    "defaultMessage": "网格",
+    "description": "Grids"
+  },
+  "b7XtOv": {
+    "defaultMessage": "翻转",
+    "description": "Flip Buttons"
+  },
+  "bd+Xe3": {
+    "defaultMessage": "无法读取该工程文件",
+    "description": "VOXA project import invalid file"
+  },
+  "buP2Ip": {
+    "defaultMessage": "列表",
+    "description": "Hierarchy Collapse Panel"
+  },
+  "c67ktF": {
+    "defaultMessage": "添加部件",
+    "description": "Contextmenu add object"
+  },
+  "cZtqpK": {
+    "defaultMessage": "部件坐标系",
+    "description": "Animator local axis mode button title"
+  },
+  "ca0XXM": {
+    "defaultMessage": "创建部件",
+    "description": "Contextmenu create object"
+  },
+  "cjUGLc": {
+    "defaultMessage": "导出",
+    "description": "File Menu Export"
+  },
+  "csgOo2": {
+    "defaultMessage": "模型框",
+    "description": "Animator Default hit box button"
+  },
+  "dSckch": {
+    "defaultMessage": "复制",
+    "description": "Timeline context menu copy"
+  },
+  "dUje32": {
+    "defaultMessage": "暂无项目",
+    "description": "Empty Card List"
+  },
+  "dtHrXZ": {
+    "defaultMessage": "请检查您的网络连接",
+    "description": "Content of failing to save model"
+  },
+  "eFuPu/": {
+    "defaultMessage": "X轴旋转",
+    "description": "Rotate X Button Tooltip Title"
+  },
+  "eMLCWw": {
+    "defaultMessage": "修改部件的锚点",
+    "description": "Animator pivot mode button description"
+  },
+  "eZ3ev9": {
+    "defaultMessage": "解组",
+    "description": "Contextmenu ungroup"
+  },
+  "fB0QY5": {
+    "defaultMessage": "色刷",
+    "description": "toolPainter"
+  },
+  "fNra8/": {
+    "defaultMessage": "定位到体素点使用的颜色值",
+    "description": "toolColorPickerDescription"
+  },
+  "gRVyKB": {
+    "defaultMessage": "历史",
+    "description": "File Menu History"
+  },
+  "h0x6LE": {
+    "defaultMessage": "创建骨骼",
+    "description": "Animator tool add bone title"
+  },
+  "hDDWXw": {
+    "defaultMessage": "Z轴镜像",
+    "description": "Mirror Z Button Tooltip Title"
+  },
+  "hdNd6j": {
+    "defaultMessage": "修改连续且相同颜色的体素块的颜色",
+    "description": "toolPaintBucketDescription"
+  },
+  "hiccwG": {
+    "defaultMessage": "恢复",
+    "description": "Confirm restoring history version"
+  },
+  "iG1hxk": {
+    "defaultMessage": "启动中…",
+    "description": "Launching"
+  },
+  "iSgsHD": {
+    "defaultMessage": "骨骼 :",
+    "description": "profile bones"
+  },
+  "ifv4L8": {
+    "defaultMessage": "将模型导入至VOXA",
+    "description": "Text for importing model to object"
+  },
+  "jCCMm+": {
+    "defaultMessage": "部件锚点设置",
+    "description": "Animator pivot mode button title"
+  },
+  "jgH/zj": {
+    "defaultMessage": "确认清除色板中所有未使用的颜色?",
+    "description": "clearUnusedColorsContent"
+  },
+  "jqNerb": {
+    "defaultMessage": "确认删除动画",
+    "description": "Content of removing motion"
+  },
+  "k+YLBm": {
+    "defaultMessage": "修改模型整体锚点",
+    "description": "Animator model pivot mode button description"
+  },
+  "k2SFKt": {
+    "defaultMessage": "通过点击或点击-拖动修改体素点的颜色",
+    "description": "toolPainterDescription"
+  },
+  "kFXd9M": {
+    "defaultMessage": "清除未使用颜色",
+    "description": "buttonClearUnusedColor"
+  },
+  "kLrg2G": {
+    "defaultMessage": "色板",
+    "description": "Palette Collapse Panel"
+  },
+  "lStPSE": {
+    "defaultMessage": "使部件框贴合体素内容",
+    "description": "Trim Button Tooltip Text"
+  },
+  "lW/+dx": {
+    "defaultMessage": "清除",
+    "description": "Confirm clearing unused colors when import"
+  },
+  "lW0YNn": {
+    "defaultMessage": "快速选中相邻且相同颜色的体素块",
+    "description": "toolMagicWandDescription"
+  },
+  "lX98kt": {
+    "defaultMessage": "魔法棒",
+    "description": "toolMagicWand"
+  },
+  "lrvzCR": {
+    "defaultMessage": "X轴镜像",
+    "description": "Mirror X Button Tooltip Title"
+  },
+  "ml2rC2": {
+    "defaultMessage": "新增颜色组",
+    "description": "buttonNewColorGroup"
+  },
+  "n3spsr": {
+    "defaultMessage": "粘贴",
+    "description": "Timeline context menu paste"
+  },
+  "n4re5g": {
+    "defaultMessage": "名称已被占用，保存失败",
+    "description": "Failed to save"
+  },
+  "nPgNih": {
+    "defaultMessage": "动画列表",
+    "description": "Motions List"
+  },
+  "o/VnOv": {
+    "defaultMessage": "取消",
+    "description": "Cancel deleting palette group"
+  },
+  "oMeeGW": {
+    "defaultMessage": "编辑部件",
+    "description": "Contextmenu edit object"
+  },
+  "oTEb+0": {
+    "defaultMessage": "取消",
+    "description": "Cancel retrying saving model"
+  },
+  "pEfK4p": {
+    "defaultMessage": "沿Z轴方向翻转",
+    "description": "Flip Z Button Tooltip Text"
+  },
+  "pLZ1xo": {
+    "defaultMessage": "创建一个新的骨骼",
+    "description": "Animator tool add bone description"
+  },
+  "pTFTfR": {
+    "defaultMessage": "旋转",
+    "description": "Rotate Buttons"
+  },
+  "pgvcJe": {
+    "defaultMessage": "导出失败",
+    "description": "Error message for exporting GLTF"
+  },
+  "pgy1xY": {
+    "defaultMessage": "English",
+    "description": "File menu set Language as en"
+  },
+  "pzAtKM": {
+    "defaultMessage": "点建造",
+    "description": "toolAttachVoxel"
+  },
+  "qKrwqe": {
+    "defaultMessage": "世界坐标系",
+    "description": "Animator global axis mode button title"
+  },
+  "qLI3JL": {
+    "defaultMessage": "导出工程",
+    "description": "File menu export VOXA project"
+  },
+  "qQYiib": {
+    "defaultMessage": "绕Z轴旋转90°",
+    "description": "Rotate Z Button Tooltip Text"
+  },
+  "qUxQJr": {
+    "defaultMessage": "使用过的颜色将被移动到默认色卡上",
+    "description": "Content of deleting palette group with items"
+  },
+  "r8CtNK": {
+    "defaultMessage": "复位",
+    "description": "RecenterCamera"
+  },
+  "t4fVD+": {
+    "defaultMessage": "工程已导出",
+    "description": "VOXA project export success"
+  },
+  "t5EBa4": {
+    "defaultMessage": "添加子骨骼",
+    "description": "Contextmenu add child bone node"
+  },
+  "t7+ziq": {
+    "defaultMessage": "沿X/Y/Z轴旋转部件",
+    "description": "Animator tool rotate description"
+  },
+  "tRI+uc": {
+    "defaultMessage": "重置锚点",
+    "description": "Float button for reset pivot"
+  },
+  "uFtMrU": {
+    "defaultMessage": "部件 :",
+    "description": "profile skins"
+  },
+  "uSyEDz": {
+    "defaultMessage": "镜像",
+    "description": "Mirror Buttons"
+  },
+  "veOX3p": {
+    "defaultMessage": "菜单",
+    "description": "Home Button Tooltip Text"
+  },
+  "w+6OpO": {
+    "defaultMessage": "动画名称已被使用",
+    "description": "Toast content when renaming motion with duplicated name"
+  },
+  "w35L6L": {
+    "defaultMessage": "发光",
+    "description": "Animator emissive button"
+  },
+  "wBV0Y3": {
+    "defaultMessage": "沿Y轴方向翻转",
+    "description": "Flip Y Button Tooltip Text"
+  },
+  "wJr5te": {
+    "defaultMessage": "部件坐标系",
+    "description": "Param panel tab local mode"
+  },
+  "wT4hFq": {
+    "defaultMessage": "Blank",
+    "description": "Create New Project"
+  },
+  "wr73mi": {
+    "defaultMessage": "Y轴旋转",
+    "description": "Rotate Y Button Tooltip Title"
+  },
+  "xNfx8i": {
+    "defaultMessage": "模型",
+    "description": "Animator mode button for setup"
+  },
+  "xW1mGj": {
+    "defaultMessage": "默认",
+    "description": "HitBox Mode Button Default"
+  },
+  "xheg3F": {
+    "defaultMessage": "解除绑定",
+    "description": "Contextmenu unbind object"
+  },
+  "yFwyfo": {
+    "defaultMessage": "通过点击或点击-拖动来搭建体素点、线",
+    "description": "toolAttachVoxelDescription"
+  },
+  "yRZPai": {
+    "defaultMessage": "吸管",
+    "description": "buttonPaletteColorPicker"
+  },
+  "yehl3f": {
+    "defaultMessage": "最后一帧",
+    "description": "Motion button last keyframe"
+  },
+  "ygTP6m": {
+    "defaultMessage": "上一帧",
+    "description": "Motion button prev keyframe"
+  },
+  "ygdJgy": {
+    "defaultMessage": "取消",
+    "description": "Cancel restoring history version"
+  },
+  "yvIC1C": {
+    "defaultMessage": "物理",
+    "description": "Animator mode button for hitBox"
+  },
+  "yx8o5r": {
+    "defaultMessage": "点消除",
+    "description": "toolEraseVoxel"
+  },
+  "z6oJTe": {
+    "defaultMessage": "删除",
+    "description": "Motion list context menu delete"
+  },
+  "zY3nY2": {
+    "defaultMessage": "保留",
+    "description": "clearUnusedColorsCancel"
+  },
+  "ziZtWz": {
+    "defaultMessage": "恢复失败，请稍后再试。",
+    "description": "Restore error"
+  }
+}

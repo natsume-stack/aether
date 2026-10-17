@@ -1,0 +1,48 @@
+@use '../../../colors.module.scss' as colors;
+
+.bottom {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+
+  display: flex;
+
+  width: calc(100% - 161px);
+  padding: 0 16px 0 16px;
+
+  background-color: colors.$background2;
+
+  z-index: 4;
+
+  .zoomControls {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
+    width: 137px;
+    height: 20px;
+
+    margin-right: 16px;
+  }
+
+  .scrollbar {
+    flex: 1;
+
+    display: flex;
+
+    position: relative;
+
+    align-items: center;
+
+    .thumb {
+      position: absolute;
+
+      height: 10px;
+
+      border-radius: 47px;
+
+      background-color: colors.$surface3;
+    }
+  }
+}

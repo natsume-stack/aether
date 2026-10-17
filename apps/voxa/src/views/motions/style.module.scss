@@ -1,0 +1,56 @@
+@use '../colors.module.scss' as colors;
+@use '../texts.module.scss' as texts;
+
+.motionPanel {
+  position: relative;
+
+  display: grid;
+  grid-template-columns: 172px 1fr;
+  grid-template-rows: 29px 1fr;
+  grid-template-areas:
+    'controls controls'
+    'motionList hierarchyTimelines';
+
+  border-top: 1px solid colors.$primary0;
+
+  background-color: colors.$background1;
+
+  .cover {
+    position: absolute;
+    top: 0;
+
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background-color: colors.$textBlackTertiary;
+
+    z-index: 4;
+
+    :global(.boxButton) {
+      height: 36px;
+      width: 164px;
+
+      @include texts.b14;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      svg {
+        width: 12px;
+        height: 12px;
+        stroke: black;
+
+        margin-right: 8px;
+      }
+
+      p {
+        margin: 0;
+      }
+    }
+  }
+}

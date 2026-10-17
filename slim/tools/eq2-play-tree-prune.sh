@@ -1,0 +1,56 @@
+#!/bin/bash
+# Valid equivalence test: prune the PLAY image's own standalone tree with
+# scripts/prune-standalone.mjs, mount it back into the same image, and compare
+# boot + responses against the unmodified control.
+set -uo pipefail
+IMG=box-local-engine-play:v2026.1.4-linux-amd64
+SA=/app/apps/game/.next/standalone
+SCRATCH=/var/tmp/eq2
+ENVV="-e NEXT_PUBLIC_APP_ENV=development -e NEXT_PUBLIC_APP_EDITION=createra -e NEXT_PUBLIC_APP_REGION=cn -e NODE_ENV=production"
+
+rm -rf "$SCRATCH"; mkdir -p "$SCRATCH"
+echo "== 1. take the play image's own standalone tree =="
+docker create --name eq2-src "$IMG" true >/dev/null 2>&1
+docker cp eq2-src:/app/apps/game/.next/standalone "$SCRATCH/pruned" >/dev/null 2>&1
+docker rm eq2-src >/dev/null 2>&1
+chown -R 1000:1000 "$SCRATCH"
+control_size=$(du -sb "$SCRATCH/pruned" | cut -f1)
+cp -a "$SCRATCH/pruned" "$SCRATCH/control"
+echo "  control tree = $control_size B ($(numfmt --to=iec $control_size))"
+
+echo
+echo "== 2. prune the copy with the real tool (adds webpack/terser/uglify rules) =="
+docker run --rm -v "$SCRATCH":/s -v "/mnt/d/desktop/神奇代码岛/box3-local-engine/scripts":/scripts:ro \
+  "$IMG" node /scripts/prune-standalone.mjs /s/pruned --apply --json > "$SCRATCH/prune.json" 2>"$SCRATCH/prune.err"
+echo "  tool exit=$?  err=$(head -c 200 $SCRATCH/prune.err)"
+tail -1 "$SCRATCH/prune.json" | head -c 300; echo
+pruned_size=$(du -sb "$SCRATCH/pruned" | cut -f1)
+echo "  pruned tree  = $pruned_size B  removed=$((control_size-pruned_size)) B ($(numfmt --to=iec $((control_size-pruned_size))))"
+
+boot () { # $1 name  $2 dir-or-empty
+  docker rm -f "e2-$1" >/dev/null 2>&1
+  if [ -n "$2" ]; then
+    docker run -d --name "e2-$1" --user root --entrypoint sh -v "$2:$SA" "$IMG" -c 'sleep 1200' >/dev/null 2>&1
+  else
+    docker run -d --name "e2-$1" --user root --entrypoint sh "$IMG" -c 'sleep 1200' >/dev/null 2>&1
+  fi
+  docker exec -d $ENVV "e2-$1" sh -c "cd $SA/apps/game && PORT=3999 HOSTNAME=127.0.0.1 nohup node server.js > /tmp/s.log 2>&1"
+  local up=""
+  for i in $(seq 1 30); do
+    sleep 2
+    up=$(docker exec "e2-$1" node -e "fetch('http://127.0.0.1:3999/api/health-check').then(r=>console.log('UP '+r.status)).catch(()=>console.log('down'))" 2>/dev/null | tail -1)
+    case "$up" in UP*) break ;; esac
+  done
+  echo "  [$1] boot=${up:-TIMEOUT}  tree=$(docker exec "e2-$1" du -sb $SA 2>/dev/null | cut -f1) B"
+  docker exec "e2-$1" node -e '
+    const ps=["/api/health-check","/api/play-worlds","/_next/static/chunks/main-277ff2fbd803da65.js","/_next/static/chunks/framework-7c5d5949242e9ab4.js","/logo512.png"];
+    (async()=>{for(const p of ps){try{const r=await fetch("http://127.0.0.1:3999"+p);const b=new Uint8Array(await r.arrayBuffer());let h=0;for(let i=0;i<b.length;i++)h=(h*31+b[i])>>>0;console.log("    "+String(r.status).padStart(3),String(b.length).padStart(9),"B ck="+h.toString(16).padStart(8,"0"),p);}catch(e){console.log("    ERR",p,e.message.slice(0,40));}}})()' 2>&1
+  echo "    MODULE_NOT_FOUND=$(docker exec "e2-$1" sh -c "grep -cE 'MODULE_NOT_FOUND|Cannot find module' /tmp/s.log" 2>/dev/null)"
+  docker exec "e2-$1" sh -c "grep -E 'MODULE_NOT_FOUND|Cannot find module' /tmp/s.log | head -2" | sed 's/^/      /'
+  docker rm -f "e2-$1" >/dev/null 2>&1
+}
+
+echo
+echo "== 3. CONTROL（出厂树）=="; boot control "$SCRATCH/control"
+echo
+echo "== 4. PRUNED（工具裁剪后）=="; boot pruned "$SCRATCH/pruned"

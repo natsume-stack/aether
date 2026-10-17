@@ -1,0 +1,10 @@
+{
+  "name": "@box/server-manager",
+  "version": "2026.1.4",
+  "license": "MIT",
+  "private": true,
+  "description": "Container build definition for the Rust BOX3 Engine headless manager",
+  "scripts": {
+    "build": "docker compose build server-manager"
+  }
+}

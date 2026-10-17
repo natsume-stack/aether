@@ -1,0 +1,271 @@
+name: Package BOX3 Engine Server
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version without the v prefix (for example 0.2.0)
+        required: true
+        type: string
+      architecture:
+        description: Server package architecture
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - amd64
+          - arm64
+      publish_stable:
+        description: Update the stable CDN package, install.sh, and latest.txt (requires all architectures)
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: package-server-${{ inputs.version }}
+  cancel-in-progress: false
+
+env:
+  OSS_BUCKET: ${{ secrets.ALIYUN_OSS_BUCKET }}
+  OSS_ENDPOINT: ${{ secrets.ALIYUN_OSS_ENDPOINT }}
+  OSS_ACCESS_KEY_ID: ${{ secrets.ALIYUN_OSS_ACCESS_KEY_ID }}
+  OSS_ACCESS_KEY_SECRET: ${{ secrets.ALIYUN_OSS_ACCESS_KEY_SECRET }}
+  AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+  AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+  # This prefix contains the image archives produced by the release workflow.
+  OSS_BUILD_PREFIX: local-engine/v${{ inputs.version }}
+  # This directory is the origin behind https://assets.box3.fun/local-engine/.
+  OSS_SERVER_RELEASE_PREFIX: local-engine
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    outputs:
+      package_matrix: ${{ steps.package-matrix.outputs.value }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+      - name: Check current release source
+        run: node scripts/check-public-repository.js
+
+      - name: Validate inputs and OSS configuration
+        run: |
+          case "${{ inputs.version }}" in
+            ''|*[!0-9A-Za-z.-]*|.*|*.)
+              echo 'Version must be a release version such as 0.2.0, without a v prefix.' >&2
+              exit 1
+              ;;
+          esac
+          if [ "${{ inputs.publish_stable }}" = 'true' ] && [ "${{ inputs.architecture }}" != 'all' ]; then
+            echo 'Updating the stable CDN requires both amd64 and arm64 packages.' >&2
+            exit 1
+          fi
+          for variable_name in OSS_BUCKET OSS_ENDPOINT OSS_ACCESS_KEY_ID OSS_ACCESS_KEY_SECRET; do
+            if [ -z "${!variable_name:-}" ]; then
+              echo "Missing required GitHub Actions secret for $variable_name." >&2
+              exit 1
+            fi
+          done
+          case "$OSS_BUCKET" in
+            oss://*|*/*)
+              echo 'ALIYUN_OSS_BUCKET must contain only the bucket name.' >&2
+              exit 1
+              ;;
+          esac
+          case "$OSS_ENDPOINT" in
+            http://*|https://*|*/*)
+              echo 'ALIYUN_OSS_ENDPOINT must be an OSS endpoint hostname without a protocol or path.' >&2
+              exit 1
+              ;;
+          esac
+      - id: package-matrix
+        name: Select native package runners
+        run: |
+          case '${{ inputs.architecture }}' in
+            all)
+              value='{"include":[{"architecture":"amd64","runner":"ubuntu-24.04"},{"architecture":"arm64","runner":"ubuntu-24.04-arm"}]}'
+              ;;
+            amd64)
+              value='{"include":[{"architecture":"amd64","runner":"ubuntu-24.04"}]}'
+              ;;
+            arm64)
+              value='{"include":[{"architecture":"arm64","runner":"ubuntu-24.04-arm"}]}'
+              ;;
+            *)
+              echo 'Unsupported architecture selection.' >&2
+              exit 1
+              ;;
+          esac
+          echo "value=$value" >> "$GITHUB_OUTPUT"
+
+  package:
+    needs: validate
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.validate.outputs.package_matrix) }}
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+      - uses: docker/setup-buildx-action@v4
+      - name: Confirm selected version matches this revision
+        run: |
+          if [ "${GITHUB_REF:-}" = 'refs/tags/v${{ inputs.version }}' ]; then
+            GITHUB_REF='refs/heads/release/v${{ inputs.version }}' node scripts/release-context.js prepare
+          elif [[ "${GITHUB_REF:-}" == refs/heads/release/v* ]]; then
+            node scripts/release-context.js prepare
+          fi
+          package_version="$(node -p "require('./package.json').version")"
+          if [ "$package_version" != '${{ inputs.version }}' ]; then
+            echo "Selected version ${{ inputs.version }} does not match package.json version $package_version." >&2
+            echo 'Run this workflow from the matching release tag or release/v<version> branch.' >&2
+            exit 1
+          fi
+          if [ '${{ inputs.publish_stable }}' = 'true' ]; then
+            node -e "require('./scripts/build-release-manifest').buildReleaseManifest('${{ inputs.version }}', new Date().toISOString().slice(0,10))"
+          fi
+      - name: Install server package tools
+        run: sudo apt-get update && sudo apt-get install -y zip
+      - name: Configure Aliyun OSS client
+        run: |
+          if ! command -v ossutil >/dev/null 2>&1; then
+            curl -fsSL https://gosspublic.alicdn.com/ossutil/install.sh | sudo bash
+          fi
+          ossutil config -i "$OSS_ACCESS_KEY_ID" -k "$OSS_ACCESS_KEY_SECRET" -e "https://$OSS_ENDPOINT"
+      - name: Download published application image catalog from Aliyun OSS
+        run: |
+          mkdir -p apps/local-engine/dist/images
+          catalog="apps/local-engine/dist/images/box-local-engine-images-v${{ inputs.version }}-linux-${{ matrix.architecture }}.json"
+          if ! ossutil cp "oss://$OSS_BUCKET/$OSS_BUILD_PREFIX/$(basename "$catalog")" "$catalog" > /tmp/catalog-download.log 2>&1; then
+            if grep -Ei 'NoSuchKey|404|does not exist' /tmp/catalog-download.log; then
+              echo 'Published application image catalog is missing. Run the release workflow for this version and architecture first.' >&2
+            else
+              cat /tmp/catalog-download.log >&2
+            fi
+            exit 1
+          fi
+      - name: Build Web manager image and reuse published application images
+        env:
+          BOX_IMAGE_TAG: v${{ inputs.version }}-linux-${{ matrix.architecture }}
+          BOX_PLAY_PLATFORM: linux/${{ matrix.architecture }}
+          BOX_BUILD_VERSION: ${{ inputs.version }}
+          BOX_BUILD_COMMIT: ${{ github.sha }}
+          BOX_BUILD_SOURCE: github-actions-server-package
+          BOX_DOCKER_NODE_IMAGE: node:22.17.0-bookworm-slim
+          BOX_DOCKER_CLI_IMAGE: docker:27.5.1-cli
+          BOX_DOCKER_RUST_IMAGE: rust:1.93-bookworm
+        run: |
+          export BOX_BUILD_DATE="$(TZ=Asia/Shanghai date +'%Y-%m-%dT%H:%M:%S%:z')"
+          catalog="apps/local-engine/dist/images/box-local-engine-images-v${{ inputs.version }}-linux-${{ matrix.architecture }}.json"
+          mkdir -p server-image-updates
+          node scripts/server-image-plan.js plan-manager '${{ matrix.architecture }}' "$catalog" server-image-plan.json
+          # Applications are owned by release.yml. Verify and publish their
+          # immutable archives without building or loading them on this runner.
+          node -e "for (const i of require('./$catalog').images) if (i.image !== 'box-local-engine-server-manager') console.log(i.archive)" > server-image-updates/application-archives.txt
+          while IFS= read -r archive; do
+            if ! ossutil stat "oss://$OSS_BUCKET/$OSS_BUILD_PREFIX/$archive"; then
+              echo "Published application archive unavailable: $archive. Run the release workflow first." >&2
+              exit 1
+            fi
+            ossutil cp "oss://$OSS_BUCKET/$OSS_BUILD_PREFIX/$archive" "oss://$OSS_BUCKET/$OSS_SERVER_RELEASE_PREFIX/$archive" --update
+          done < server-image-updates/application-archives.txt
+          cp .env.docker.example .env
+          cp .env.docker.example .runtime.env
+          for service in server-manager; do
+            build="$(node -e "const p=require('./server-image-plan.json').find(i=>i.service===process.argv[1]); console.log(p.build)" "$service")"
+            if [ "$build" = 'false' ]; then
+              archive="$(node -e "const c=require('./$catalog'); console.log(c.images.find(i=>i.image==='box-local-engine-'+process.argv[1]).archive)" "$service")"
+              # A matching catalog is reusable only if its archive still exists.
+              if ossutil stat "oss://$OSS_BUCKET/$OSS_BUILD_PREFIX/$archive" > /tmp/image-cache-stat.log 2>&1; then
+                echo "Reuse $service: version and source match."
+                ossutil cp "oss://$OSS_BUCKET/$OSS_BUILD_PREFIX/$archive" "oss://$OSS_BUCKET/$OSS_SERVER_RELEASE_PREFIX/$archive" --update
+                continue
+              elif grep -Ei 'NoSuchKey|404|does not exist' /tmp/image-cache-stat.log; then
+                node -e "const fs=require('fs'); const p=require('./server-image-plan.json'); p.find(i=>i.service===process.argv[1]).build=true; fs.writeFileSync('server-image-plan.json',JSON.stringify(p));" "$service"
+                echo "Missing cached archive; rebuild $service."
+              else
+                cat /tmp/image-cache-stat.log >&2
+                exit 1
+              fi
+            fi
+            docker compose build "$service"
+            docker image save "box-local-engine-$service:$BOX_IMAGE_TAG" | gzip -1 > server-image-updates/source.tar.gz
+            python3 scripts/split-image-archive.py server-image-updates/source.tar.gz \
+              '${{ matrix.architecture }}' "server-image-updates/$service.json" '${{ inputs.version }}' "$service"
+            archive="$(node -e "console.log(require('./server-image-updates/'+process.argv[1]+'.json').images[0].archive)" "$service")"
+            # Publish immutable archives before any package/catalog references them.
+            ossutil cp "server-image-updates/$archive" "oss://$OSS_BUCKET/$OSS_BUILD_PREFIX/$archive" --update
+            ossutil cp "server-image-updates/$archive" "oss://$OSS_BUCKET/$OSS_SERVER_RELEASE_PREFIX/$archive" --update
+            rm -f "server-image-updates/$archive" server-image-updates/source.tar.gz
+            docker image rm "box-local-engine-$service:$BOX_IMAGE_TAG"
+            docker builder prune --all --force
+          done
+          node scripts/server-image-plan.js merge '${{ matrix.architecture }}' "$catalog" server-image-plan.json server-image-updates "$catalog"
+          ossutil cp "$catalog" "oss://$OSS_BUCKET/$OSS_BUILD_PREFIX/$(basename "$catalog")" --update
+      - name: Assemble and verify Linux server package
+        env:
+          BOX_BUILD_COMMIT: ${{ github.sha }}
+          BOX_BUILD_SOURCE: github-actions-server-package
+        run: |
+          export BOX_BUILD_DATE="$(TZ=Asia/Shanghai date +'%Y-%m-%dT%H:%M:%S%:z')"
+          catalog="apps/local-engine/dist/images/box-local-engine-images-v${{ inputs.version }}-linux-${{ matrix.architecture }}.json"
+          node scripts/build-headless-server-package.js '${{ matrix.architecture }}' --catalog "$catalog"
+          node scripts/verify-headless-server-package.js \
+            "apps/local-engine/dist/server-packages/BOX3-Engine-Server-${{ inputs.version }}-linux-${{ matrix.architecture }}"
+      - name: Upload versioned server package to Aliyun OSS
+        run: |
+          package="apps/local-engine/dist/server-packages/BOX3-Engine-Server-${{ inputs.version }}-linux-${{ matrix.architecture }}.zip"
+          test -f "$package"
+          ossutil cp "$package" "oss://$OSS_BUCKET/$OSS_BUILD_PREFIX/" --update
+      - name: Publish stable server package to Aliyun OSS
+        if: ${{ inputs.publish_stable }}
+        run: |
+          package="apps/local-engine/dist/server-packages/BOX3-Engine-Server-${{ inputs.version }}-linux-${{ matrix.architecture }}.zip"
+          ossutil cp "$package" "oss://$OSS_BUCKET/$OSS_SERVER_RELEASE_PREFIX/" --update
+
+  publish-stable-bootstrap:
+    needs: package
+    if: ${{ inputs.publish_stable }}
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+      - name: Configure Aliyun OSS client
+        run: |
+          if ! command -v ossutil >/dev/null 2>&1; then
+            curl -fsSL https://gosspublic.alicdn.com/ossutil/install.sh | sudo bash
+          fi
+          ossutil config -i "$OSS_ACCESS_KEY_ID" -k "$OSS_ACCESS_KEY_SECRET" -e "https://$OSS_ENDPOINT"
+      - name: Publish stable bootstrap installer and version pointer
+        run: |
+          cp distribution/server/bootstrap.sh install.sh
+          chmod +x install.sh
+          printf '%s\n' '${{ inputs.version }}' > latest.txt
+          export RELEASE_DATE="$(TZ=Asia/Shanghai date +'%Y-%m-%d')"
+          node - <<'JS'
+          const fs = require('node:fs');
+          const { buildReleaseManifest } = require('./scripts/build-release-manifest');
+          const manifest = buildReleaseManifest('${{ inputs.version }}', process.env.RELEASE_DATE);
+          fs.writeFileSync('latest-server.json', JSON.stringify(manifest, null, 2) + '\n');
+          JS
+          ossutil cp install.sh "oss://$OSS_BUCKET/$OSS_SERVER_RELEASE_PREFIX/install.sh" --update
+          ossutil cp latest-server.json "oss://$OSS_BUCKET/$OSS_SERVER_RELEASE_PREFIX/latest-server.json" --meta Cache-Control:no-cache --update
+          # Upload the pointer last: install clients then only see a version
+          # after both native-architecture server packages are available.
+          ossutil cp latest.txt "oss://$OSS_BUCKET/$OSS_SERVER_RELEASE_PREFIX/latest.txt" --update

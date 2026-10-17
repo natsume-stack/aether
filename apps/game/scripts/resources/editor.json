@@ -1,0 +1,16 @@
+{
+  "func": "swapExtensions",
+  "args": [
+    {
+      "func": "optimizeDir",
+      "args": [
+        {
+          "table": {
+            "hacking.png": { "file": "editor_effect/hacking.png" }
+          }
+        }
+      ]
+    }
+  ],
+  "ret": "json"
+}

@@ -1,0 +1,275 @@
+.runtime-project {
+    display: inline-block;
+    width: 100%;
+    margin: 0 0 12px;
+    break-inside: avoid;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--panel);
+}
+
+.runtime-project > header {
+    display: flex;
+    align-items: center;
+    min-height: 0;
+    margin-bottom: 0;
+    padding: 11px 14px 10px;
+    border-bottom: 1px solid var(--border);
+}
+
+.runtime-project h2 {
+    margin: 0;
+    font-size: 14px;
+}
+
+.runtime-project p {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.runtime-project code {
+    color: var(--text);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.runtime-mode-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.runtime-mode-grid.single {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.runtime-mode {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 12px;
+    min-height: 0;
+    padding: 10px 14px 11px;
+}
+
+.runtime-mode + .runtime-mode {
+    border-left: 1px solid var(--border);
+}
+
+.runtime-mode-head {
+    display: flex;
+    align-items: flex-start;
+}
+
+.runtime-mode-info {
+    min-width: 0;
+}
+
+.runtime-mode > div > strong {
+    font-size: 12px;
+}
+
+.runtime-destroy {
+    flex: 0 0 auto;
+}
+
+.runtime-mode > .runtime-destroy {
+    min-height: 32px;
+    height: 32px;
+    gap: 5px;
+    padding: 0 10px;
+    font-size: 12px;
+    align-self: center;
+}
+
+.runtime-destroy:hover {
+    background: color-mix(in srgb, var(--danger) 10%, var(--panel));
+}
+
+.runtime-destroy svg {
+    width: 13px;
+    height: 13px;
+}
+
+.runtime-mode p {
+    overflow: hidden;
+    margin: 5px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.runtime-mode .runtime-metrics {
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.runtime-rooms {
+    margin-top: 9px;
+}
+
+.runtime-rooms > strong {
+    color: var(--text);
+    font-size: 11px;
+}
+
+.runtime-rooms > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 6px;
+}
+
+.runtime-room {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 120px;
+    padding: 3px 6px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 10px;
+}
+
+.runtime-room i {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--muted);
+}
+
+.runtime-room.active {
+    color: var(--text);
+}
+
+.runtime-room.active i {
+    background: var(--success, #45b36b);
+}
+
+.runtime-destroy.room {
+    width: 24px;
+    height: 24px;
+    padding: 1px;
+    border: 0;
+    border-radius: 4px;
+    color: var(--danger);
+}
+
+.runtime-progress {
+    display: block;
+    appearance: none;
+    width: 100%;
+    border: 0;
+    overflow: hidden;
+    height: 4px;
+    margin-top: 13px;
+    border-radius: 99px;
+    background: var(--panel-soft);
+}
+
+.runtime-submaps {
+    border-top: 1px solid var(--border);
+    background: var(--panel-soft);
+}
+
+.runtime-submaps > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 34px;
+    padding: 0 14px;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+    list-style: none;
+}
+
+.runtime-submaps > summary:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.runtime-submaps > summary::-webkit-details-marker {
+    display: none;
+}
+
+.runtime-submaps > summary::before {
+    width: 7px;
+    height: 7px;
+    margin-right: 8px;
+    border-right: 2px solid var(--muted);
+    border-bottom: 2px solid var(--muted);
+    content: '';
+    transform: rotate(-45deg);
+    transition: transform 150ms ease-out;
+}
+
+.runtime-submaps[open] > summary::before {
+    transform: rotate(45deg);
+}
+
+.runtime-submaps-title {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0;
+}
+
+.runtime-submaps-title small {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.runtime-submap-list {
+    display: grid;
+    gap: 8px;
+    padding: 0 10px 10px;
+}
+
+.runtime-submap {
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border);
+    border-radius: 10px;
+    background: var(--panel);
+}
+
+.runtime-submap > header {
+    margin-bottom: 0;
+    min-height: 0;
+    padding: 8px 11px;
+    border-bottom: 1px solid var(--border);
+}
+
+.runtime-submap h3 {
+    margin: 0;
+    color: var(--text);
+    font-size: 12px;
+}
+
+.runtime-submap p {
+    margin: 3px 0 0;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.runtime-submap code {
+    color: var(--text);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.runtime-submap .runtime-mode {
+    min-height: 0;
+    padding: 8px 11px;
+}
+
+.runtime-empty {
+    padding: 48px 20px;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-panel);
+    color: var(--muted);
+    text-align: center;
+}

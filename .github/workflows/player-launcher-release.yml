@@ -1,0 +1,184 @@
+name: Build and Release BOX3 Player Launcher
+run-name: Player / ${{ github.ref_name }}
+'on':
+  push:
+    branches:
+      - staging
+      - 'player-release/v*'
+  workflow_dispatch: {}
+permissions:
+  contents: read
+defaults:
+  run:
+    shell: bash
+concurrency:
+  group: player-release-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  OSS_BUCKET: ${{ secrets.ALIYUN_OSS_BUCKET }}
+  OSS_ENDPOINT: ${{ secrets.ALIYUN_OSS_ENDPOINT }}
+  OSS_ACCESS_KEY_ID: ${{ secrets.ALIYUN_OSS_ACCESS_KEY_ID }}
+  OSS_ACCESS_KEY_SECRET: ${{ secrets.ALIYUN_OSS_ACCESS_KEY_SECRET }}
+  PLAYER_BUILD_CHANNEL: ${{ github.ref == 'refs/heads/staging' && 'staging' || 'production' }}
+jobs:
+  validate:
+    if: >-
+      github.ref == 'refs/heads/staging' ||
+      (startsWith(github.ref, 'refs/heads/player-release/v') &&
+       (github.event_name != 'push' || github.event.created != true))
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+      tag: ${{ steps.version.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+      - name: Check current release source
+        run: node scripts/check-public-repository.js
+      - name: Validate player version and OSS configuration
+        id: version
+        run: node --experimental-strip-types apps/player-launcher/scripts/release.mts validate
+      - name: Guard immutable player version
+        id: identity
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/github-build-gate.js release player
+        if: startsWith(github.ref, 'refs/heads/player-release/v')
+  installers:
+    needs: validate
+    name: Package (${{ matrix.target }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: windows-amd64
+            runner: windows-2022
+            architecture: x64
+          - target: windows-arm64
+            runner: windows-11-arm
+            architecture: arm64
+          - target: macos-arm64
+            runner: macos-14
+            architecture: arm64
+          - target: linux-amd64
+            runner: ubuntu-22.04
+            architecture: x64
+          - target: linux-arm64
+            runner: ubuntu-22.04-arm
+            architecture: arm64
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          architecture: ${{ matrix.architecture }}
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          architecture: ${{ matrix.architecture }}
+      - name: Install OSS-compatible transfer client
+        run: python -m pip install --disable-pip-version-check awscli==1.42.35
+      - name: Check cached player installer in Aliyun OSS
+        id: cache
+        run: node --experimental-strip-types apps/player-launcher/scripts/release.mts probe ${{ matrix.target }}
+      - name: Install Linux Electron and AppImage dependencies
+        if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends \
+            xvfb xauth libgtk-3-0 libnss3 libasound2 libgbm1 libxss1 \
+            libatk-bridge2.0-0 libdrm2 libx11-xcb1 libxtst6 libfuse2
+      - name: Install player workspace dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: node common/scripts/install-run-rush.js install --to @box/player-launcher
+      - name: Build and verify generated API client
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          npm --prefix internals/apis run build
+          npm --prefix internals/apis run check:openapi
+      - name: Check player sources and regressions
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm --prefix apps/player-launcher run check
+      - name: Test desktop and real resource cache
+        timeout-minutes: 6
+        if: steps.cache.outputs.cache-hit != 'true' && runner.os != 'Linux'
+        run: |
+          npm --prefix apps/player-launcher run test:desktop
+          npm --prefix apps/player-launcher run test:menu
+          npm --prefix apps/player-launcher run test:cache
+      - name: Test Linux desktop and real resource cache
+        timeout-minutes: 6
+        if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Linux'
+        run: |
+          xvfb-run -a npm --prefix apps/player-launcher run test:desktop
+          xvfb-run -a npm --prefix apps/player-launcher run test:menu
+          xvfb-run -a npm --prefix apps/player-launcher run test:cache
+      - name: Build and verify Windows player installer
+        if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Windows'
+        env:
+          CSC_LINK: ${{ secrets.PLAYER_WINDOWS_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.PLAYER_WINDOWS_CSC_KEY_PASSWORD }}
+        run: node --experimental-strip-types apps/player-launcher/scripts/release.mts build ${{ matrix.target }}
+      - name: Build and verify macOS player installer
+        if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'macOS'
+        env:
+          CSC_LINK: ${{ secrets.PLAYER_MACOS_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.PLAYER_MACOS_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.PLAYER_APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.PLAYER_APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.PLAYER_APPLE_TEAM_ID }}
+        run: node --experimental-strip-types apps/player-launcher/scripts/release.mts build ${{ matrix.target }}
+      - name: Build and verify Linux player AppImage
+        if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Linux'
+        run: xvfb-run -a node --experimental-strip-types apps/player-launcher/scripts/release.mts build ${{ matrix.target }}
+      - name: Upload verified player installer to Aliyun OSS
+        timeout-minutes: 35
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: node --experimental-strip-types apps/player-launcher/scripts/release.mts upload ${{ matrix.target }}
+  publish:
+    needs:
+      - validate
+      - installers
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install OSS-compatible transfer client
+        run: python -m pip install --disable-pip-version-check awscli==1.42.35
+      - name: Collect and verify all player installers from Aliyun OSS
+        run: node --experimental-strip-types apps/player-launcher/scripts/release.mts download
+      - name: Publish independent player GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ needs.validate.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: BOX3 Player Launcher v${{ needs.validate.outputs.version }}
+          body_path: player-release-files/release-notes.md
+          prerelease: ${{ needs.validate.outputs.prerelease == 'true' }}
+          make_latest: false
+          fail_on_unmatched_files: true
+          files: |
+            player-release-files/*.exe
+            player-release-files/*.dmg
+            player-release-files/*.AppImage
+            player-release-files/*.sha256
+            player-release-files/*.build.json
+            player-release-files/SHA256SUMS.txt
+        if: startsWith(github.ref, 'refs/heads/player-release/v')

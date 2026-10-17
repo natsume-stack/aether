@@ -1,0 +1,298 @@
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.form-grid.three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.form-grid.single {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.form-grid.port-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    margin-top: 10px;
+}
+
+.form-grid.compact {
+    row-gap: 9px;
+}
+
+.secret-list {
+    border-top: 1px solid var(--border);
+}
+
+.secret-row {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(190px, 0.8fr) minmax(260px, 1.35fr) auto;
+    align-items: center;
+    gap: 24px;
+    min-height: 76px;
+    padding: 14px 2px;
+    border-bottom: 1px solid var(--border);
+}
+
+.secret-row.editing .secret-value,
+.secret-row.editing .secret-editor {
+    border-color: color-mix(in srgb, var(--accent) 46%, var(--border));
+}
+
+.secret-meta {
+    min-width: 0;
+    display: grid;
+    gap: 4px;
+}
+
+.secret-meta > strong {
+    font-size: 12px;
+}
+
+.secret-control {
+    min-width: 0;
+}
+
+.secret-actions {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.secret-action {
+    min-width: 56px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 0 8px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font: inherit;
+    font-size: 11px;
+    transition:
+        background-color 140ms ease,
+        color 140ms ease,
+        transform 100ms var(--ease-out);
+}
+
+.secret-action svg {
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+}
+
+.secret-action[aria-pressed='true'],
+.secret-action.primary,
+.secret-action.copied {
+    border-color: color-mix(in srgb, var(--accent) 22%, transparent);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+    color: var(--accent);
+}
+
+.secret-action:active {
+    transform: scale(0.97);
+}
+
+.secret-action:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--accent) 65%, transparent);
+    outline-offset: 1px;
+}
+
+.secret-value,
+.secret-editor {
+    width: 100%;
+    height: 34px;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 0 9px;
+    border: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
+    border-radius: var(--radius-control);
+    background: var(--panel-soft);
+    color: var(--text);
+    font:
+        12px/32px ui-monospace,
+        SFMono-Regular,
+        Menlo,
+        monospace;
+}
+
+.secret-value {
+    display: block;
+    overflow: hidden;
+    letter-spacing: 0.08em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.secret-value.empty {
+    color: var(--muted);
+    font-family: inherit;
+    letter-spacing: 0;
+}
+
+.secret-editor {
+    outline: none;
+    line-height: normal;
+    transition:
+        border-color 140ms ease,
+        box-shadow 140ms ease;
+}
+
+.secret-editor:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .secret-action:hover {
+        background: color-mix(in srgb, var(--text) 7%, transparent);
+        color: var(--text);
+    }
+}
+
+.field {
+    min-width: 0;
+    display: grid;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    grid-template-rows: 15px 34px 11px;
+}
+
+.field input {
+    width: 100%;
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    outline: none;
+    background: var(--panel-soft);
+    color: var(--text);
+    transition:
+        border-color 140ms ease,
+        box-shadow 140ms ease;
+}
+
+.field select {
+    width: 100%;
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    outline: none;
+    background: var(--panel-soft);
+    color: var(--text);
+    font: inherit;
+}
+
+.field select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.field input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.field small {
+    min-height: 11px;
+    overflow: hidden;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 400;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.field small.empty {
+    visibility: hidden;
+}
+
+.check-field {
+    min-height: 34px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    align-self: start;
+    margin-top: 20px;
+    font-size: 12px;
+}
+
+.form-actions {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    border-top: 1px solid var(--border);
+}
+
+.form-actions.submit-actions {
+    justify-content: flex-end;
+    padding-top: 20px;
+}
+
+.form-actions > span {
+    padding-bottom: 9px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.text-button {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--accent);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 620;
+}
+
+.file-picker {
+    position: relative;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 34px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--panel-soft);
+    padding: 0 10px;
+}
+.file-picker-action {
+    flex: none;
+    font-size: 11px;
+    color: var(--accent);
+}
+.file-picker-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--muted);
+    font-weight: 400;
+}
+.field .file-picker input[type='file'] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    height: 100%;
+    padding: 0;
+    cursor: pointer;
+}
+.file-picker:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+}

@@ -1,0 +1,2730 @@
+accessor	GameHttpFetchResponse	get ok(): boolean;
+accessor	URL	get hash(): string;
+accessor	URL	get host(): string;
+accessor	URL	get hostname(): any;
+accessor	URL	get href(): string;
+accessor	URL	get origin(): string;
+accessor	URL	get password(): string;
+accessor	URL	get pathname(): string;
+accessor	URL	get port(): string;
+accessor	URL	get protocol(): string;
+accessor	URL	get search(): string;
+accessor	URL	get searchParams(): URLSearchParams;
+accessor	URL	get username(): string;
+accessor	URL	set hash(value: string);
+accessor	URL	set host(value: string);
+accessor	URL	set hostname(value: any);
+accessor	URL	set href(value: string);
+accessor	URL	set password(value: string);
+accessor	URL	set pathname(value: string);
+accessor	URL	set port(value: string);
+accessor	URL	set protocol(value: string);
+accessor	URL	set search(value: string);
+accessor	URL	set username(value: string);
+arrow	GameAnimation	cancel: () => void, 
+arrow	GameAnimation	cancel: () => void;
+arrow	GameAnimation	keyframes: () => Partial<KeyframeType>[], currentTime: () => number, startTime: () => number, playState: () => GameAnimationPlaybackState, playbackRate: () => number, 
+arrow	GameAnimation	keyframes: () => Partial<KeyframeType>[];
+arrow	GameAnimation	play: (playback?: Partial<GameAnimationPlaybackConfig>) => void, 
+arrow	GameAnimation	play: (playback?: Partial<GameAnimationPlaybackConfig>) => void;
+arrow	GameClientMessageEvent	reject: (reason?: string) => void;
+arrow	GameConsole	assert: (assertion: any, ...args: any[]) => void;
+arrow	GameConsole	clear: () => void;
+arrow	GameConsole	dir: () => void;
+arrow	GameConsole	dirxml: () => void;
+arrow	GameConsole	group: () => void;
+arrow	GameConsole	groupCollapsed: () => void;
+arrow	GameConsole	groupEnd: () => void;
+arrow	GameConsole	table: () => void;
+arrow	GameConsole	time: () => void;
+arrow	GameConsole	timeEnd: () => void;
+arrow	GameConsole	timeLog: () => void;
+arrow	GameConsole	timeStamp: () => void;
+arrow	GameConsole	trace: () => void;
+arrow	GameDataStorage	destroy: () => Promise<void>;
+arrow	GameDataStorage	get: (key: string) => Promise<ReturnValue>;
+arrow	GameDataStorage	increment: (key: string, value?: number) => Promise<number>;
+arrow	GameDataStorage	list: (options: ListPageOptions) => Promise<QueryList>;
+arrow	GameDataStorage	remove: (key: string) => Promise<ReturnValue>;
+arrow	GameDataStorage	set: (key: string, value: JSONValue) => Promise<void>;
+arrow	GameDataStorage	update: (key: string, handler: (prevValue: ReturnValue) => JSONValue) => Promise<void>;
+arrow	GameDatabase	sql: (sql: string[], ...params: (number | string | Uint8Array | boolean | null)[]) => GameQueryResult);
+arrow	GameDatabase	sql: (sql: string[], ...params: (number | string | Uint8Array | boolean | null)[]) => GameQueryResult;
+arrow	GameDialogType	cancel: () => void;
+arrow	GameEntity	addTag: (tag: string) => void, 
+arrow	GameEntity	addTag: (tag: string) => void;
+arrow	GameEntity	animate: (keyframes: Partial<GameEntityKeyframe>[], playbackInfo?: Partial<GameAnimationPlaybackConfig>) => GameAnimation<GameEntityKeyframe, GameEntity>, getAnimations: () => GameAnimation<GameEntityKeyframe, GameEntity>[], 
+arrow	GameEntity	animate: (keyframes: Partial<GameEntityKeyframe>[], playbackInfo?: Partial<GameAnimationPlaybackConfig>) => GameAnimation<GameEntityKeyframe, GameEntity>;
+arrow	GameEntity	destroy: () => void, 
+arrow	GameEntity	destroy: () => void;
+arrow	GameEntity	getAnimations: () => GameAnimation<GameEntityKeyframe, GameEntity>[];
+arrow	GameEntity	hasTag: (tag: string) => boolean, 
+arrow	GameEntity	hasTag: (tag: string) => boolean;
+arrow	GameEntity	hurt: (amount: number, options?: Partial<GameHurtOptions>) => void, 
+arrow	GameEntity	hurt: (amount: number, options?: Partial<GameHurtOptions>) => void;
+arrow	GameEntity	lookAt: (targetPosition: GameVector3, facingDirection?: 'X' | 'Y' | 'Z', up?: GameVector3) => void;
+arrow	GameEntity	removeTag: (tag: string) => void, 
+arrow	GameEntity	removeTag: (tag: string) => void;
+arrow	GameEntity	rotateLocal: (localPosition: GameVector3, axis: 'X' | 'Y' | 'Z', rad: number) => void, 
+arrow	GameEntity	rotateLocal: (localPosition: GameVector3, axis: 'X' | 'Y' | 'Z', rad: number) => void;
+arrow	GameEntity	say: (message: string, options?: {
+arrow	GameEntity	say: (message: string, options?: {
+arrow	GameEntity	scaleLocal: (localPosition: GameVector3, v: GameVector3) => void);
+arrow	GameEntity	scaleLocal: (localPosition: GameVector3, v: GameVector3) => void;
+arrow	GameEntity	sound: (spec: {
+arrow	GameEntity	sound: (spec: {
+arrow	GameEntity	tags: () => string[], 
+arrow	GameEntity	tags: () => string[];
+arrow	GameEntityConfig	tags: (() => string[]) | string[];
+arrow	GameEventHandlerToken	active: () => boolean);
+arrow	GameEventHandlerToken	active: () => boolean;
+arrow	GameEventHandlerToken	cancel: () => void, 
+arrow	GameEventHandlerToken	cancel: () => void;
+arrow	GameEventHandlerToken	resume: () => void, 
+arrow	GameEventHandlerToken	resume: () => void;
+arrow	GameGUI	getAttribute: (entity: GamePlayerEntity, selector: string, name: string) => Promise<any>;
+arrow	GameGUI	onMessage: (listener: GameGUIEventListener) => void;
+arrow	GameGUI	remove: (entity: GamePlayerEntity, selector: string) => Promise<void>;
+arrow	GameGUI	setAttribute: (entity: GamePlayerEntity, selector: string, name: string, value: any) => Promise<void>;
+arrow	GameGUI	show: (entity: GamePlayerEntity, name: string, allowMultiple?: boolean) => Promise<void>;
+arrow	GameHttpAPI	fetch: (url: string, options?: GameHttpFetchRequestOptions) => Promise<GameHttpFetchResponse>;
+arrow	GameHttpFetchResponse	arrayBuffer: () => Promise<ArrayBuffer>;
+arrow	GameHttpFetchResponse	close: () => Promise<void>;
+arrow	GameHttpFetchResponse	json: () => Promise<any>;
+arrow	GameHttpFetchResponse	text: () => Promise<string>;
+arrow	GameModeration	getBan: (banId: string) => Promise<ModerationBanRecord | null>;
+arrow	GameModeration	getPlayerStatus: (player: GamePlayer) => Promise<{
+arrow	GameModeration	listBans: (query?: ModerationBanQuery) => Promise<{
+arrow	GameModeration	revokeBan: (banId: string, options: {
+arrow	GameMotionController	loadByName: (config: string | GameMotionConfig[] | GameMotionClipConfig) => GameMotionHandler<TargetType>, 
+arrow	GameMotionController	loadByName: (config: string | GameMotionConfig[] | GameMotionClipConfig) => GameMotionHandler<TargetType>;
+arrow	GameMotionController	pause: () => void, 
+arrow	GameMotionController	pause: () => void;
+arrow	GameMotionController	resume: () => void, 
+arrow	GameMotionController	resume: () => void;
+arrow	GameMotionController	setDefaultMotionByName: (motionName?: string) => void);
+arrow	GameMotionController	setDefaultMotionByName: (motionName?: string) => void;
+arrow	GameMotionHandler	cancel: () => void, 
+arrow	GameMotionHandler	cancel: () => void;
+arrow	GameMotionHandler	play: () => void, 
+arrow	GameMotionHandler	play: () => void;
+arrow	GameMovementEvent	reject: (reason?: string) => void;
+arrow	GamePlayer	addEventListener: (type: NavigatorEventType, listener: (event: {
+arrow	GamePlayer	addWearable: (spec: Partial<GameWearable>) => GameWearable, 
+arrow	GamePlayer	addWearable: (spec: Partial<GameWearable>) => GameWearable;
+arrow	GamePlayer	animate: (keyframes: Partial<GamePlayerKeyframe>[], playbackConfig?: GameAnimationPlaybackConfig) => GameAnimation<GamePlayerKeyframe, GamePlayer>, getAnimations: () => GameAnimation<GamePlayerKeyframe, GamePlayer>[], 
+arrow	GamePlayer	animate: (keyframes: Partial<GamePlayerKeyframe>[], playbackConfig?: GameAnimationPlaybackConfig) => GameAnimation<GamePlayerKeyframe, GamePlayer>;
+arrow	GamePlayer	cancelDialogs: () => void, 
+arrow	GamePlayer	cancelDialogs: () => void;
+arrow	GamePlayer	clearSkin: () => void, 
+arrow	GamePlayer	clearSkin: () => void;
+arrow	GamePlayer	directMessage: (message: string) => void, 
+arrow	GamePlayer	directMessage: (message: string) => void;
+arrow	GamePlayer	forceRespawn: () => void, 
+arrow	GamePlayer	forceRespawn: () => void;
+arrow	GamePlayer	getAnimations: () => GameAnimation<GamePlayerKeyframe, GamePlayer>[];
+arrow	GamePlayer	kick: () => void, 
+arrow	GamePlayer	kick: () => void;
+arrow	GamePlayer	link: (href: string, options?: {
+arrow	GamePlayer	link: (href: string, options?: {
+arrow	GamePlayer	postMessage: (event: {
+arrow	GamePlayer	removeWearable: (wearable: GameWearable) => void, 
+arrow	GamePlayer	removeWearable: (wearable: GameWearable) => void;
+arrow	GamePlayer	resetToDefaultSkin: () => void, 
+arrow	GamePlayer	resetToDefaultSkin: () => void;
+arrow	GamePlayer	setCameraPitch: (value: number) => void, 
+arrow	GamePlayer	setCameraPitch: (value: number) => void;
+arrow	GamePlayer	setCameraYaw: (value: number) => void, 
+arrow	GamePlayer	setCameraYaw: (value: number) => void;
+arrow	GamePlayer	setSkinByName: (skinName: string) => void, 
+arrow	GamePlayer	setSkinByName: (skinName: string) => void;
+arrow	GamePlayer	sound: (spec: {
+arrow	GamePlayer	sound: (spec: {
+arrow	GamePlayer	wearables: (bodyPart?: GameBodyPart) => GameWearable[], 
+arrow	GamePlayer	wearables: (bodyPart?: GameBodyPart) => GameWearable[];
+arrow	GameQueryResult	next: () => Promise<{
+arrow	GameQueryResult	return: () => Promise<{
+arrow	GameQueryResult	then: (resolve: (rows: any[]) => any, reject: (err: any) => any) => void;
+arrow	GameQueryResult	throw: (err: any) => Promise<{
+arrow	GameRTC	createChannel: (channelId?: string) => Promise<GameRTCChannel>;
+arrow	GameRTCChannel	add: (entity: GamePlayerEntity) => Promise<void>;
+arrow	GameRTCChannel	destroy: () => Promise<void>;
+arrow	GameRTCChannel	getMicrophonePermission: (entity: GamePlayerEntity) => Promise<boolean>;
+arrow	GameRTCChannel	getPlayers: () => Promise<GamePlayerEntity[]>;
+arrow	GameRTCChannel	getVolume: (entity: GamePlayerEntity) => Promise<number>;
+arrow	GameRTCChannel	publishMicrophone: (entity: GamePlayerEntity) => Promise<void>;
+arrow	GameRTCChannel	remove: (entity: GamePlayerEntity) => Promise<void>;
+arrow	GameRTCChannel	setVolume: (entity: GamePlayerEntity, volume: number) => Promise<void>;
+arrow	GameRTCChannel	unpublish: (entity: GamePlayerEntity) => Promise<void>;
+arrow	GameResourceSystem	ls: (path?: string) => GameAssetListEntry[];
+arrow	GameStorage	getDataStorage: (key: string) => GameDataStorage;
+arrow	GameStorage	getGroupStorage: (key: string) => GameDataStorage | undefined;
+arrow	GameVoxels	getVoxel: (x: number, y: number, z: number) => number, 
+arrow	GameVoxels	getVoxel: (x: number, y: number, z: number) => number;
+arrow	GameVoxels	getVoxelId: (x: number, y: number, z: number) => number);
+arrow	GameVoxels	getVoxelId: (x: number, y: number, z: number) => number;
+arrow	GameVoxels	getVoxelRotation: (x: number, y: number, z: number) => number, 
+arrow	GameVoxels	getVoxelRotation: (x: number, y: number, z: number) => number;
+arrow	GameVoxels	id: (name: string) => number, 
+arrow	GameVoxels	id: (name: string) => number;
+arrow	GameVoxels	name: (id: number) => string, 
+arrow	GameVoxels	name: (id: number) => string;
+arrow	GameVoxels	setVoxel: (x: number, y: number, z: number, voxel: number | string, rotation?: number | string) => number, 
+arrow	GameVoxels	setVoxel: (x: number, y: number, z: number, voxel: number | string, rotation?: number | string) => number;
+arrow	GameVoxels	setVoxelId: (x: number, y: number, z: number, voxel: number) => number, 
+arrow	GameVoxels	setVoxelId: (x: number, y: number, z: number, voxel: number) => number;
+arrow	GameWorld	addCollisionFilter: (aSelector: GameSelectorString, bSelector: GameSelectorString) => void, 
+arrow	GameWorld	addCollisionFilter: (aSelector: GameSelectorString, bSelector: GameSelectorString) => void;
+arrow	GameWorld	addZone: (config: Partial<GameZoneConfig>) => GameZone;
+arrow	GameWorld	animate: (keyframes: Partial<GameWorldKeyframe>[], playbackInfo?: Partial<GameAnimationPlaybackConfig>) => GameAnimation<GameWorldKeyframe, GameWorld>, getAnimations: () => GameAnimation<GameWorldKeyframe, GameWorld>[], getEntityAnimations: () => GameAnimation<GameEntityKeyframe, GameEntity>[], getPlayerAnimations: () => GameAnimation<GamePlayerKeyframe, GamePlayer>[], 
+arrow	GameWorld	animate: (keyframes: Partial<GameWorldKeyframe>[], playbackInfo?: Partial<GameAnimationPlaybackConfig>) => GameAnimation<GameWorldKeyframe, GameWorld>;
+arrow	GameWorld	clearCollisionFilters: () => void, 
+arrow	GameWorld	clearCollisionFilters: () => void;
+arrow	GameWorld	collisionFilters: () => string[][], 
+arrow	GameWorld	collisionFilters: () => string[][];
+arrow	GameWorld	createEntity: (config: Partial<GameEntityConfig>) => GameEntity | null, 
+arrow	GameWorld	createEntity: (config: Partial<GameEntityConfig>) => GameEntity | null;
+arrow	GameWorld	entityQuota: () => number, 
+arrow	GameWorld	entityQuota: () => number;
+arrow	GameWorld	getAnimations: () => GameAnimation<GameWorldKeyframe, GameWorld>[];
+arrow	GameWorld	getEntityAnimations: () => GameAnimation<GameEntityKeyframe, GameEntity>[];
+arrow	GameWorld	getPlayerAnimations: () => GameAnimation<GamePlayerKeyframe, GamePlayer>[];
+arrow	GameWorld	querySelector: (selector: GameSelectorString) => GameEntity | null, 
+arrow	GameWorld	querySelector: (selector: GameSelectorString) => GameEntity | null;
+arrow	GameWorld	querySelectorAll: (selector: GameSelectorString) => GameEntity[], 
+arrow	GameWorld	querySelectorAll: (selector: GameSelectorString) => GameEntity[];
+arrow	GameWorld	raycast: (origin: GameVector3, direction: GameVector3, options?: Partial<GameRaycastOptions>) => GameRaycastResult, 
+arrow	GameWorld	raycast: (origin: GameVector3, direction: GameVector3, options?: Partial<GameRaycastOptions>) => GameRaycastResult;
+arrow	GameWorld	removeCollisionFilter: (aSelector: GameSelectorString, bSelector: GameSelectorString) => void, 
+arrow	GameWorld	removeCollisionFilter: (aSelector: GameSelectorString, bSelector: GameSelectorString) => void;
+arrow	GameWorld	removeZone: (trigger: GameZone) => void;
+arrow	GameWorld	say: (message: string) => void, 
+arrow	GameWorld	say: (message: string) => void;
+arrow	GameWorld	searchBox: (bounds: GameBounds3) => GameEntity[], 
+arrow	GameWorld	searchBox: (bounds: GameBounds3) => GameEntity[];
+arrow	GameWorld	sound: (spec: {
+arrow	GameWorld	sound: (spec: {
+arrow	GameWorld	testSelector: (selector: GameSelectorString, entity: GameEntity) => boolean, 
+arrow	GameWorld	testSelector: (selector: GameSelectorString, entity: GameEntity) => boolean;
+arrow	GameWorld	zones: () => GameZone[], addZone: (config: Partial<GameZoneConfig>) => GameZone, removeZone: (trigger: GameZone) => void, 
+arrow	GameWorld	zones: () => GameZone[];
+arrow	GameZone	entities: () => GameEntity[], 
+arrow	GameZone	entities: () => GameEntity[];
+arrow	GameZone	remove: () => void);
+arrow	GameZone	remove: () => void;
+arrow	PlayerNavigator	addEventListener: (type: NavigatorEventType, listener: (event: {
+arrow	PlayerNavigator	dispatchEvent: (type: string, value: object) => void;
+arrow	PlayerNavigator	emitEvent: (type: string, value: object) => void;
+arrow	QueryList	getCurrentPage: () => ReturnValue[];
+arrow	QueryList	nextPage: () => Promise<void>;
+arrow	ServerRemoteChannel	broadcastClientEvent: (clientEvent: JSONValue) => void;
+arrow	Sound	pause: () => void;
+arrow	Sound	resume: (currentTime?: number) => void;
+arrow	Sound	setCurrentTime: (currentTime: number) => void;
+arrow	Sound	stop: () => void;
+arrow	console	assert: (assertion, ...args: any[]) => void;
+arrow	require	resolve: (path: string) => string;
+arrow	resources	ls: (path?: string) => GameAssetListEntry[];
+callsig	GameGUIEventListener	(event: GameGUIEvent): void;
+callsig	GameModeration	(player: GamePlayer, options: ModerationOptions): Promise<ModerationBan>;
+callsig	GameModeration	(player: GamePlayer, options: ModerationOptions): Promise<ModerationBan>;
+callsig	GameModeration	(player: GamePlayer, options: ModerationOptions): Promise<ModerationBan>;
+callsig	GameModeration	(players: GamePlayer | readonly GamePlayer[], options: ModerationOptions): Promise<ModerationBan | ModerationBatchResult[]>;
+callsig	GameModeration	(players: GamePlayer | readonly GamePlayer[], options: ModerationOptions): Promise<ModerationBan | ModerationBatchResult[]>;
+callsig	GameModeration	(players: GamePlayer | readonly GamePlayer[], options: ModerationOptions): Promise<ModerationBan | ModerationBatchResult[]>;
+callsig	GameModeration	(players: readonly GamePlayer[], options: ModerationOptions): Promise<ModerationBatchResult[]>;
+callsig	GameModeration	(players: readonly GamePlayer[], options: ModerationOptions): Promise<ModerationBatchResult[]>;
+callsig	GameModeration	(players: readonly GamePlayer[], options: ModerationOptions): Promise<ModerationBatchResult[]>;
+callsig	require	(module: string): any;
+ctor	GameAnimation	constructor(
+ctor	GameAnimationEvent	constructor(tick: number, target: TargetType, animation: GameAnimation<KeyframeType, TargetType>, cancelled: boolean);
+ctor	GameAssetListEntry	constructor(
+ctor	GameBounds3	constructor(lo: GameVector3, hi: GameVector3);
+ctor	GameChatEvent	constructor(
+ctor	GameClickEvent	constructor(
+ctor	GameConsole	constructor(log: (level: GameLogLevel, message: string) => void, clear: () => void);
+ctor	GameDamageEvent	constructor(
+ctor	GameDataStorage	constructor(key: string, set: (key: string, value: JSONValue) => Promise<void>, update: (key: string, handler: (prevValue: ReturnValue) => JSONValue) => Promise<void>, get: (key: string) => Promise<ReturnValue>, increment: (key: string, value?: number) => Promise<number>, list: (options: ListPageOptions) => Promise<QueryList>, remove: (key: string) => Promise<ReturnValue>, destroy: () => Promise<void>);
+ctor	GameDatabase	constructor(
+ctor	GameDieEvent	constructor(
+ctor	GameEntity	constructor(
+ctor	GameEntityContact	constructor(other: GameEntity, force: GameVector3, axis: GameVector3);
+ctor	GameEntityContactEvent	constructor(
+ctor	GameEntityEvent	constructor(
+ctor	GameEventHandlerToken	constructor(
+ctor	GameFluidContact	constructor(voxel: number, volume: number);
+ctor	GameFluidContactEvent	constructor(
+ctor	GameGUI	constructor(init: <T extends string, U extends T>(entity: GamePlayerEntity, config: GUIConfig<T, U>) => Promise<void>, show: (entity: GamePlayerEntity, name: string, allowMultiple?: boolean) => Promise<void>, remove: (entity: GamePlayerEntity, selector: string) => Promise<void>, getAttribute: (entity: GamePlayerEntity, selector: string, name: string) => Promise<any>, setAttribute: (entity: GamePlayerEntity, selector: string, name: string, value: any) => Promise<void>, onMessage: (listener: GameGUIEventListener) => void);
+ctor	GameHttpAPI	constructor(fetch: (url: string, options?: GameHttpFetchRequestOptions) => Promise<GameHttpFetchResponse>);
+ctor	GameHttpFetchResponse	constructor(status: number, statusText: string, headers: GameHttpFetchHeaders, json: () => Promise<any>, text: () => Promise<string>, arrayBuffer: () => Promise<ArrayBuffer>, close: () => Promise<void>);
+ctor	GameInputEvent	constructor(
+ctor	GameInteractEvent	constructor(
+ctor	GameKeyBoardEvent	constructor(
+ctor	GameMotionController	constructor(
+ctor	GameMotionEvent	constructor(
+ctor	GameMotionHandler	constructor(
+ctor	GamePlayer	constructor(
+ctor	GameQuaternion	constructor(w: number, x: number, y: number, z: number);
+ctor	GameQueryResult	constructor(next: () => Promise<{
+ctor	GameRGBAColor	constructor(r: number, g: number, b: number, a: number);
+ctor	GameRGBColor	constructor(r: number, g: number, b: number);
+ctor	GameRTC	constructor(createChannel: (channelId?: string) => Promise<GameRTCChannel>);
+ctor	GameRTCChannel	constructor(add: (entity: GamePlayerEntity) => Promise<void>, remove: (entity: GamePlayerEntity) => Promise<void>, unpublish: (entity: GamePlayerEntity) => Promise<void>, publishMicrophone: (entity: GamePlayerEntity) => Promise<void>, getPlayers: () => Promise<GamePlayerEntity[]>, destroy: () => Promise<void>, getVolume: (entity: GamePlayerEntity) => Promise<number>, setVolume: (entity: GamePlayerEntity, volume: number) => Promise<void>, getMicrophonePermission: (entity: GamePlayerEntity) => Promise<boolean>);
+ctor	GameRaycastResult	constructor(
+ctor	GameResourceSystem	constructor(ls: (path?: string) => GameAssetListEntry[]);
+ctor	GameRespawnEvent	constructor(
+ctor	GameStorage	constructor(getDataStorage: (key: string) => GameDataStorage, getGroupStorage: (key: string) => GameDataStorage | undefined);
+ctor	GameTickEvent	constructor(
+ctor	GameTriggerEvent	constructor(
+ctor	GameVector3	constructor(x: number, y: number, z: number);
+ctor	GameVoxelContact	constructor(x: number, y: number, z: number, voxel: number, force: GameVector3, axis: GameVector3);
+ctor	GameVoxelContactEvent	constructor(
+ctor	GameVoxels	constructor(
+ctor	GameWorld	constructor(
+ctor	GameZone	constructor(
+ctor	PlayerNavigator	constructor(emitEvent: (type: string, value: object) => void, addEventListener: (type: NavigatorEventType, listener: (event: {
+ctor	QueryList	constructor(getCurrentPage: () => ReturnValue[], nextPage: () => Promise<void>);
+ctor	ServerRemoteChannel	constructor(sendClientEvent: SendClientEventType, broadcastClientEvent: (clientEvent: JSONValue) => void, onServerEvent: GameEventChannel<ServerEvent>);
+ctor	Sound	constructor(resume: (currentTime?: number) => void, setCurrentTime: (currentTime: number) => void, pause: () => void, stop: () => void);
+ctor	URL	constructor(url: any, base?: any);
+ctor	URLSearchParams	constructor(args: any);
+index	GUIBindDefinition	[key in keyof GUIBindDefinition<T>]: GUIBind<key> & GUIBindDefinition<T>[key];
+index	GUIBindDefinition	[name: string]: 'x' | '-x' | 'y' | '-y';
+index	GUIConfigItem	[name in T]: GUIConfigItem<U>;
+index	GUIData	[name: string]: string | number;
+index	GameBodyPart	[key in GameBodyPart]: GameSkinValue;
+index	GameBodyPart	[key in GameBodyPart]: boolean;
+index	GameGUI	[name: string]: string | string[];
+index	GameQueryResult	[Symbol.asyncIterator](): this;
+index	URLSearchParams	[Symbol.iterator](): ArrayIterator<string[]>;
+index	__filename	[x: string]: JSONValue;
+method	GameBounds3	contains(b: GameVector3): boolean;
+method	GameBounds3	containsBounds(b: GameBounds3): boolean;
+method	GameBounds3	copy(b: GameBounds3): GameBounds3;
+method	GameBounds3	intersect(b: GameBounds3): GameBounds3;
+method	GameBounds3	intersects(b: GameBounds3): boolean;
+method	GameBounds3	set(lox: number, loy: number, loz: number, hix: number, hiy: number, hiz: number): GameBounds3;
+method	GameBounds3	toString(): string;
+method	GameQuaternion	add(v: GameQuaternion): GameQuaternion;
+method	GameQuaternion	angle(q: GameQuaternion): number;
+method	GameQuaternion	clone(): GameQuaternion;
+method	GameQuaternion	copy(q: GameQuaternion): GameQuaternion;
+method	GameQuaternion	div(q: GameQuaternion): GameQuaternion;
+method	GameQuaternion	dot(q: GameQuaternion): number;
+method	GameQuaternion	equals(q: GameQuaternion): boolean;
+method	GameQuaternion	getAxisAngle(_q: GameQuaternion): {
+method	GameQuaternion	inv(): GameQuaternion;
+method	GameQuaternion	mag(): number;
+method	GameQuaternion	mul(q: GameQuaternion): GameQuaternion;
+method	GameQuaternion	normalize(): GameQuaternion;
+method	GameQuaternion	rotateX(_rad: number): GameQuaternion;
+method	GameQuaternion	rotateY(_rad: number): GameQuaternion;
+method	GameQuaternion	rotateZ(_rad: number): GameQuaternion;
+method	GameQuaternion	set(w: number, x: number, y: number, z: number): GameQuaternion;
+method	GameQuaternion	slerp(q: GameQuaternion, n: number): GameQuaternion;
+method	GameQuaternion	sqrMag(): number;
+method	GameQuaternion	sub(v: GameQuaternion): GameQuaternion;
+method	GameQuaternion	toString(): string;
+method	GameRGBAColor	add(rgba: GameRGBAColor): GameRGBAColor;
+method	GameRGBAColor	addEq(rgba: GameRGBAColor): GameRGBAColor;
+method	GameRGBAColor	blendEq(rgb: GameRGBColor): GameRGBColor;
+method	GameRGBAColor	clone(): GameRGBAColor;
+method	GameRGBAColor	copy(c: GameRGBAColor): GameRGBAColor;
+method	GameRGBAColor	div(rgba: GameRGBAColor): GameRGBAColor;
+method	GameRGBAColor	divEq(rgba: GameRGBAColor): GameRGBAColor;
+method	GameRGBAColor	equals(rgba: GameRGBAColor): boolean;
+method	GameRGBAColor	lerp(rgba: GameRGBAColor, n: number): GameRGBAColor;
+method	GameRGBAColor	mul(rgba: GameRGBAColor): GameRGBAColor;
+method	GameRGBAColor	mulEq(rgba: GameRGBAColor): GameRGBAColor;
+method	GameRGBAColor	set(r: number, g: number, b: number, a: number): GameRGBAColor;
+method	GameRGBAColor	sub(rgba: GameRGBAColor): GameRGBAColor;
+method	GameRGBAColor	subEq(rgba: GameRGBAColor): GameRGBAColor;
+method	GameRGBAColor	toString(): string;
+method	GameRGBColor	add(rgb: GameRGBColor): GameRGBColor;
+method	GameRGBColor	addEq(rgb: GameRGBColor): GameRGBColor;
+method	GameRGBColor	clone(): GameRGBColor;
+method	GameRGBColor	copy(c: GameRGBColor): GameRGBColor;
+method	GameRGBColor	div(rgb: GameRGBColor): GameRGBColor;
+method	GameRGBColor	divEq(rgb: GameRGBColor): GameRGBColor;
+method	GameRGBColor	equals(rgb: GameRGBColor): boolean;
+method	GameRGBColor	lerp(rgb: GameRGBColor, n: number): GameRGBColor;
+method	GameRGBColor	mul(rgb: GameRGBColor): GameRGBColor;
+method	GameRGBColor	mulEq(rgb: GameRGBColor): GameRGBColor;
+method	GameRGBColor	set(r: number, g: number, b: number): GameRGBColor;
+method	GameRGBColor	sub(rgb: GameRGBColor): GameRGBColor;
+method	GameRGBColor	subEq(rgb: GameRGBColor): GameRGBColor;
+method	GameRGBColor	toRGBA(): GameRGBAColor;
+method	GameRGBColor	toString(): string;
+method	GameVector3	add(v: GameVector3): GameVector3;
+method	GameVector3	addEq(v: GameVector3): GameVector3;
+method	GameVector3	angle(v: GameVector3): number;
+method	GameVector3	clone(): GameVector3;
+method	GameVector3	copy(v: GameVector3): GameVector3;
+method	GameVector3	cross(v: GameVector3): GameVector3;
+method	GameVector3	distance(v: GameVector3): number;
+method	GameVector3	div(v: GameVector3): GameVector3;
+method	GameVector3	divEq(v: GameVector3): GameVector3;
+method	GameVector3	dot(v: GameVector3): number;
+method	GameVector3	equals(v: GameVector3): boolean;
+method	GameVector3	exactEquals(v: GameVector3): boolean;
+method	GameVector3	lerp(v: GameVector3, n: number): GameVector3;
+method	GameVector3	mag(): number;
+method	GameVector3	max(v: GameVector3): GameVector3;
+method	GameVector3	min(v: GameVector3): GameVector3;
+method	GameVector3	mul(v: GameVector3): GameVector3;
+method	GameVector3	mulEq(v: GameVector3): GameVector3;
+method	GameVector3	normalize(): GameVector3;
+method	GameVector3	scale(n: number): GameVector3;
+method	GameVector3	set(x: number, y: number, z: number): GameVector3;
+method	GameVector3	sqrMag(): number;
+method	GameVector3	sub(v: GameVector3): GameVector3;
+method	GameVector3	subEq(v: GameVector3): GameVector3;
+method	GameVector3	toString(): string;
+method	GameVector3	towards(v: GameVector3): GameVector3;
+method	GameWearable	remove(): void;
+method	URL	toJSON(): string;
+method	URL	toString(): string;
+method	URLSearchParams	append(name: string, value: string): void;
+method	URLSearchParams	delete(name: string): void;
+method	URLSearchParams	entries(): ArrayIterator<string[]>;
+method	URLSearchParams	forEach(callback: (this: URLSearchParams, value: string, key: string, url: URLSearchParams) => any): void;
+method	URLSearchParams	get(name: string): string | null;
+method	URLSearchParams	getAll(name: string): string[];
+method	URLSearchParams	has(name: string): boolean;
+method	URLSearchParams	keys(): ArrayIterator<string>;
+method	URLSearchParams	set(name: string, value: string): void;
+method	URLSearchParams	sort(): void;
+method	URLSearchParams	toString(): string;
+method	URLSearchParams	values(): ArrayIterator<string>;
+other	<global>	declare type GameLoggerMethod = (...args: any[]) => void;
+other	GUIBind	interface GUIBind<T extends string> {
+other	GUIBind	}
+other	GUIBindDefinition	interface GUIBindDefinition<T> {
+other	GUIBindDefinition	type GUIBindTypeMap<T> = {
+other	GUIBindDefinition	type GUIBindTypes<T> = GUIBindTypeMap<T>[keyof GUIBindTypeMap<T>];
+other	GUIBindDefinition	}
+other	GUIBindDefinition	};
+other	GUIBindDefinition	};
+other	GUIBindDefinition	};
+other	GUIBindDefinition	};
+other	GUIBindDefinition	};
+other	GUIBindDefinition	};
+other	GUIBindDefinition	};
+other	GUIConfigItem	interface GUIConfigItem<T extends string> {
+other	GUIConfigItem	type GUIConfig<T extends string, U extends T> = {
+other	GUIConfigItem	}
+other	GUIConfigItem	};
+other	GUIData	interface GUIData {
+other	GUIData	}
+other	GUIData	};
+other	GameAnimation	/**
+other	GameAnimation	/**
+other	GameAnimation	/**
+other	GameAnimation	/**
+other	GameAnimation	/**
+other	GameAnimation	/**
+other	GameAnimation	/**
+other	GameAnimation	/**
+other	GameAnimation	/**
+other	GameAnimation	/**
+other	GameAnimation	/**
+other	GameAnimation	/**
+other	GameAnimation	/**
+other	GameAnimation	/**
+other	GameAnimation	/**
+other	GameAnimation	/**
+other	GameAnimation	/**
+other	GameAnimation	declare class GameAnimation<KeyframeType, TargetType> {
+other	GameAnimation	then<T>(resolve: (event: GameAnimationEvent<KeyframeType, TargetType>) => T, reject?: (error: any) => any): Promise<any>;
+other	GameAnimation	}
+other	GameAnimationDirection	ALTERNATE = "alternate",
+other	GameAnimationDirection	ALTERNATE_REVERSE = "alternate-reverse"
+other	GameAnimationDirection	NORMAL = "normal",
+other	GameAnimationDirection	REVERSE = "reverse",
+other	GameAnimationDirection	WRAP = "wrap",
+other	GameAnimationDirection	WRAP_REVERSE = "wrap-reverse",
+other	GameAnimationDirection	declare enum GameAnimationDirection {
+other	GameAnimationDirection	}
+other	GameAnimationEvent	/**
+other	GameAnimationEvent	/**
+other	GameAnimationEvent	/**
+other	GameAnimationEvent	declare class GameAnimationEvent<KeyframeType, TargetType> {
+other	GameAnimationEvent	type GameSelectorString = string;
+other	GameAnimationEvent	}
+other	GameAnimationPlaybackConfig	interface GameAnimationPlaybackConfig {
+other	GameAnimationPlaybackConfig	}
+other	GameAnimationPlaybackState	FINISHED = "finished"
+other	GameAnimationPlaybackState	PENDING = "pending",
+other	GameAnimationPlaybackState	RUNNING = "running",
+other	GameAnimationPlaybackState	declare enum GameAnimationPlaybackState {
+other	GameAnimationPlaybackState	}
+other	GameAnticheat	/**
+other	GameAnticheat	/** 创建一份规则独享的服务端玩家记录；不自动订阅、拒绝、处罚或改变引擎权限。 */
+other	GameAnticheat	/** 客户端脚本通过 remoteChannel 发送的已解析 JSON 数据。 */
+other	GameAnticheat	/** 检查输入消息中的逐次主/副操作（点击、攻击、放置等），不是连续按键状态。仅服务端可用。 */
+other	GameAnticheat	/** 玩家请求交互；target 是候选目标，不代表已通过距离等玩法校验。 */
+other	GameAnticheat	/** 监听已认证玩家的全部游戏协议消息，在业务处理前同步决定是否拒绝。 */
+other	GameAnticheat	/** 自定义 GUI 按钮、表单等发来的事件名和已解析数据。 */
+other	GameAnticheat	/** 连续移动控制：跳跃、奔跑、飞行等按键状态；拒绝会丢弃整个输入消息。 */
+other	GameAnticheat	/** 键盘按下和松开的键码列表，发送者由服务器确定。 */
+other	GameAnticheat	interface GameAnticheat {
+other	GameAnticheat	readonly [key: string]: ClientMessageData;
+other	GameAnticheat	readonly createTracker: (options?: GameAnticheatTrackerOptions) => GameAnticheatTracker;
+other	GameAnticheat	readonly onAction: GameEventChannel<GameAnticheatActionEvent>;
+other	GameAnticheat	readonly onCustomEvent: GameEventChannel<GameAnticheatCustomEvent>;
+other	GameAnticheat	readonly onInput: GameEventChannel<GameAnticheatInputEvent>;
+other	GameAnticheat	readonly onInteract: GameEventChannel<GameAnticheatInteractEvent>;
+other	GameAnticheat	readonly onKeyboard: GameEventChannel<GameAnticheatKeyboardEvent>;
+other	GameAnticheat	readonly onMessage: GameEventChannel<GameClientMessageEvent>;
+other	GameAnticheat	readonly onMovement: GameEventChannel<GameMovementEvent>;
+other	GameAnticheat	readonly onUIEvent: GameEventChannel<GameAnticheatUIEvent>;
+other	GameAnticheat	type ClientMessageData = null | boolean | number | string | readonly ClientMessageData[] | {
+other	GameAnticheat	}
+other	GameAnticheat	};
+other	GameAnticheatAction	/** 从服务端实体表解析的候选目标；不存在或未指定时为 undefined，不代表命中合法。 */
+other	GameAnticheatAction	/** 客户端声称的目标 ID，0 表示未指定实体；必须自行校验。 */
+other	GameAnticheatAction	/** 客户端自报的射线距离；-1 等负值表示未命中。 */
+other	GameAnticheatAction	/** 客户端自报的玩家位置；校验请使用事件的 serverPosition。 */
+other	GameAnticheatAction	/** 客户端输入 tick，不能当作可信的服务器时间。 */
+other	GameAnticheatAction	/** 根据客户端上报的前后状态计算，不能证明物理按键确实按下。 */
+other	GameAnticheatAction	interface GameAnticheatAction {
+other	GameAnticheatAction	readonly button: 'action0' | 'action1';
+other	GameAnticheatAction	readonly position: MovementPosition;
+other	GameAnticheatAction	readonly pressed: boolean;
+other	GameAnticheatAction	readonly ray: Readonly<{
+other	GameAnticheatAction	readonly target: GameEntity | undefined;
+other	GameAnticheatAction	readonly targetId: number;
+other	GameAnticheatAction	readonly tick: number;
+other	GameAnticheatAction	}
+other	GameAnticheatAction	}>;
+other	GameAnticheatActionEvent	/** reject 拒绝整条输入消息（包括移动控制），不会踢出玩家。只在同步回调内有效。 */
+other	GameAnticheatActionEvent	/** 一条输入消息中的所有主/副操作变化，包括松开；重复操作不会被合并。 */
+other	GameAnticheatActionEvent	/** 服务端脚本当前认可的实体位置快照；不是客户端 position，也不是历史回放位置。 */
+other	GameAnticheatActionEvent	interface GameAnticheatActionEvent {
+other	GameAnticheatActionEvent	readonly actions: readonly GameAnticheatAction[];
+other	GameAnticheatActionEvent	readonly context: AnticheatContext;
+other	GameAnticheatActionEvent	readonly player: GamePlayer;
+other	GameAnticheatActionEvent	readonly serverPosition: MovementPosition;
+other	GameAnticheatActionEvent	}
+other	GameAnticheatCustomEvent	/** 客户端上报的事件 tick。 */
+other	GameAnticheatCustomEvent	interface GameAnticheatCustomEvent {
+other	GameAnticheatCustomEvent	readonly context: AnticheatContext;
+other	GameAnticheatCustomEvent	readonly data: ClientMessageData;
+other	GameAnticheatCustomEvent	readonly player: GamePlayer;
+other	GameAnticheatCustomEvent	readonly tick: number;
+other	GameAnticheatCustomEvent	}
+other	GameAnticheatExemption	/** 服务端脚本 tick 达到此值时失效，不受浏览器时间或客户端 tick 控制。 */
+other	GameAnticheatExemption	interface GameAnticheatExemption {
+other	GameAnticheatExemption	readonly reason: string;
+other	GameAnticheatExemption	readonly untilTick: number;
+other	GameAnticheatExemption	}
+other	GameAnticheatHistoryEntry	/** JSON 格式的独立只读快照；不是实际命中或作弊的证明。 */
+other	GameAnticheatHistoryEntry	/** 由服务端脚本时钟写入；record 不接受客户端 tick 参数。 */
+other	GameAnticheatHistoryEntry	interface GameAnticheatHistoryEntry {
+other	GameAnticheatHistoryEntry	readonly data: ClientMessageData;
+other	GameAnticheatHistoryEntry	readonly serverTick: number;
+other	GameAnticheatHistoryEntry	}
+other	GameAnticheatInputEvent	/** 客户端上报的输入 tick，不能当作可信的服务器时间。 */
+other	GameAnticheatInputEvent	interface GameAnticheatInputEvent {
+other	GameAnticheatInputEvent	readonly buttons: Readonly<{
+other	GameAnticheatInputEvent	readonly context: AnticheatContext;
+other	GameAnticheatInputEvent	readonly player: GamePlayer;
+other	GameAnticheatInputEvent	readonly tick: number;
+other	GameAnticheatInputEvent	}
+other	GameAnticheatInputEvent	}>;
+other	GameAnticheatInteractEvent	/** 客户端上报的交互 tick。 */
+other	GameAnticheatInteractEvent	interface GameAnticheatInteractEvent {
+other	GameAnticheatInteractEvent	readonly context: AnticheatContext;
+other	GameAnticheatInteractEvent	readonly player: GamePlayer;
+other	GameAnticheatInteractEvent	readonly target: GameEntity | undefined;
+other	GameAnticheatInteractEvent	readonly tick: number;
+other	GameAnticheatInteractEvent	}
+other	GameAnticheatKeyboardEvent	/** 客户端上报的输入 tick。 */
+other	GameAnticheatKeyboardEvent	interface GameAnticheatKeyboardEvent {
+other	GameAnticheatKeyboardEvent	readonly context: AnticheatContext;
+other	GameAnticheatKeyboardEvent	readonly player: GamePlayer;
+other	GameAnticheatKeyboardEvent	readonly pressed: readonly number[];
+other	GameAnticheatKeyboardEvent	readonly released: readonly number[];
+other	GameAnticheatKeyboardEvent	readonly tick: number;
+other	GameAnticheatKeyboardEvent	}
+other	GameAnticheatTracker	/** 只重置分数，保留历史和本规则的临时豁免。 */
+other	GameAnticheatTracker	/** 图主主动记录样本，不自动采集；只接受 JSON 数据，不传整个 player/entity/context。 */
+other	GameAnticheatTracker	/** 当前服务端脚本 tick，不使用浏览器时间。 */
+other	GameAnticheatTracker	/** 按时间顺序返回已保留的最新记录；有容量上限，不等于全部请求历史。 */
+other	GameAnticheatTracker	/** 查询本规则的豁免；绝不跳过引擎身份、所有权或消息一致性检查。 */
+other	GameAnticheatTracker	/** 根据本规则的 decayPerTick 计算当前分数，最低 0。 */
+other	GameAnticheatTracker	/** 清空某位玩家，或不传 player 清空本规则的历史、分数和豁免；不会撤销引擎检查。 */
+other	GameAnticheatTracker	/** 累计本规则的异常分数并返回当前值；amount 必须是非负有限数值，不会自动处罚。 */
+other	GameAnticheatTracker	/** 设置本规则的临时豁免；ticks 为正整数。只保存标记，图主自行决定跳过哪些检查。 */
+other	GameAnticheatTracker	interface GameAnticheatTracker {
+other	GameAnticheatTracker	readonly addScore: (player: GamePlayer, amount: number) => number;
+other	GameAnticheatTracker	readonly clear: (player?: GamePlayer) => void;
+other	GameAnticheatTracker	readonly clearExemption: (player: GamePlayer) => void;
+other	GameAnticheatTracker	readonly exempt: (player: GamePlayer, options: Readonly<{
+other	GameAnticheatTracker	readonly getExemption: (player: GamePlayer) => GameAnticheatExemption | undefined;
+other	GameAnticheatTracker	readonly getHistory: (player: GamePlayer) => readonly GameAnticheatHistoryEntry[];
+other	GameAnticheatTracker	readonly getScore: (player: GamePlayer) => number;
+other	GameAnticheatTracker	readonly isExempt: (player: GamePlayer) => boolean;
+other	GameAnticheatTracker	readonly record: (player: GamePlayer, data: ClientMessageData) => GameAnticheatHistoryEntry;
+other	GameAnticheatTracker	readonly resetScore: (player: GamePlayer) => void;
+other	GameAnticheatTracker	readonly serverTick: number;
+other	GameAnticheatTracker	}
+other	GameAnticheatTracker	}>) => void;
+other	GameAnticheatTrackerOptions	/** 每个服务端脚本 tick 扣减的分数；默认 0（不自动衰减）。只决定记分，不决定处罚。 */
+other	GameAnticheatTrackerOptions	/** 每位玩家保留的最新记录数，默认 32；允许 1～256，这是存储上限，不是玩法阈值。 */
+other	GameAnticheatTrackerOptions	interface GameAnticheatTrackerOptions {
+other	GameAnticheatTrackerOptions	readonly decayPerTick?: number;
+other	GameAnticheatTrackerOptions	readonly historySize?: number;
+other	GameAnticheatTrackerOptions	}
+other	GameAnticheatUIEvent	interface GameAnticheatUIEvent {
+other	GameAnticheatUIEvent	readonly context: AnticheatContext;
+other	GameAnticheatUIEvent	readonly data: ClientMessageData;
+other	GameAnticheatUIEvent	readonly name: string;
+other	GameAnticheatUIEvent	readonly player: GamePlayer;
+other	GameAnticheatUIEvent	type TELEPORT_ERROR_STATUS = 'PLAYER_OFFLINE' | 'ACCESS_DENIED' | 'UNKNOWN';
+other	GameAnticheatUIEvent	type TeleportResult = {
+other	GameAnticheatUIEvent	type TeleportType = (mapId: string, players: GameEntity[], serverId?: string) => Promise<TeleportResult>;
+other	GameAnticheatUIEvent	{};
+other	GameAnticheatUIEvent	}
+other	GameAnticheatUIEvent	};
+other	GameAssetListEntry	/**
+other	GameAssetListEntry	/**
+other	GameAssetListEntry	/**
+other	GameAssetListEntry	/**
+other	GameAssetListEntry	/**
+other	GameAssetListEntry	/**
+other	GameAssetListEntry	declare class GameAssetListEntry {
+other	GameAssetListEntry	}
+other	GameAssetType	/**
+other	GameAssetType	COLOR_LUT = "lut",
+other	GameAssetType	DIRECTORY = "directory",
+other	GameAssetType	IMAGE = "image",
+other	GameAssetType	JS_SCRIPT = "js",
+other	GameAssetType	PARTICLE_TEXTURE = "snow",
+other	GameAssetType	PICTURE = "picture"
+other	GameAssetType	SOUND = "sound",
+other	GameAssetType	VOXEL_MESH = "mesh",
+other	GameAssetType	declare enum GameAssetType {
+other	GameAssetType	}
+other	GameBodyPart	HEAD = "head",
+other	GameBodyPart	HIPS = "hips",
+other	GameBodyPart	LEFT_FOOT = "leftFoot",
+other	GameBodyPart	LEFT_HAND = "leftHand",
+other	GameBodyPart	LEFT_LOWER_ARM = "leftLowerArm",
+other	GameBodyPart	LEFT_LOWER_LEG = "leftLowerLeg",
+other	GameBodyPart	LEFT_SHOULDER = "leftShoulder",
+other	GameBodyPart	LEFT_UPPER_ARM = "leftUpperArm",
+other	GameBodyPart	LEFT_UPPER_LEG = "leftUpperLeg",
+other	GameBodyPart	NECK = "neck",
+other	GameBodyPart	RIGHT_FOOT = "rightFoot"
+other	GameBodyPart	RIGHT_HAND = "rightHand",
+other	GameBodyPart	RIGHT_LOWER_ARM = "rightLowerArm",
+other	GameBodyPart	RIGHT_LOWER_LEG = "rightLowerLeg",
+other	GameBodyPart	RIGHT_SHOULDER = "rightShoulder",
+other	GameBodyPart	RIGHT_UPPER_ARM = "rightUpperArm",
+other	GameBodyPart	RIGHT_UPPER_LEG = "rightUpperLeg",
+other	GameBodyPart	TORSO = "torso",
+other	GameBodyPart	declare enum GameBodyPart {
+other	GameBodyPart	type GameSkin = {
+other	GameBodyPart	type GameSkinInvisible = {
+other	GameBodyPart	type GameSkinValue = string | undefined | null;
+other	GameBodyPart	}
+other	GameBodyPart	};
+other	GameBodyPart	};
+other	GameBounds3	declare class GameBounds3 {
+other	GameBounds3	static fromPoints(...points: GameVector3[]): GameBounds3;
+other	GameBounds3	}
+other	GameButtonType	/**
+other	GameButtonType	ACTION0 = "action0",
+other	GameButtonType	ACTION1 = "action1"
+other	GameButtonType	CROUCH = "crouch",
+other	GameButtonType	DOUBLE_JUMP = "jump2",
+other	GameButtonType	FLY = "fly",
+other	GameButtonType	JUMP = "jump",
+other	GameButtonType	RUN = "run",
+other	GameButtonType	WALK = "walk",
+other	GameButtonType	declare enum GameButtonType {
+other	GameButtonType	}
+other	GameCameraFreezedAxis	NONE = "",
+other	GameCameraFreezedAxis	X = "x",
+other	GameCameraFreezedAxis	XY = "xy",
+other	GameCameraFreezedAxis	XYZ = "xyz"
+other	GameCameraFreezedAxis	XZ = "xz",
+other	GameCameraFreezedAxis	Y = "y",
+other	GameCameraFreezedAxis	YZ = "yz",
+other	GameCameraFreezedAxis	Z = "z",
+other	GameCameraFreezedAxis	declare enum GameCameraFreezedAxis {
+other	GameCameraFreezedAxis	}
+other	GameCameraMode	FIXED = "fixed",
+other	GameCameraMode	FOLLOW = "follow",
+other	GameCameraMode	FPS = "fps",
+other	GameCameraMode	RELATIVE = "relative"
+other	GameCameraMode	declare enum GameCameraMode {
+other	GameCameraMode	}
+other	GameChatEvent	/**
+other	GameChatEvent	/**
+other	GameChatEvent	/**
+other	GameChatEvent	/**
+other	GameChatEvent	/**
+other	GameChatEvent	/**
+other	GameChatEvent	/**
+other	GameChatEvent	/**
+other	GameChatEvent	declare class GameChatEvent {
+other	GameChatEvent	}
+other	GameClickEvent	/**
+other	GameClickEvent	/**
+other	GameClickEvent	/**
+other	GameClickEvent	/**
+other	GameClickEvent	/**
+other	GameClickEvent	/**
+other	GameClickEvent	/**
+other	GameClickEvent	/**
+other	GameClickEvent	/**
+other	GameClickEvent	/**
+other	GameClickEvent	/**
+other	GameClickEvent	/**
+other	GameClickEvent	/**
+other	GameClickEvent	/**
+other	GameClickEvent	/**
+other	GameClickEvent	declare class GameClickEvent {
+other	GameClickEvent	}
+other	GameClientMessageEvent	/** 客户端候选操作，不是服务器确认的命中。距离、遮挡、冷却由地图规则验证。 */
+other	GameClientMessageEvent	/** 引擎注册的协议名和消息名，非客户端自报。 */
+other	GameClientMessageEvent	/** 拒绝当前消息的业务处理；不踢出玩家，不修改其他玩家的数据。 */
+other	GameClientMessageEvent	/** 解码后的只读副本。敏感字段被遮蔽，原始二进制只提供长度。 */
+other	GameClientMessageEvent	interface GameClientMessageEvent {
+other	GameClientMessageEvent	readonly context: Readonly<{
+other	GameClientMessageEvent	readonly data: ClientMessageData;
+other	GameClientMessageEvent	readonly message: string;
+other	GameClientMessageEvent	readonly player: GamePlayer;
+other	GameClientMessageEvent	readonly protocol: string;
+other	GameClientMessageEvent	readonly unreliable: boolean;
+other	GameClientMessageEvent	type AnticheatContext = GameClientMessageEvent['context'];
+other	GameClientMessageEvent	}
+other	GameClientMessageEvent	}>;
+other	GameConsole	/** 客户端位置修正的预应用检查，不是客户端可信的移动证明。 */
+other	GameConsole	declare class GameConsole {
+other	GameConsole	type MovementPosition = Readonly<{
+other	GameConsole	}
+other	GameConsole	}>;
+other	GameDamageEvent	/**
+other	GameDamageEvent	/**
+other	GameDamageEvent	/**
+other	GameDamageEvent	/**
+other	GameDamageEvent	/**
+other	GameDamageEvent	/**
+other	GameDamageEvent	/**
+other	GameDamageEvent	/**
+other	GameDamageEvent	/**
+other	GameDamageEvent	/**
+other	GameDamageEvent	/**
+other	GameDamageEvent	/**
+other	GameDamageEvent	declare class GameDamageEvent {
+other	GameDamageEvent	}
+other	GameDataStorage	declare class GameDataStorage implements I.GameDataStorage {
+other	GameDataStorage	readonly key: string;
+other	GameDataStorage	}
+other	GameDatabase	/**
+other	GameDatabase	/**
+other	GameDatabase	/**
+other	GameDatabase	/**
+other	GameDatabase	declare class GameDatabase {
+other	GameDatabase	}
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	/**
+other	GameDialogType	INPUT = "input"
+other	GameDialogType	SELECT = "select",
+other	GameDialogType	TEXT = "text",
+other	GameDialogType	declare enum GameDialogType {
+other	GameDialogType	type GameDialogCall = ((params: GameTextDialogParams) => Promise<string | null> & GameDialogCancelOption) | ((params: GameSelectDialogParams) => Promise<GameDialogSelectResponse | null> & GameDialogCancelOption) | ((params: GameInputDialogParams) => Promise<string | null> & GameDialogCancelOption);
+other	GameDialogType	type GameDialogCancelOption = {
+other	GameDialogType	type GameDialogParams = {
+other	GameDialogType	type GameDialogResponse = GameDialogSelectResponse | string | null;
+other	GameDialogType	type GameDialogSelectResponse = {
+other	GameDialogType	type GameInputDialogParams = {
+other	GameDialogType	type GameSelectDialogParams = {
+other	GameDialogType	type GameTextDialogParams = {
+other	GameDialogType	}
+other	GameDialogType	};
+other	GameDialogType	};
+other	GameDialogType	};
+other	GameDialogType	};
+other	GameDialogType	};
+other	GameDialogType	};
+other	GameDieEvent	/**
+other	GameDieEvent	/**
+other	GameDieEvent	/**
+other	GameDieEvent	/**
+other	GameDieEvent	/**
+other	GameDieEvent	/**
+other	GameDieEvent	/**
+other	GameDieEvent	/**
+other	GameDieEvent	/**
+other	GameDieEvent	/**
+other	GameDieEvent	declare class GameDieEvent {
+other	GameDieEvent	}
+other	GameEasing	BACK = "back",
+other	GameEasing	BOUNCE = "bounce",
+other	GameEasing	CIRCLE = "circle"
+other	GameEasing	ELASTIC = "elastic",
+other	GameEasing	EXP = "exp",
+other	GameEasing	LINEAR = "linear",
+other	GameEasing	NONE = "none",
+other	GameEasing	QUADRATIC = "quadratic",
+other	GameEasing	SINE = "sine",
+other	GameEasing	declare enum GameEasing {
+other	GameEasing	}
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	/**
+other	GameEntity	declare class GameEntity implements GameEntityConfig {
+other	GameEntity	}
+other	GameEntity	} | string) => Sound, 
+other	GameEntity	} | string) => Sound;
+other	GameEntity	}) => void, 
+other	GameEntity	}) => void;
+other	GameEntityConfig	interface GameEntityConfig {
+other	GameEntityConfig	}
+other	GameEntityContact	/**
+other	GameEntityContact	declare class GameEntityContact {
+other	GameEntityContact	}
+other	GameEntityContactEvent	/**
+other	GameEntityContactEvent	/**
+other	GameEntityContactEvent	/**
+other	GameEntityContactEvent	/**
+other	GameEntityContactEvent	/**
+other	GameEntityContactEvent	/**
+other	GameEntityContactEvent	/**
+other	GameEntityContactEvent	/**
+other	GameEntityContactEvent	/**
+other	GameEntityContactEvent	/**
+other	GameEntityContactEvent	/**
+other	GameEntityContactEvent	/**
+other	GameEntityContactEvent	declare class GameEntityContactEvent {
+other	GameEntityContactEvent	}
+other	GameEntityEvent	/**
+other	GameEntityEvent	/**
+other	GameEntityEvent	/**
+other	GameEntityEvent	/**
+other	GameEntityEvent	/**
+other	GameEntityEvent	/**
+other	GameEntityEvent	declare class GameEntityEvent {
+other	GameEntityEvent	}
+other	GameEntityKeyframe	/**
+other	GameEntityKeyframe	interface GameEntityKeyframe {
+other	GameEntityKeyframe	}
+other	GameEventHandlerToken	/**
+other	GameEventHandlerToken	/**
+other	GameEventHandlerToken	/**
+other	GameEventHandlerToken	/**
+other	GameEventHandlerToken	/**
+other	GameEventHandlerToken	/**
+other	GameEventHandlerToken	/**
+other	GameEventHandlerToken	/**
+other	GameEventHandlerToken	declare class GameEventHandlerToken {
+other	GameEventHandlerToken	}
+other	GameFluidContact	/**
+other	GameFluidContact	declare class GameFluidContact {
+other	GameFluidContact	}
+other	GameFluidContactEvent	/**
+other	GameFluidContactEvent	/**
+other	GameFluidContactEvent	/**
+other	GameFluidContactEvent	/**
+other	GameFluidContactEvent	/**
+other	GameFluidContactEvent	/**
+other	GameFluidContactEvent	/**
+other	GameFluidContactEvent	/**
+other	GameFluidContactEvent	declare class GameFluidContactEvent {
+other	GameFluidContactEvent	}
+other	GameGUI	declare class GameGUI {
+other	GameGUI	type GameHttpFetchHeaders = {
+other	GameGUI	type GameHttpFetchRequestOptions = {
+other	GameGUI	}
+other	GameGUI	};
+other	GameGUI	};
+other	GameGUIEvent	interface GameGUIEvent {
+other	GameGUIEvent	}
+other	GameGUIEventListener	interface GameGUIEventListener {
+other	GameGUIEventListener	}
+other	GameHttpAPI	declare class GameHttpAPI {
+other	GameHttpAPI	}
+other	GameHttpFetchResponse	declare class GameHttpFetchResponse {
+other	GameHttpFetchResponse	}
+other	GameHttpRequest	declare class GameHttpRequest {
+other	GameHttpRequest	}
+other	GameHttpResponse	declare class GameHttpResponse {
+other	GameHttpResponse	type GameHttpHandler = (request: GameHttpRequest, response: GameHttpResponse) => void;
+other	GameHttpResponse	}
+other	GameHurtOptions	interface GameHurtOptions {
+other	GameHurtOptions	}
+other	GameInputDirection	BOTH = "both"
+other	GameInputDirection	HORIZONTAL = "horizontal",
+other	GameInputDirection	NONE = "none",
+other	GameInputDirection	VERTICAL = "vertical",
+other	GameInputDirection	declare enum GameInputDirection {
+other	GameInputDirection	}
+other	GameInputEvent	/**
+other	GameInputEvent	/**
+other	GameInputEvent	/**
+other	GameInputEvent	/**
+other	GameInputEvent	/**
+other	GameInputEvent	/**
+other	GameInputEvent	/**
+other	GameInputEvent	/**
+other	GameInputEvent	/**
+other	GameInputEvent	/**
+other	GameInputEvent	/**
+other	GameInputEvent	/**
+other	GameInputEvent	/**
+other	GameInputEvent	declare class GameInputEvent {
+other	GameInputEvent	}
+other	GameInteractEvent	/**
+other	GameInteractEvent	/**
+other	GameInteractEvent	/**
+other	GameInteractEvent	/**
+other	GameInteractEvent	/**
+other	GameInteractEvent	/**
+other	GameInteractEvent	/**
+other	GameInteractEvent	/**
+other	GameInteractEvent	declare class GameInteractEvent {
+other	GameInteractEvent	}
+other	GameKeyBoardEvent	/**
+other	GameKeyBoardEvent	/**
+other	GameKeyBoardEvent	declare class GameKeyBoardEvent {
+other	GameKeyBoardEvent	}
+other	GameLogLevel	DEBUG = 3
+other	GameLogLevel	ERROR = 0,
+other	GameLogLevel	INFO = 2,
+other	GameLogLevel	WARN = 1,
+other	GameLogLevel	declare enum GameLogLevel {
+other	GameLogLevel	type GameLoggerMethod = (...args: any[]) => void;
+other	GameLogLevel	}
+other	GameModeration	/** 分页查询当前地图发起的处罚记录，包括已过期、已解除记录。须由服主授予「查询处罚记录与详情」。 */
+other	GameModeration	/** 封禁当前地图中的玩家账号，返回处罚 ID 和截止时间。 */
+other	GameModeration	/** 封禁玩家当前连接的 IP。共享网络可能影响其他玩家，请谨慎使用。 */
+other	GameModeration	/** 封禁玩家当前连接的设备身份，不向脚本暴露设备标识。设备身份由浏览器凭据识别，重置凭据后可能变化。 */
+other	GameModeration	/** 批量最多 100 个玩家，逐项返回结果；requestId 最长 72 字符，重试须保持数组顺序。 */
+other	GameModeration	/** 批量最多 100 个玩家，逐项返回结果；requestId 最长 72 字符，重试须保持数组顺序。 */
+other	GameModeration	/** 批量最多 100 个玩家，逐项返回结果；requestId 最长 72 字符，重试须保持数组顺序。 */
+other	GameModeration	/** 查询当前地图发起的指定处罚；不存在或属于其他地图时返回 null。须由服主授予「查询处罚记录与详情」。 */
+other	GameModeration	/** 查询当前玩家的账号状态和本图处罚。 */
+other	GameModeration	/** 解除同一授权在本图创建的处罚；原因必填，请求 ID 可省略。 */
+other	GameModeration	interface GameModeration {
+other	GameModeration	type SendClientEventType = (entities: GamePlayerEntity | GamePlayerEntity[], clientEvent: JSONValue) => void;
+other	GameModeration	type ServerEvent = {
+other	GameModeration	}
+other	GameModeration	}) => Promise<{
+other	GameModeration	};
+other	GameModeration	};
+other	GameModeration	};
+other	GameModeration	};
+other	GameModeration	}>;
+other	GameModeration	}>;
+other	GameModeration	}>;
+other	GameMotionClipConfig	interface GameMotionClipConfig {
+other	GameMotionClipConfig	}
+other	GameMotionConfig	interface GameMotionConfig {
+other	GameMotionConfig	}
+other	GameMotionController	/**
+other	GameMotionController	/**
+other	GameMotionController	/**
+other	GameMotionController	/**
+other	GameMotionController	/**
+other	GameMotionController	/**
+other	GameMotionController	/**
+other	GameMotionController	/**
+other	GameMotionController	/**
+other	GameMotionController	declare class GameMotionController<TargetType> {
+other	GameMotionController	}
+other	GameMotionEvent	/**
+other	GameMotionEvent	/**
+other	GameMotionEvent	/**
+other	GameMotionEvent	/**
+other	GameMotionEvent	declare class GameMotionEvent<TargetType> {
+other	GameMotionEvent	readonly target: TargetType;
+other	GameMotionEvent	}
+other	GameMotionHandler	/**
+other	GameMotionHandler	/**
+other	GameMotionHandler	/**
+other	GameMotionHandler	/**
+other	GameMotionHandler	/**
+other	GameMotionHandler	/**
+other	GameMotionHandler	/**
+other	GameMotionHandler	/**
+other	GameMotionHandler	/**
+other	GameMotionHandler	declare class GameMotionHandler<TargetType> {
+other	GameMotionHandler	readonly target: TargetType;
+other	GameMotionHandler	}
+other	GameMovementEvent	/** 两次服务器处理采样的间隔；不是客户端时间，也不是物理模拟时长。 */
+other	GameMovementEvent	/** 同步监听回调内调用。拒绝本次修正；可提供不超过 128 字符的审计原因，不包含凭据。 */
+other	GameMovementEvent	/** 客户端上报、尚未应用的候选位置。 */
+other	GameMovementEvent	/** 服务器当前速度与客户端候选速度，使用引擎物理数值单位。 */
+other	GameMovementEvent	/** 服务器认可的位置快照。 */
+other	GameMovementEvent	interface GameMovementEvent {
+other	GameMovementEvent	readonly context: Readonly<{
+other	GameMovementEvent	readonly elapsedMs: number;
+other	GameMovementEvent	readonly from: MovementPosition;
+other	GameMovementEvent	readonly player: GamePlayer;
+other	GameMovementEvent	readonly to: MovementPosition;
+other	GameMovementEvent	readonly velocity: Readonly<{
+other	GameMovementEvent	}
+other	GameMovementEvent	}>;
+other	GameMovementEvent	}>;
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	/**
+other	GamePlayer	declare class GamePlayer {
+other	GamePlayer	}
+other	GamePlayer	} | string) => Sound, 
+other	GamePlayer	} | string) => Sound;
+other	GamePlayer	}) => void) => void, 
+other	GamePlayer	}) => void, 
+other	GamePlayer	}) => void, 
+other	GamePlayer	}) => void;
+other	GamePlayerKeyframe	interface GamePlayerKeyframe {
+other	GamePlayerKeyframe	}
+other	GamePlayerMoveState	/**
+other	GamePlayerMoveState	DOUBLE_JUMP = "jump2"
+other	GamePlayerMoveState	FALL = "fall",
+other	GamePlayerMoveState	FLYING = "fly",
+other	GamePlayerMoveState	GROUND = "ground",
+other	GamePlayerMoveState	JUMP = "jump",
+other	GamePlayerMoveState	SWIM = "swim",
+other	GamePlayerMoveState	declare enum GamePlayerMoveState {
+other	GamePlayerMoveState	}
+other	GamePlayerWalkState	CROUCH = "crouch",
+other	GamePlayerWalkState	NONE = "",
+other	GamePlayerWalkState	RUN = "run"
+other	GamePlayerWalkState	WALK = "walk",
+other	GamePlayerWalkState	declare enum GamePlayerWalkState {
+other	GamePlayerWalkState	}
+other	GameQuaternion	declare class GameQuaternion {
+other	GameQuaternion	static fromAxisAngle(axis: GameVector3, rad: number): GameQuaternion;
+other	GameQuaternion	static fromEuler(x: number, y: number, z: number): GameQuaternion;
+other	GameQuaternion	static rotationBetween(a: GameVector3, b: GameVector3): GameQuaternion;
+other	GameQuaternion	}
+other	GameQuaternion	};
+other	GameQueryResult	/**
+other	GameQueryResult	/**
+other	GameQueryResult	declare class GameQueryResult implements AsyncIterable<any> {
+other	GameQueryResult	type CommonError<T> = {
+other	GameQueryResult	}
+other	GameQueryResult	};
+other	GameQueryResult	}>, abort: () => Promise<{
+other	GameQueryResult	}>, error: (err: any) => Promise<{
+other	GameQueryResult	}>, then: (resolve: (rows: any[]) => any, reject: (err: any) => any) => void);
+other	GameQueryResult	}>;
+other	GameQueryResult	}>;
+other	GameQueryResult	}>;
+other	GameRGBAColor	declare class GameRGBAColor {
+other	GameRGBAColor	}
+other	GameRGBColor	/** Stable business codes; independent of the HTTP response status. */
+other	GameRGBColor	declare class GameRGBColor {
+other	GameRGBColor	static random(): GameRGBColor;
+other	GameRGBColor	}
+other	GameRTC	declare class GameRTC {
+other	GameRTC	type DB_ERROR_STATUS = 'CONSTRAINT_TARGET_INVALID' | 'PARAMS_INVALID' | 'DB_NAME_INVALID' | 'KEY_INVALID' | 'VALUE_INVALID' | 'SERVER_FETCH_ERROR' | 'REQUEST_THROTTLED' | 'INCREMENT_INVALID' | 'UNKNOWN';
+other	GameRTC	}
+other	GameRTCChannel	declare class GameRTCChannel {
+other	GameRTCChannel	}
+other	GameRaycastOptions	/**
+other	GameRaycastOptions	/**
+other	GameRaycastOptions	/**
+other	GameRaycastOptions	/**
+other	GameRaycastOptions	/**
+other	GameRaycastOptions	/**
+other	GameRaycastOptions	/**
+other	GameRaycastOptions	/**
+other	GameRaycastOptions	interface GameRaycastOptions {
+other	GameRaycastOptions	type GameEventChannel<EventType> = (handler: (event: EventType) => void) => GameEventHandlerToken;
+other	GameRaycastOptions	type GameEventFuture<EventType> = (filter?: (event: EventType) => boolean) => Promise<EventType>;
+other	GameRaycastOptions	}
+other	GameRaycastResult	/**
+other	GameRaycastResult	/**
+other	GameRaycastResult	/**
+other	GameRaycastResult	/**
+other	GameRaycastResult	/**
+other	GameRaycastResult	/**
+other	GameRaycastResult	/**
+other	GameRaycastResult	/**
+other	GameRaycastResult	/**
+other	GameRaycastResult	/**
+other	GameRaycastResult	/**
+other	GameRaycastResult	/**
+other	GameRaycastResult	/**
+other	GameRaycastResult	/**
+other	GameRaycastResult	/**
+other	GameRaycastResult	/**
+other	GameRaycastResult	/**
+other	GameRaycastResult	/**
+other	GameRaycastResult	/**
+other	GameRaycastResult	/**
+other	GameRaycastResult	declare class GameRaycastResult {
+other	GameRaycastResult	}
+other	GameResourceSystem	/**
+other	GameResourceSystem	declare class GameResourceSystem {
+other	GameResourceSystem	}
+other	GameRespawnEvent	/**
+other	GameRespawnEvent	/**
+other	GameRespawnEvent	/**
+other	GameRespawnEvent	/**
+other	GameRespawnEvent	/**
+other	GameRespawnEvent	/**
+other	GameRespawnEvent	declare class GameRespawnEvent {
+other	GameRespawnEvent	}
+other	GameSoundEffect	/**
+other	GameSoundEffect	/**
+other	GameSoundEffect	/**
+other	GameSoundEffect	/**
+other	GameSoundEffect	/**
+other	GameSoundEffect	/**
+other	GameSoundEffect	/**
+other	GameSoundEffect	declare class GameSoundEffect implements GameSoundEffectConfig {
+other	GameSoundEffect	}
+other	GameSoundEffectConfig	/**
+other	GameSoundEffectConfig	interface GameSoundEffectConfig {
+other	GameSoundEffectConfig	}
+other	GameStorage	/**
+other	GameStorage	declare class GameStorage implements I.GameStorage {
+other	GameStorage	type JSONValue = I.JSONValue;
+other	GameStorage	type ListPageOptions = I.ListPageOptions;
+other	GameStorage	type ListReturnValue = {
+other	GameStorage	type ResultValue = {
+other	GameStorage	type ReturnValue = I.ReturnValue;
+other	GameStorage	}
+other	GameStorage	};
+other	GameStorage	};
+other	GameTickEvent	/**
+other	GameTickEvent	/**
+other	GameTickEvent	/**
+other	GameTickEvent	/**
+other	GameTickEvent	/**
+other	GameTickEvent	/**
+other	GameTickEvent	/**
+other	GameTickEvent	/**
+other	GameTickEvent	/**
+other	GameTickEvent	/**
+other	GameTickEvent	declare class GameTickEvent {
+other	GameTickEvent	}
+other	GameTriggerEvent	/**
+other	GameTriggerEvent	/**
+other	GameTriggerEvent	/**
+other	GameTriggerEvent	/**
+other	GameTriggerEvent	/**
+other	GameTriggerEvent	/**
+other	GameTriggerEvent	declare class GameTriggerEvent {
+other	GameTriggerEvent	}
+other	GameVector3	declare class GameVector3 {
+other	GameVector3	static fromPolar(mag: number, phi: number, theta: number): GameVector3;
+other	GameVector3	}
+other	GameVoxelContact	/**
+other	GameVoxelContact	declare class GameVoxelContact {
+other	GameVoxelContact	}
+other	GameVoxelContactEvent	/**
+other	GameVoxelContactEvent	/**
+other	GameVoxelContactEvent	/**
+other	GameVoxelContactEvent	/**
+other	GameVoxelContactEvent	/**
+other	GameVoxelContactEvent	/**
+other	GameVoxelContactEvent	/**
+other	GameVoxelContactEvent	/**
+other	GameVoxelContactEvent	/**
+other	GameVoxelContactEvent	/**
+other	GameVoxelContactEvent	/**
+other	GameVoxelContactEvent	/**
+other	GameVoxelContactEvent	/**
+other	GameVoxelContactEvent	/**
+other	GameVoxelContactEvent	/**
+other	GameVoxelContactEvent	/**
+other	GameVoxelContactEvent	/**
+other	GameVoxelContactEvent	/**
+other	GameVoxelContactEvent	declare class GameVoxelContactEvent {
+other	GameVoxelContactEvent	}
+other	GameVoxels	/**
+other	GameVoxels	/**
+other	GameVoxels	/**
+other	GameVoxels	/**
+other	GameVoxels	/**
+other	GameVoxels	/**
+other	GameVoxels	/**
+other	GameVoxels	/**
+other	GameVoxels	/**
+other	GameVoxels	/**
+other	GameVoxels	/**
+other	GameVoxels	/**
+other	GameVoxels	/**
+other	GameVoxels	/**
+other	GameVoxels	/**
+other	GameVoxels	/**
+other	GameVoxels	/**
+other	GameVoxels	/**
+other	GameVoxels	/**
+other	GameVoxels	/**
+other	GameVoxels	declare class GameVoxels {
+other	GameVoxels	type GamePlayerEntity = GameEntity & {
+other	GameVoxels	type GamePlayerEntityEvent = GameEntityEvent & {
+other	GameVoxels	}
+other	GameVoxels	};
+other	GameVoxels	};
+other	GameWearable	/**
+other	GameWearable	/**
+other	GameWearable	/**
+other	GameWearable	/**
+other	GameWearable	/**
+other	GameWearable	/**
+other	GameWearable	/**
+other	GameWearable	/**
+other	GameWearable	/**
+other	GameWearable	/**
+other	GameWearable	/**
+other	GameWearable	declare class GameWearable implements GameWearableSpec {
+other	GameWearable	}
+other	GameWearableSpec	interface GameWearableSpec {
+other	GameWearableSpec	}
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/**
+other	GameWorld	/** 地图管理能力，由服主在后台授权； */
+other	GameWorld	/** 客户端移动修正检查，拒绝本次修正但不踢出玩家。 */
+other	GameWorld	declare class GameWorld {
+other	GameWorld	}
+other	GameWorld	} | string) => Sound, 
+other	GameWorld	} | string) => Sound;
+other	GameWorldKeyframe	interface GameWorldKeyframe {
+other	GameWorldKeyframe	}
+other	GameZone	/**
+other	GameZone	/**
+other	GameZone	/**
+other	GameZone	/**
+other	GameZone	/**
+other	GameZone	/**
+other	GameZone	/**
+other	GameZone	/**
+other	GameZone	/**
+other	GameZone	/**
+other	GameZone	/**
+other	GameZone	/**
+other	GameZone	/**
+other	GameZone	/**
+other	GameZone	declare class GameZone {
+other	GameZone	type GameZoneConfig = {
+other	GameZone	}
+other	GameZone	};
+other	Gamepad	/**
+other	Gamepad	interface Gamepad {
+other	Gamepad	}
+other	PlayerNavigator	/**
+other	PlayerNavigator	declare class PlayerNavigator {
+other	PlayerNavigator	type NavigatorEventType = 'message';
+other	PlayerNavigator	}
+other	PlayerNavigator	}) => void) => void, dispatchEvent: (type: string, value: object) => void);
+other	PlayerNavigator	}) => void) => void;
+other	QueryList	declare class QueryList implements I.QueryList {
+other	QueryList	}
+other	ServerRemoteChannel	declare class ServerRemoteChannel {
+other	ServerRemoteChannel	}
+other	Sound	/**
+other	Sound	declare class Sound {
+other	Sound	}
+other	URL	declare class URL {
+other	URL	}
+other	URLSearchParams	declare class URLSearchParams {
+other	URLSearchParams	}
+other	__dirname	declare const __dirname: string;
+other	__filename	declare const __filename: string;
+other	__filename	type JSONValue = string | number | boolean | {
+other	__filename	} | Array<JSONValue>;
+other	console	declare const console: {
+other	console	};
+other	db	declare const db: GameDatabase;
+other	exports	declare const exports: any;
+other	gui	declare const gui: GameGUI;
+other	http	declare const http: GameHttpAPI;
+other	moderationError	/** Normalize current replies and legacy HTTP-code replies using the same catalog. */
+other	moderationError	declare function moderationError(httpStatus: number, msg: string, status?: ModerationErrorStatus): ModerationError;
+other	moderationErrorCodes	declare const moderationErrorCodes: {
+other	moderationErrorCodes	readonly MODERATION_ACCOUNT_ALREADY_PUNISHED: 41903;
+other	moderationErrorCodes	readonly MODERATION_ACTION_FORBIDDEN: 41305;
+other	moderationErrorCodes	readonly MODERATION_ACTION_INVALID: 41010;
+other	moderationErrorCodes	readonly MODERATION_ADMIN_PROTECTED: 41308;
+other	moderationErrorCodes	readonly MODERATION_AUTH_REQUIRED: 41100;
+other	moderationErrorCodes	readonly MODERATION_BAN_ACCESS_DENIED: 41306;
+other	moderationErrorCodes	readonly MODERATION_BAN_ALREADY_EXISTS: 41902;
+other	moderationErrorCodes	readonly MODERATION_BAN_CHANGED: 41904;
+other	moderationErrorCodes	readonly MODERATION_BAN_ID_INVALID: 41008;
+other	moderationErrorCodes	readonly MODERATION_BATCH_TOO_LARGE: 41004;
+other	moderationErrorCodes	readonly MODERATION_CONFLICT: 41900;
+other	moderationErrorCodes	readonly MODERATION_DEVICE_PROTECTED: 41309;
+other	moderationErrorCodes	readonly MODERATION_DEVICE_UNAVAILABLE: 41012;
+other	moderationErrorCodes	readonly MODERATION_DURATION_INVALID: 41007;
+other	moderationErrorCodes	readonly MODERATION_DURATION_LIMIT_EXCEEDED: 41307;
+other	moderationErrorCodes	readonly MODERATION_FORBIDDEN: 41300;
+other	moderationErrorCodes	readonly MODERATION_GRANT_EXPIRED: 41312;
+other	moderationErrorCodes	readonly MODERATION_GRANT_INVALID: 41302;
+other	moderationErrorCodes	readonly MODERATION_GRANT_REQUIRED: 41311;
+other	moderationErrorCodes	readonly MODERATION_GRANT_REVOKED: 41313;
+other	moderationErrorCodes	readonly MODERATION_INTERNAL_ERROR: 45000;
+other	moderationErrorCodes	readonly MODERATION_IP_INVALID: 41011;
+other	moderationErrorCodes	readonly MODERATION_LEGACY_GRANT_INVALID: 41303;
+other	moderationErrorCodes	readonly MODERATION_MAP_MISMATCH: 41301;
+other	moderationErrorCodes	readonly MODERATION_METHOD_NOT_ALLOWED: 41013;
+other	moderationErrorCodes	readonly MODERATION_NOT_FOUND: 41400;
+other	moderationErrorCodes	readonly MODERATION_OPTIONS_INVALID: 41001;
+other	moderationErrorCodes	readonly MODERATION_PARAMS_INVALID: 41000;
+other	moderationErrorCodes	readonly MODERATION_PAYLOAD_TOO_LARGE: 41003;
+other	moderationErrorCodes	readonly MODERATION_PERMANENT_FORBIDDEN: 41314;
+other	moderationErrorCodes	readonly MODERATION_PLAYER_NOT_FOUND: 41402;
+other	moderationErrorCodes	readonly MODERATION_PLAYER_OFFLINE: 41401;
+other	moderationErrorCodes	readonly MODERATION_QUERY_FORBIDDEN: 41304;
+other	moderationErrorCodes	readonly MODERATION_QUERY_INVALID: 41009;
+other	moderationErrorCodes	readonly MODERATION_RATE_LIMITED: 42900;
+other	moderationErrorCodes	readonly MODERATION_RATE_LIMIT_UNAVAILABLE: 45005;
+other	moderationErrorCodes	readonly MODERATION_REASON_INVALID: 41006;
+other	moderationErrorCodes	readonly MODERATION_REQUEST_ID_CONFLICT: 41901;
+other	moderationErrorCodes	readonly MODERATION_REQUEST_ID_INVALID: 41005;
+other	moderationErrorCodes	readonly MODERATION_RESPONSE_INVALID: 45002;
+other	moderationErrorCodes	readonly MODERATION_RUNTIME_DISABLED: 45004;
+other	moderationErrorCodes	readonly MODERATION_SERVER_BAN_FORBIDDEN: 41310;
+other	moderationErrorCodes	readonly MODERATION_TARGET_INVALID: 41002;
+other	moderationErrorCodes	readonly MODERATION_TIMEOUT: 45006;
+other	moderationErrorCodes	readonly MODERATION_UNAVAILABLE: 45003;
+other	moderationErrorCodes	};
+other	moderationValidationError	/** 可省略，由运行时自动生成；手动重试须显式指定并复用同一值。 */
+other	moderationValidationError	/** 可选：筛选当前在线玩家的处罚记录。 */
+other	moderationValidationError	/** 处罚原因，会写入后台审计。 */
+other	moderationValidationError	/** 封禁秒数；0 表示永久，需要后台允许永久封禁。有限时长不能超过授权上限。 */
+other	moderationValidationError	/** 批量结果与输入数组顺序一致；失败项不会阻止后续项。 */
+other	moderationValidationError	/** 权限由服主在后台绑定，脚本不能设置管理员身份、地图 ID 或 IP。 */
+other	moderationValidationError	/** 每页 1–50 条，默认 20 条。 */
+other	moderationValidationError	/** 永久有效处罚为 null，已过期或已解除为 0。 */
+other	moderationValidationError	/** 目标账号 ID，不包含 IP、设备标识或管理员身份。 */
+other	moderationValidationError	/** 页码，从 1 开始。 */
+other	moderationValidationError	declare function moderationValidationError(issues: readonly {
+other	moderationValidationError	type ModerationBan = {
+other	moderationValidationError	type ModerationBanQuery = {
+other	moderationValidationError	type ModerationBanRecord = ModerationBan & {
+other	moderationValidationError	type ModerationBatchResult = {
+other	moderationValidationError	type ModerationError = CommonError<ModerationErrorStatus>;
+other	moderationValidationError	type ModerationErrorStatus = 'MODERATION_PARAMS_INVALID' | 'MODERATION_OPTIONS_INVALID' | 'MODERATION_TARGET_INVALID' | 'MODERATION_PAYLOAD_TOO_LARGE' | 'MODERATION_BATCH_TOO_LARGE' | 'MODERATION_REQUEST_ID_INVALID' | 'MODERATION_REASON_INVALID' | 'MODERATION_DURATION_INVALID' | 'MODERATION_BAN_ID_INVALID' | 'MODERATION_QUERY_INVALID' | 'MODERATION_ACTION_INVALID' | 'MODERATION_IP_INVALID' | 'MODERATION_DEVICE_UNAVAILABLE' | 'MODERATION_METHOD_NOT_ALLOWED' | 'MODERATION_AUTH_REQUIRED' | 'MODERATION_FORBIDDEN' | 'MODERATION_MAP_MISMATCH' | 'MODERATION_GRANT_INVALID' | 'MODERATION_LEGACY_GRANT_INVALID' | 'MODERATION_QUERY_FORBIDDEN' | 'MODERATION_ACTION_FORBIDDEN' | 'MODERATION_BAN_ACCESS_DENIED' | 'MODERATION_DURATION_LIMIT_EXCEEDED' | 'MODERATION_ADMIN_PROTECTED' | 'MODERATION_DEVICE_PROTECTED' | 'MODERATION_SERVER_BAN_FORBIDDEN' | 'MODERATION_GRANT_REQUIRED' | 'MODERATION_GRANT_EXPIRED' | 'MODERATION_GRANT_REVOKED' | 'MODERATION_PERMANENT_FORBIDDEN' | 'MODERATION_NOT_FOUND' | 'MODERATION_PLAYER_OFFLINE' | 'MODERATION_PLAYER_NOT_FOUND' | 'MODERATION_CONFLICT' | 'MODERATION_REQUEST_ID_CONFLICT' | 'MODERATION_BAN_ALREADY_EXISTS' | 'MODERATION_ACCOUNT_ALREADY_PUNISHED' | 'MODERATION_BAN_CHANGED' | 'MODERATION_RATE_LIMITED' | 'MODERATION_RESPONSE_INVALID' | 'MODERATION_INTERNAL_ERROR' | 'MODERATION_UNAVAILABLE' | 'MODERATION_RUNTIME_DISABLED' | 'MODERATION_RATE_LIMIT_UNAVAILABLE' | 'MODERATION_TIMEOUT'; /** 单次失败的 Error 和批量失败项使用相同结构；code 为独立业务码，非 HTTP 状态码，详见地图管理文档。 */
+other	moderationValidationError	type ModerationOptions = {
+other	moderationValidationError	} | {
+other	moderationValidationError	};
+other	moderationValidationError	};
+other	moderationValidationError	};
+other	moderationValidationError	};
+other	moderationValidationError	};
+other	moderationValidationError	}[]): ModerationError;
+other	module	declare const module: {
+other	module	};
+other	normalizeModerationError	/** Shared by host and HTTP validation, with no dependency on a particular Zod version. */
+other	normalizeModerationError	declare function normalizeModerationError(error: unknown, code?: number, fallback?: string): ModerationError;
+other	remoteChannel	declare const remoteChannel: ServerRemoteChannel;
+other	require	declare const require: {
+other	require	};
+other	resources	declare const resources: {
+other	resources	};
+other	rtc	declare const rtc: GameRTC;
+other	sleep	declare function sleep(ms: number): Promise<void>;
+other	storage	declare const storage: GameStorage;
+other	voxels	declare const voxels: GameVoxels;
+other	world	declare const world: GameWorld;
+prop	GUIBind	action: T;
+prop	GUIBind	event: string;
+prop	GUIBind	selector?: string;
+prop	GUIBindDefinition	allowMultiple?: boolean;
+prop	GUIBindDefinition	attributeName: string;
+prop	GUIBindDefinition	attributes: {
+prop	GUIBindDefinition	clipboardWrite: {
+prop	GUIBindDefinition	drag: {
+prop	GUIBindDefinition	messageData?: string[];
+prop	GUIBindDefinition	messageName: string;
+prop	GUIBindDefinition	name: T;
+prop	GUIBindDefinition	remove: {
+prop	GUIBindDefinition	sendMessage: {
+prop	GUIBindDefinition	show: {
+prop	GUIBindDefinition	targetSelector: string;
+prop	GUIBindDefinition	targetSelector: string;
+prop	GUIBindDefinition	targetSelector: string;
+prop	GUIConfigItem	bindings?: GUIBindTypes<T>[];
+prop	GUIConfigItem	data: string | GUIData;
+prop	GUIConfigItem	display?: boolean;
+prop	GUIData	attributes?: {
+prop	GUIData	children?: GUIData[];
+prop	GUIData	name: string;
+prop	GameAnimation	currentTime: number;
+prop	GameAnimation	nextFinish: GameEventFuture<GameAnimationEvent<KeyframeType, TargetType>>;
+prop	GameAnimation	nextReady: GameEventFuture<GameAnimationEvent<KeyframeType, TargetType>>;
+prop	GameAnimation	onFinish: GameEventChannel<GameAnimationEvent<KeyframeType, TargetType>>, nextFinish: GameEventFuture<GameAnimationEvent<KeyframeType, TargetType>>);
+prop	GameAnimation	onFinish: GameEventChannel<GameAnimationEvent<KeyframeType, TargetType>>;
+prop	GameAnimation	onReady: GameEventChannel<GameAnimationEvent<KeyframeType, TargetType>>, nextReady: GameEventFuture<GameAnimationEvent<KeyframeType, TargetType>>, 
+prop	GameAnimation	onReady: GameEventChannel<GameAnimationEvent<KeyframeType, TargetType>>;
+prop	GameAnimation	playState: GameAnimationPlaybackState;
+prop	GameAnimation	playbackRate: number;
+prop	GameAnimation	startTime: number;
+prop	GameAnimation	target: TargetType, 
+prop	GameAnimation	target: TargetType;
+prop	GameAnimationEvent	animation: GameAnimation<KeyframeType, TargetType>;
+prop	GameAnimationEvent	cancelled: boolean;
+prop	GameAnimationEvent	target: TargetType;
+prop	GameAnimationEvent	tick: number;
+prop	GameAnimationPlaybackConfig	delay: number;
+prop	GameAnimationPlaybackConfig	direction: GameAnimationDirection;
+prop	GameAnimationPlaybackConfig	duration: number;
+prop	GameAnimationPlaybackConfig	endDelay: number;
+prop	GameAnimationPlaybackConfig	iterationStart: number;
+prop	GameAnimationPlaybackConfig	iterations: number;
+prop	GameAnimationPlaybackConfig	startTick: number;
+prop	GameAnticheatAction	direction: MovementPosition;
+prop	GameAnticheatAction	distance: number;
+prop	GameAnticheatAction	normal: MovementPosition;
+prop	GameAnticheatAction	origin: MovementPosition;
+prop	GameAnticheatAction	voxel: MovementPosition;
+prop	GameAnticheatInputEvent	action0: boolean;
+prop	GameAnticheatInputEvent	action1: boolean;
+prop	GameAnticheatInputEvent	crouch: boolean;
+prop	GameAnticheatInputEvent	doubleJump: boolean;
+prop	GameAnticheatInputEvent	fly: boolean;
+prop	GameAnticheatInputEvent	jump: boolean;
+prop	GameAnticheatInputEvent	run: boolean;
+prop	GameAnticheatInputEvent	walk: boolean;
+prop	GameAnticheatTracker	reason?: string;
+prop	GameAnticheatTracker	ticks: number;
+prop	GameAnticheatUIEvent	serverId: string;
+prop	GameAssetListEntry	path: string, 
+prop	GameAssetListEntry	path: string;
+prop	GameAssetListEntry	type: GameAssetType);
+prop	GameAssetListEntry	type: GameAssetType;
+prop	GameBounds3	hi: GameVector3;
+prop	GameBounds3	lo: GameVector3;
+prop	GameChatEvent	entity: GameEntity, 
+prop	GameChatEvent	entity: GameEntity;
+prop	GameChatEvent	message: string);
+prop	GameChatEvent	message: string;
+prop	GameChatEvent	tick: number, 
+prop	GameChatEvent	tick: number;
+prop	GameClickEvent	button: GameButtonType.ACTION0 | GameButtonType.ACTION1, 
+prop	GameClickEvent	button: GameButtonType.ACTION0 | GameButtonType.ACTION1;
+prop	GameClickEvent	clicker: GamePlayerEntity, 
+prop	GameClickEvent	clicker: GamePlayerEntity;
+prop	GameClickEvent	clickerPosition: GameVector3, 
+prop	GameClickEvent	clickerPosition: GameVector3;
+prop	GameClickEvent	distance: number, 
+prop	GameClickEvent	distance: number;
+prop	GameClickEvent	entity: GameEntity, 
+prop	GameClickEvent	entity: GameEntity;
+prop	GameClickEvent	raycast: GameRaycastResult);
+prop	GameClickEvent	raycast: GameRaycastResult;
+prop	GameClickEvent	tick: number, 
+prop	GameClickEvent	tick: number;
+prop	GameClientMessageEvent	mode: 'edit' | 'play';
+prop	GameClientMessageEvent	serverTick: number;
+prop	GameClientMessageEvent	source: 'client-message';
+prop	GameConsole	debug: GameLoggerMethod;
+prop	GameConsole	error: GameLoggerMethod;
+prop	GameConsole	log: GameLoggerMethod;
+prop	GameConsole	warn: GameLoggerMethod;
+prop	GameConsole	x: number;
+prop	GameConsole	y: number;
+prop	GameConsole	z: number;
+prop	GameDamageEvent	attacker: GameEntity | null, 
+prop	GameDamageEvent	attacker: GameEntity | null;
+prop	GameDamageEvent	damage: number, 
+prop	GameDamageEvent	damage: number;
+prop	GameDamageEvent	damageType: string);
+prop	GameDamageEvent	damageType: string;
+prop	GameDamageEvent	entity: GameEntity, 
+prop	GameDamageEvent	entity: GameEntity;
+prop	GameDamageEvent	tick: number, 
+prop	GameDamageEvent	tick: number;
+prop	GameDialogType	confirmText?: string;
+prop	GameDialogType	confirmText?: string;
+prop	GameDialogType	content: string;
+prop	GameDialogType	content: string;
+prop	GameDialogType	content: string;
+prop	GameDialogType	content: string;
+prop	GameDialogType	contentBackgroundColor?: GameRGBAColor;
+prop	GameDialogType	contentBackgroundColor?: GameRGBAColor;
+prop	GameDialogType	contentBackgroundColor?: GameRGBAColor;
+prop	GameDialogType	contentBackgroundColor?: GameRGBAColor;
+prop	GameDialogType	contentTextColor?: GameRGBAColor;
+prop	GameDialogType	contentTextColor?: GameRGBAColor;
+prop	GameDialogType	contentTextColor?: GameRGBAColor;
+prop	GameDialogType	contentTextColor?: GameRGBAColor;
+prop	GameDialogType	hasArrow?: boolean;
+prop	GameDialogType	hasArrow?: boolean;
+prop	GameDialogType	index: number;
+prop	GameDialogType	lookEye?: GameVector3 | GameEntity;
+prop	GameDialogType	lookEye?: GameVector3 | GameEntity;
+prop	GameDialogType	lookEye?: GameVector3 | GameEntity;
+prop	GameDialogType	lookEye?: GameVector3 | GameEntity;
+prop	GameDialogType	lookEyeOffset?: GameVector3;
+prop	GameDialogType	lookEyeOffset?: GameVector3;
+prop	GameDialogType	lookEyeOffset?: GameVector3;
+prop	GameDialogType	lookEyeOffset?: GameVector3;
+prop	GameDialogType	lookTarget?: GameVector3 | GameEntity;
+prop	GameDialogType	lookTarget?: GameVector3 | GameEntity;
+prop	GameDialogType	lookTarget?: GameVector3 | GameEntity;
+prop	GameDialogType	lookTarget?: GameVector3 | GameEntity;
+prop	GameDialogType	lookTargetOffset?: GameVector3;
+prop	GameDialogType	lookTargetOffset?: GameVector3;
+prop	GameDialogType	lookTargetOffset?: GameVector3;
+prop	GameDialogType	lookTargetOffset?: GameVector3;
+prop	GameDialogType	lookUp?: GameVector3;
+prop	GameDialogType	lookUp?: GameVector3;
+prop	GameDialogType	lookUp?: GameVector3;
+prop	GameDialogType	lookUp?: GameVector3;
+prop	GameDialogType	options: string[];
+prop	GameDialogType	options?: string[];
+prop	GameDialogType	placeholder?: string;
+prop	GameDialogType	placeholder?: string;
+prop	GameDialogType	title?: string;
+prop	GameDialogType	title?: string;
+prop	GameDialogType	title?: string;
+prop	GameDialogType	title?: string;
+prop	GameDialogType	titleBackgroundColor?: GameRGBAColor;
+prop	GameDialogType	titleBackgroundColor?: GameRGBAColor;
+prop	GameDialogType	titleBackgroundColor?: GameRGBAColor;
+prop	GameDialogType	titleBackgroundColor?: GameRGBAColor;
+prop	GameDialogType	titleTextColor?: GameRGBAColor;
+prop	GameDialogType	titleTextColor?: GameRGBAColor;
+prop	GameDialogType	titleTextColor?: GameRGBAColor;
+prop	GameDialogType	titleTextColor?: GameRGBAColor;
+prop	GameDialogType	type: GameDialogType.INPUT;
+prop	GameDialogType	type: GameDialogType.SELECT;
+prop	GameDialogType	type: GameDialogType.TEXT;
+prop	GameDialogType	type: GameDialogType;
+prop	GameDialogType	value: string;
+prop	GameDieEvent	attacker: GameEntity | null, 
+prop	GameDieEvent	attacker: GameEntity | null;
+prop	GameDieEvent	damageType: string);
+prop	GameDieEvent	damageType: string;
+prop	GameDieEvent	entity: GameEntity, 
+prop	GameDieEvent	entity: GameEntity;
+prop	GameDieEvent	tick: number, 
+prop	GameDieEvent	tick: number;
+prop	GameEntity	anchorOffset: GameVector3;
+prop	GameEntity	bounds: GameVector3;
+prop	GameEntity	chatSound: GameSoundEffect;
+prop	GameEntity	collides: boolean;
+prop	GameEntity	contactForce: GameVector3;
+prop	GameEntity	customName: string;
+prop	GameEntity	destroyed: boolean;
+prop	GameEntity	dieSound: GameSoundEffect;
+prop	GameEntity	duration?: number;
+prop	GameEntity	duration?: number;
+prop	GameEntity	enableDamage: boolean;
+prop	GameEntity	enableInteract: boolean;
+prop	GameEntity	entityContacts: GameEntityContact[];
+prop	GameEntity	fixed: boolean;
+prop	GameEntity	fluidContacts: GameFluidContact[];
+prop	GameEntity	friction: number;
+prop	GameEntity	gain?: number;
+prop	GameEntity	gain?: number;
+prop	GameEntity	gravity: boolean;
+prop	GameEntity	hideFloat?: boolean;
+prop	GameEntity	hideFloat?: boolean;
+prop	GameEntity	hp: number;
+prop	GameEntity	hurtSound: GameSoundEffect;
+prop	GameEntity	id: string;
+prop	GameEntity	interactColor: GameRGBColor;
+prop	GameEntity	interactHint: string;
+prop	GameEntity	interactRadius: number;
+prop	GameEntity	interactSound: GameSoundEffect;
+prop	GameEntity	isPlayer: boolean;
+prop	GameEntity	mass: number;
+prop	GameEntity	maxHp: number;
+prop	GameEntity	mesh: string;
+prop	GameEntity	meshColor: GameRGBAColor;
+prop	GameEntity	meshEmissive: number;
+prop	GameEntity	meshInvisible: boolean;
+prop	GameEntity	meshMetalness: number;
+prop	GameEntity	meshOffset: GameVector3;
+prop	GameEntity	meshOrientation: GameQuaternion;
+prop	GameEntity	meshScale: GameVector3;
+prop	GameEntity	meshShininess: number;
+prop	GameEntity	motion: GameMotionController<GameEntity>, lookAt: (targetPosition: GameVector3, facingDirection?: 'X' | 'Y' | 'Z', up?: GameVector3) => void, 
+prop	GameEntity	motion: GameMotionController<GameEntity>;
+prop	GameEntity	nameColor: GameRGBColor;
+prop	GameEntity	nameRadius: number;
+prop	GameEntity	nextClick: GameEventFuture<GameClickEvent>;
+prop	GameEntity	nextDestroy: GameEventFuture<GameEntityEvent>;
+prop	GameEntity	nextDie: GameEventFuture<GameDieEvent>;
+prop	GameEntity	nextEntityContact: GameEventFuture<GameEntityContactEvent>;
+prop	GameEntity	nextEntitySeparate: GameEventFuture<GameEntityContactEvent>;
+prop	GameEntity	nextFluidEnter: GameEventFuture<GameFluidContactEvent>;
+prop	GameEntity	nextFluidLeave: GameEventFuture<GameFluidContactEvent>;
+prop	GameEntity	nextInteract: GameEventFuture<GameInteractEvent>;
+prop	GameEntity	nextTakeDamage: GameEventFuture<GameDamageEvent>;
+prop	GameEntity	nextVoxelContact: GameEventFuture<GameVoxelContactEvent>;
+prop	GameEntity	nextVoxelSeparate: GameEventFuture<GameVoxelContactEvent>;
+prop	GameEntity	onClick: GameEventChannel<GameClickEvent>, nextClick: GameEventFuture<GameClickEvent>, 
+prop	GameEntity	onClick: GameEventChannel<GameClickEvent>;
+prop	GameEntity	onDestroy: GameEventChannel<GameEntityEvent>, nextDestroy: GameEventFuture<GameEntityEvent>, 
+prop	GameEntity	onDestroy: GameEventChannel<GameEntityEvent>;
+prop	GameEntity	onDie: GameEventChannel<GameDieEvent>, nextDie: GameEventFuture<GameDieEvent>, 
+prop	GameEntity	onDie: GameEventChannel<GameDieEvent>;
+prop	GameEntity	onEntityContact: GameEventChannel<GameEntityContactEvent>, nextEntityContact: GameEventFuture<GameEntityContactEvent>, 
+prop	GameEntity	onEntityContact: GameEventChannel<GameEntityContactEvent>;
+prop	GameEntity	onEntitySeparate: GameEventChannel<GameEntityContactEvent>, nextEntitySeparate: GameEventFuture<GameEntityContactEvent>, 
+prop	GameEntity	onEntitySeparate: GameEventChannel<GameEntityContactEvent>;
+prop	GameEntity	onFluidEnter: GameEventChannel<GameFluidContactEvent>, nextFluidEnter: GameEventFuture<GameFluidContactEvent>, 
+prop	GameEntity	onFluidEnter: GameEventChannel<GameFluidContactEvent>;
+prop	GameEntity	onFluidLeave: GameEventChannel<GameFluidContactEvent>, nextFluidLeave: GameEventFuture<GameFluidContactEvent>, 
+prop	GameEntity	onFluidLeave: GameEventChannel<GameFluidContactEvent>;
+prop	GameEntity	onInteract: GameEventChannel<GameInteractEvent>, nextInteract: GameEventFuture<GameInteractEvent>, 
+prop	GameEntity	onInteract: GameEventChannel<GameInteractEvent>;
+prop	GameEntity	onTakeDamage: GameEventChannel<GameDamageEvent>, nextTakeDamage: GameEventFuture<GameDamageEvent>, 
+prop	GameEntity	onTakeDamage: GameEventChannel<GameDamageEvent>;
+prop	GameEntity	onVoxelContact: GameEventChannel<GameVoxelContactEvent>, nextVoxelContact: GameEventFuture<GameVoxelContactEvent>, 
+prop	GameEntity	onVoxelContact: GameEventChannel<GameVoxelContactEvent>;
+prop	GameEntity	onVoxelSeparate: GameEventChannel<GameVoxelContactEvent>, nextVoxelSeparate: GameEventFuture<GameVoxelContactEvent>, 
+prop	GameEntity	onVoxelSeparate: GameEventChannel<GameVoxelContactEvent>;
+prop	GameEntity	particleAcceleration: GameVector3;
+prop	GameEntity	particleColor: GameRGBColor[];
+prop	GameEntity	particleDamping: number;
+prop	GameEntity	particleLifetime: number;
+prop	GameEntity	particleLifetimeSpread: number;
+prop	GameEntity	particleLimit: number;
+prop	GameEntity	particleNoise: number;
+prop	GameEntity	particleNoiseFrequency: number;
+prop	GameEntity	particleRate: number;
+prop	GameEntity	particleRateSpread: number;
+prop	GameEntity	particleSize: number[];
+prop	GameEntity	particleSizeSpread: number;
+prop	GameEntity	particleTarget: GameEntity | null;
+prop	GameEntity	particleTargetWeight: number;
+prop	GameEntity	particleVelocity: GameVector3;
+prop	GameEntity	particleVelocitySpread: GameVector3;
+prop	GameEntity	pitch?: number;
+prop	GameEntity	pitch?: number;
+prop	GameEntity	player?: GamePlayer;
+prop	GameEntity	position: GameVector3;
+prop	GameEntity	radius?: number;
+prop	GameEntity	radius?: number;
+prop	GameEntity	restitution: number;
+prop	GameEntity	sample: string;
+prop	GameEntity	sample: string;
+prop	GameEntity	showEntityName: boolean;
+prop	GameEntity	showHealthBar: boolean;
+prop	GameEntity	velocity: GameVector3;
+prop	GameEntity	voxelContacts: GameVoxelContact[];
+prop	GameEntityConfig	anchorOffset: GameVector3;
+prop	GameEntityConfig	bounds: GameVector3;
+prop	GameEntityConfig	chatSound: GameSoundEffectConfig;
+prop	GameEntityConfig	collides: boolean;
+prop	GameEntityConfig	dieSound: GameSoundEffectConfig;
+prop	GameEntityConfig	enableInteract: boolean;
+prop	GameEntityConfig	fixed: boolean;
+prop	GameEntityConfig	friction: number;
+prop	GameEntityConfig	gravity: boolean;
+prop	GameEntityConfig	hurtSound: GameSoundEffectConfig;
+prop	GameEntityConfig	id: string;
+prop	GameEntityConfig	interactColor: GameRGBColor;
+prop	GameEntityConfig	interactHint: string;
+prop	GameEntityConfig	interactRadius: number;
+prop	GameEntityConfig	interactSound: GameSoundEffectConfig;
+prop	GameEntityConfig	mass: number;
+prop	GameEntityConfig	mesh: string;
+prop	GameEntityConfig	meshColor: GameRGBAColor;
+prop	GameEntityConfig	meshEmissive: number;
+prop	GameEntityConfig	meshMetalness: number;
+prop	GameEntityConfig	meshOrientation: GameQuaternion;
+prop	GameEntityConfig	meshScale: GameVector3;
+prop	GameEntityConfig	meshShininess: number;
+prop	GameEntityConfig	particleAcceleration: GameVector3;
+prop	GameEntityConfig	particleColor: GameRGBColor[];
+prop	GameEntityConfig	particleDamping: number;
+prop	GameEntityConfig	particleLifetime: number;
+prop	GameEntityConfig	particleLifetimeSpread: number;
+prop	GameEntityConfig	particleLimit: number;
+prop	GameEntityConfig	particleNoise: number;
+prop	GameEntityConfig	particleNoiseFrequency: number;
+prop	GameEntityConfig	particleRate: number;
+prop	GameEntityConfig	particleRateSpread: number;
+prop	GameEntityConfig	particleSize: number[];
+prop	GameEntityConfig	particleSizeSpread: number;
+prop	GameEntityConfig	particleTarget: GameEntity | null;
+prop	GameEntityConfig	particleTargetWeight: number;
+prop	GameEntityConfig	particleVelocity: GameVector3;
+prop	GameEntityConfig	particleVelocitySpread: GameVector3;
+prop	GameEntityConfig	position: GameVector3;
+prop	GameEntityConfig	restitution: number;
+prop	GameEntityConfig	velocity: GameVector3;
+prop	GameEntityContact	axis: GameVector3;
+prop	GameEntityContact	force: GameVector3;
+prop	GameEntityContact	other: GameEntity;
+prop	GameEntityContactEvent	axis: GameVector3, 
+prop	GameEntityContactEvent	axis: GameVector3;
+prop	GameEntityContactEvent	entity: GameEntity, 
+prop	GameEntityContactEvent	entity: GameEntity;
+prop	GameEntityContactEvent	force: GameVector3);
+prop	GameEntityContactEvent	force: GameVector3;
+prop	GameEntityContactEvent	other: GameEntity, 
+prop	GameEntityContactEvent	other: GameEntity;
+prop	GameEntityContactEvent	tick: number, 
+prop	GameEntityContactEvent	tick: number;
+prop	GameEntityEvent	entity: GameEntity);
+prop	GameEntityEvent	entity: GameEntity;
+prop	GameEntityEvent	tick: number, 
+prop	GameEntityEvent	tick: number;
+prop	GameEntityKeyframe	collides: boolean;
+prop	GameEntityKeyframe	duration: number;
+prop	GameEntityKeyframe	easeIn: GameEasing;
+prop	GameEntityKeyframe	easeOut: GameEasing;
+prop	GameEntityKeyframe	fixed: boolean;
+prop	GameEntityKeyframe	friction: number;
+prop	GameEntityKeyframe	gravity: boolean;
+prop	GameEntityKeyframe	interactColor: GameRGBColor;
+prop	GameEntityKeyframe	mass: number;
+prop	GameEntityKeyframe	mesh: string;
+prop	GameEntityKeyframe	meshColor: GameRGBAColor;
+prop	GameEntityKeyframe	meshEmissive: number;
+prop	GameEntityKeyframe	meshInvisible: boolean;
+prop	GameEntityKeyframe	meshMetalness: number;
+prop	GameEntityKeyframe	meshOffset: GameVector3;
+prop	GameEntityKeyframe	meshOrientation: GameQuaternion;
+prop	GameEntityKeyframe	meshScale: GameVector3;
+prop	GameEntityKeyframe	meshShininess: number;
+prop	GameEntityKeyframe	particleAcceleration: GameVector3;
+prop	GameEntityKeyframe	particleColor: GameRGBColor[];
+prop	GameEntityKeyframe	particleDamping: number;
+prop	GameEntityKeyframe	particleLifetime: number;
+prop	GameEntityKeyframe	particleLifetimeSpread: number;
+prop	GameEntityKeyframe	particleLimit: number;
+prop	GameEntityKeyframe	particleNoise: number;
+prop	GameEntityKeyframe	particleNoiseFrequency: number;
+prop	GameEntityKeyframe	particleRate: number;
+prop	GameEntityKeyframe	particleRateSpread: number;
+prop	GameEntityKeyframe	particleSize: number[];
+prop	GameEntityKeyframe	particleSizeSpread: number;
+prop	GameEntityKeyframe	particleTarget: GameEntity | null;
+prop	GameEntityKeyframe	particleTargetWeight: number;
+prop	GameEntityKeyframe	particleVelocity: GameVector3;
+prop	GameEntityKeyframe	particleVelocitySpread: GameVector3;
+prop	GameEntityKeyframe	position: GameVector3;
+prop	GameEntityKeyframe	restitution: number;
+prop	GameEntityKeyframe	velocity: GameVector3;
+prop	GameFluidContact	volume: number;
+prop	GameFluidContact	voxel: number;
+prop	GameFluidContactEvent	entity: GameEntity, 
+prop	GameFluidContactEvent	entity: GameEntity;
+prop	GameFluidContactEvent	tick: number, 
+prop	GameFluidContactEvent	tick: number;
+prop	GameFluidContactEvent	voxel: number);
+prop	GameFluidContactEvent	voxel: number;
+prop	GameGUI	body?: string | ArrayBuffer;
+prop	GameGUI	headers?: GameHttpFetchHeaders;
+prop	GameGUI	init: <T extends string, U extends T>(entity: GamePlayerEntity, config: GUIConfig<T, U>) => Promise<void>;
+prop	GameGUI	method?: 'OPTIONS' | 'GET' | 'HEAD' | 'PUT' | 'POST' | 'DELETE' | 'PATCH';
+prop	GameGUI	timeout?: number;
+prop	GameGUI	ui: InstanceType<any>['ui'];
+prop	GameGUIEvent	entity: GamePlayerEntity;
+prop	GameGUIEvent	name: string;
+prop	GameGUIEvent	payload: any;
+prop	GameHttpFetchResponse	headers: GameHttpFetchHeaders;
+prop	GameHttpFetchResponse	status: number;
+prop	GameHttpFetchResponse	statusText: string;
+prop	GameHurtOptions	attacker: GameEntity;
+prop	GameHurtOptions	damageType: string;
+prop	GameInputEvent	button: GameButtonType, 
+prop	GameInputEvent	button: GameButtonType;
+prop	GameInputEvent	entity: GamePlayerEntity, 
+prop	GameInputEvent	entity: GamePlayerEntity;
+prop	GameInputEvent	position: GameVector3, 
+prop	GameInputEvent	position: GameVector3;
+prop	GameInputEvent	pressed: boolean, 
+prop	GameInputEvent	pressed: boolean;
+prop	GameInputEvent	raycast: GameRaycastResult);
+prop	GameInputEvent	raycast: GameRaycastResult;
+prop	GameInputEvent	tick: number, 
+prop	GameInputEvent	tick: number;
+prop	GameInteractEvent	entity: GamePlayerEntity, 
+prop	GameInteractEvent	entity: GamePlayerEntity;
+prop	GameInteractEvent	targetEntity: GameEntity);
+prop	GameInteractEvent	targetEntity: GameEntity;
+prop	GameInteractEvent	tick: number, 
+prop	GameInteractEvent	tick: number;
+prop	GameKeyBoardEvent	keyCode: number;
+prop	GameKeyBoardEvent	tick: number, keyCode: number);
+prop	GameKeyBoardEvent	tick: number;
+prop	GameModeration	args: JSONValue;
+prop	GameModeration	banCurrentDevice: {
+prop	GameModeration	banCurrentIP: {
+prop	GameModeration	banPlayer: {
+prop	GameModeration	bans: ModerationBan[];
+prop	GameModeration	entity: GamePlayerEntity;
+prop	GameModeration	id: string;
+prop	GameModeration	items: ModerationBanRecord[];
+prop	GameModeration	page: number;
+prop	GameModeration	pageSize: number;
+prop	GameModeration	reason: string;
+prop	GameModeration	requestId?: string;
+prop	GameModeration	revoked: boolean;
+prop	GameModeration	status: string;
+prop	GameModeration	tick: number;
+prop	GameModeration	total: number;
+prop	GameMotionClipConfig	iterations: number;
+prop	GameMotionClipConfig	motions: GameMotionConfig[];
+prop	GameMotionConfig	iterations: number;
+prop	GameMotionConfig	name: string;
+prop	GameMotionEvent	cancelled: boolean;
+prop	GameMotionEvent	motionHandler: GameMotionHandler<TargetType>;
+prop	GameMotionEvent	tick: number, target: TargetType, motionHandler: GameMotionHandler<TargetType>, cancelled: boolean);
+prop	GameMotionEvent	tick: number;
+prop	GameMotionHandler	nextFinish: GameEventFuture<GameMotionEvent<TargetType>>;
+prop	GameMotionHandler	onFinish: GameEventChannel<GameMotionEvent<TargetType>>, nextFinish: GameEventFuture<GameMotionEvent<TargetType>>);
+prop	GameMotionHandler	onFinish: GameEventChannel<GameMotionEvent<TargetType>>;
+prop	GameMotionHandler	target: TargetType, 
+prop	GameMovementEvent	from: MovementPosition;
+prop	GameMovementEvent	inputTick: number;
+prop	GameMovementEvent	mode: 'edit' | 'play';
+prop	GameMovementEvent	serverTick: number;
+prop	GameMovementEvent	source: 'client-correction';
+prop	GameMovementEvent	to: MovementPosition;
+prop	GamePlayer	action0Button: boolean;
+prop	GamePlayer	action0Sound: GameSoundEffect;
+prop	GamePlayer	action1Button: boolean;
+prop	GamePlayer	action1Sound: GameSoundEffect;
+prop	GamePlayer	avatar: string;
+prop	GamePlayer	boxId: string;
+prop	GamePlayer	cameraDistance: number;
+prop	GamePlayer	cameraEntity: GameEntity | null;
+prop	GamePlayer	cameraFovY: number;
+prop	GamePlayer	cameraFreezedAxis: GameCameraFreezedAxis;
+prop	GamePlayer	cameraMode: GameCameraMode;
+prop	GamePlayer	cameraPitch: number;
+prop	GamePlayer	cameraPosition: GameVector3;
+prop	GamePlayer	cameraTarget: GameVector3;
+prop	GamePlayer	cameraUp: GameVector3;
+prop	GamePlayer	cameraYaw: number;
+prop	GamePlayer	canFly: boolean;
+prop	GamePlayer	color: GameRGBColor;
+prop	GamePlayer	colorLUT: string;
+prop	GamePlayer	crouchAcceleration: number;
+prop	GamePlayer	crouchButton: boolean;
+prop	GamePlayer	crouchSound: GameSoundEffect;
+prop	GamePlayer	crouchSpeed: number;
+prop	GamePlayer	data: object;
+prop	GamePlayer	dead: boolean;
+prop	GamePlayer	dialog: GameDialogCall, 
+prop	GamePlayer	dialog: GameDialogCall;
+prop	GamePlayer	disableInputDirection: GameInputDirection;
+prop	GamePlayer	doubleJumpPower: number;
+prop	GamePlayer	doubleJumpSound: GameSoundEffect;
+prop	GamePlayer	emissive: number;
+prop	GamePlayer	enable3DCursor: boolean;
+prop	GamePlayer	enableAction0: boolean;
+prop	GamePlayer	enableAction1: boolean;
+prop	GamePlayer	enableCrouch: boolean;
+prop	GamePlayer	enableDoubleJump: boolean;
+prop	GamePlayer	enableJump: boolean;
+prop	GamePlayer	enterWaterSound: GameSoundEffect;
+prop	GamePlayer	facingDirection: GameVector3;
+prop	GamePlayer	flyAcceleration: number;
+prop	GamePlayer	flySpeed: number;
+prop	GamePlayer	freezedForwardDirection: GameVector3 | null;
+prop	GamePlayer	gain?: number;
+prop	GamePlayer	gain?: number;
+prop	GamePlayer	gamepad: Gamepad;
+prop	GamePlayer	invisible: boolean;
+prop	GamePlayer	isConfirm?: boolean;
+prop	GamePlayer	isConfirm?: boolean;
+prop	GamePlayer	isNewTab?: boolean;
+prop	GamePlayer	isNewTab?: boolean;
+prop	GamePlayer	isOld: boolean;
+prop	GamePlayer	jumpAccelerationFactor: number;
+prop	GamePlayer	jumpButton: boolean;
+prop	GamePlayer	jumpPower: number;
+prop	GamePlayer	jumpSound: GameSoundEffect;
+prop	GamePlayer	jumpSpeedFactor: number;
+prop	GamePlayer	landSound: GameSoundEffect;
+prop	GamePlayer	leaveWaterSound: GameSoundEffect;
+prop	GamePlayer	metalness: number;
+prop	GamePlayer	moveState: GamePlayerMoveState;
+prop	GamePlayer	movementBounds: GameBounds3;
+prop	GamePlayer	music: GameSoundEffect;
+prop	GamePlayer	name: string;
+prop	GamePlayer	navigator: PlayerNavigator;
+prop	GamePlayer	nextChat: GameEventFuture<GameChatEvent>;
+prop	GamePlayer	nextPress: GameEventFuture<GameInputEvent>;
+prop	GamePlayer	nextRelease: GameEventFuture<GameInputEvent>;
+prop	GamePlayer	nextRespawn: GameEventFuture<GameRespawnEvent>;
+prop	GamePlayer	onChat: GameEventChannel<GameChatEvent>, nextChat: GameEventFuture<GameChatEvent>, 
+prop	GamePlayer	onChat: GameEventChannel<GameChatEvent>;
+prop	GamePlayer	onKeyDown: GameEventChannel<GameKeyBoardEvent>, onKeyUp: GameEventChannel<GameKeyBoardEvent>);
+prop	GamePlayer	onKeyDown: GameEventChannel<GameKeyBoardEvent>;
+prop	GamePlayer	onKeyUp: GameEventChannel<GameKeyBoardEvent>;
+prop	GamePlayer	onPress: GameEventChannel<GameInputEvent>, nextPress: GameEventFuture<GameInputEvent>, 
+prop	GamePlayer	onPress: GameEventChannel<GameInputEvent>;
+prop	GamePlayer	onRelease: GameEventChannel<GameInputEvent>, nextRelease: GameEventFuture<GameInputEvent>, 
+prop	GamePlayer	onRelease: GameEventChannel<GameInputEvent>;
+prop	GamePlayer	onRespawn: GameEventChannel<GameRespawnEvent>, nextRespawn: GameEventFuture<GameRespawnEvent>, 
+prop	GamePlayer	onRespawn: GameEventChannel<GameRespawnEvent>;
+prop	GamePlayer	pitch?: number;
+prop	GamePlayer	pitch?: number;
+prop	GamePlayer	reverseInputDirection: GameInputDirection;
+prop	GamePlayer	runAcceleration: number;
+prop	GamePlayer	runSpeed: number;
+prop	GamePlayer	sample: string;
+prop	GamePlayer	sample: string;
+prop	GamePlayer	scale: number;
+prop	GamePlayer	shininess: number;
+prop	GamePlayer	showIndicator: boolean;
+prop	GamePlayer	showName: boolean;
+prop	GamePlayer	skin: GameSkin;
+prop	GamePlayer	skinInvisible: GameSkinInvisible;
+prop	GamePlayer	spawnPoint: GameVector3;
+prop	GamePlayer	spawnSound: GameSoundEffect;
+prop	GamePlayer	spectator: boolean;
+prop	GamePlayer	startFlySound: GameSoundEffect;
+prop	GamePlayer	stepSound: GameSoundEffect;
+prop	GamePlayer	stopFlySound: GameSoundEffect;
+prop	GamePlayer	swapInputDirection: boolean;
+prop	GamePlayer	swimAcceleration: number;
+prop	GamePlayer	swimSound: GameSoundEffect;
+prop	GamePlayer	swimSpeed: number;
+prop	GamePlayer	type: string;
+prop	GamePlayer	url: URL;
+prop	GamePlayer	userId: string;
+prop	GamePlayer	userKey: string;
+prop	GamePlayer	value: object;
+prop	GamePlayer	walkAcceleration: number;
+prop	GamePlayer	walkButton: boolean;
+prop	GamePlayer	walkSpeed: number;
+prop	GamePlayer	walkState: GamePlayerWalkState;
+prop	GamePlayerKeyframe	cameraDistance: number;
+prop	GamePlayerKeyframe	cameraEntity: GameEntity | null;
+prop	GamePlayerKeyframe	cameraFovY: number;
+prop	GamePlayerKeyframe	cameraFreezedAxis: GameCameraFreezedAxis;
+prop	GamePlayerKeyframe	cameraMode: GameCameraMode;
+prop	GamePlayerKeyframe	cameraPosition: GameVector3;
+prop	GamePlayerKeyframe	cameraTarget: GameVector3;
+prop	GamePlayerKeyframe	cameraUp: GameVector3;
+prop	GamePlayerKeyframe	color: GameRGBColor;
+prop	GamePlayerKeyframe	colorLUT: string;
+prop	GamePlayerKeyframe	duration: number;
+prop	GamePlayerKeyframe	easeIn: GameEasing;
+prop	GamePlayerKeyframe	easeOut: GameEasing;
+prop	GamePlayerKeyframe	emissive: number;
+prop	GamePlayerKeyframe	invisible: boolean;
+prop	GamePlayerKeyframe	metalness: number;
+prop	GamePlayerKeyframe	scale: number;
+prop	GamePlayerKeyframe	shininess: number;
+prop	GamePlayerKeyframe	showIndicator: boolean;
+prop	GamePlayerKeyframe	showName: boolean;
+prop	GameQuaternion	angle: number;
+prop	GameQuaternion	axis: GameVector3;
+prop	GameQuaternion	w: number;
+prop	GameQuaternion	x: number;
+prop	GameQuaternion	y: number;
+prop	GameQuaternion	z: number;
+prop	GameQueryResult	code: number;
+prop	GameQueryResult	done: boolean;
+prop	GameQueryResult	done: boolean;
+prop	GameQueryResult	done: boolean;
+prop	GameQueryResult	done: boolean;
+prop	GameQueryResult	done: boolean;
+prop	GameQueryResult	done: boolean;
+prop	GameQueryResult	msg: string;
+prop	GameQueryResult	status: T;
+prop	GameQueryResult	value: any;
+prop	GameQueryResult	value: any;
+prop	GameQueryResult	value: any;
+prop	GameQueryResult	value: any;
+prop	GameQueryResult	value: any;
+prop	GameQueryResult	value: any;
+prop	GameRGBAColor	a: number;
+prop	GameRGBAColor	b: number;
+prop	GameRGBAColor	g: number;
+prop	GameRGBAColor	r: number;
+prop	GameRGBColor	b: number;
+prop	GameRGBColor	g: number;
+prop	GameRGBColor	r: number;
+prop	GameRaycastOptions	ignoreEntities: boolean;
+prop	GameRaycastOptions	ignoreFluid: boolean;
+prop	GameRaycastOptions	ignoreSelector: GameSelectorString;
+prop	GameRaycastOptions	ignoreVoxel: boolean;
+prop	GameRaycastOptions	maxDistance: number;
+prop	GameRaycastResult	direction: GameVector3, 
+prop	GameRaycastResult	direction: GameVector3;
+prop	GameRaycastResult	distance: number, 
+prop	GameRaycastResult	distance: number;
+prop	GameRaycastResult	hit: boolean, 
+prop	GameRaycastResult	hit: boolean;
+prop	GameRaycastResult	hitEntity: GameEntity | null, 
+prop	GameRaycastResult	hitEntity: GameEntity | null;
+prop	GameRaycastResult	hitPosition: GameVector3, 
+prop	GameRaycastResult	hitPosition: GameVector3;
+prop	GameRaycastResult	hitVoxel: number, 
+prop	GameRaycastResult	hitVoxel: number;
+prop	GameRaycastResult	normal: GameVector3, 
+prop	GameRaycastResult	normal: GameVector3;
+prop	GameRaycastResult	origin: GameVector3, 
+prop	GameRaycastResult	origin: GameVector3;
+prop	GameRaycastResult	voxelIndex: GameVector3);
+prop	GameRaycastResult	voxelIndex: GameVector3;
+prop	GameRespawnEvent	entity: GamePlayerEntity);
+prop	GameRespawnEvent	entity: GamePlayerEntity;
+prop	GameRespawnEvent	tick: number, 
+prop	GameRespawnEvent	tick: number;
+prop	GameSoundEffect	gain: number;
+prop	GameSoundEffect	gainRange: number;
+prop	GameSoundEffect	pitch: number;
+prop	GameSoundEffect	pitchRange: number;
+prop	GameSoundEffect	radius: number;
+prop	GameSoundEffect	sample: string;
+prop	GameSoundEffectConfig	gain: number;
+prop	GameSoundEffectConfig	gainRange: number;
+prop	GameSoundEffectConfig	pitch: number;
+prop	GameSoundEffectConfig	pitchRange: number;
+prop	GameSoundEffectConfig	radius: number;
+prop	GameSoundEffectConfig	sample: string;
+prop	GameStorage	createTime: number;
+prop	GameStorage	isLastPage: boolean;
+prop	GameStorage	items: ResultValue[];
+prop	GameStorage	key: string;
+prop	GameStorage	updateTime: number;
+prop	GameStorage	value: JSONValue;
+prop	GameStorage	version: string;
+prop	GameTickEvent	elapsedTimeMS: number);
+prop	GameTickEvent	elapsedTimeMS: number;
+prop	GameTickEvent	prevTick: number, 
+prop	GameTickEvent	prevTick: number;
+prop	GameTickEvent	skip: boolean, 
+prop	GameTickEvent	skip: boolean;
+prop	GameTickEvent	tick: number, 
+prop	GameTickEvent	tick: number;
+prop	GameTriggerEvent	entity: GameEntity);
+prop	GameTriggerEvent	entity: GameEntity;
+prop	GameTriggerEvent	tick: number, 
+prop	GameTriggerEvent	tick: number;
+prop	GameVector3	x: number;
+prop	GameVector3	y: number;
+prop	GameVector3	z: number;
+prop	GameVoxelContact	axis: GameVector3;
+prop	GameVoxelContact	force: GameVector3;
+prop	GameVoxelContact	voxel: number;
+prop	GameVoxelContact	x: number;
+prop	GameVoxelContact	y: number;
+prop	GameVoxelContact	z: number;
+prop	GameVoxelContactEvent	axis: GameVector3, 
+prop	GameVoxelContactEvent	axis: GameVector3;
+prop	GameVoxelContactEvent	entity: GameEntity, 
+prop	GameVoxelContactEvent	entity: GameEntity;
+prop	GameVoxelContactEvent	force: GameVector3);
+prop	GameVoxelContactEvent	force: GameVector3;
+prop	GameVoxelContactEvent	tick: number, 
+prop	GameVoxelContactEvent	tick: number;
+prop	GameVoxelContactEvent	voxel: number, 
+prop	GameVoxelContactEvent	voxel: number;
+prop	GameVoxelContactEvent	x: number, 
+prop	GameVoxelContactEvent	x: number;
+prop	GameVoxelContactEvent	y: number, 
+prop	GameVoxelContactEvent	y: number;
+prop	GameVoxelContactEvent	z: number, 
+prop	GameVoxelContactEvent	z: number;
+prop	GameVoxels	VoxelTypes: string[], 
+prop	GameVoxels	VoxelTypes: string[];
+prop	GameVoxels	entity: GamePlayerEntity;
+prop	GameVoxels	isPlayer: true;
+prop	GameVoxels	player: GamePlayer;
+prop	GameVoxels	shape: GameVector3, 
+prop	GameVoxels	shape: GameVector3;
+prop	GameWearable	bodyPart: GameBodyPart;
+prop	GameWearable	color: GameRGBColor;
+prop	GameWearable	emissive: number;
+prop	GameWearable	mesh: string;
+prop	GameWearable	metalness: number;
+prop	GameWearable	offset: GameVector3;
+prop	GameWearable	orientation: GameQuaternion;
+prop	GameWearable	player: GamePlayer | null;
+prop	GameWearable	scale: GameVector3;
+prop	GameWearable	shininess: number;
+prop	GameWearableSpec	bodyPart: GameBodyPart;
+prop	GameWearableSpec	color: GameRGBColor;
+prop	GameWearableSpec	emissive: number;
+prop	GameWearableSpec	mesh: string;
+prop	GameWearableSpec	metalness: number;
+prop	GameWearableSpec	offset: GameVector3;
+prop	GameWearableSpec	orientation: GameQuaternion;
+prop	GameWearableSpec	scale: GameVector3;
+prop	GameWearableSpec	shininess: number;
+prop	GameWorld	airFriction: number;
+prop	GameWorld	ambientSound: GameSoundEffect;
+prop	GameWorld	anticheat: GameAnticheat;
+prop	GameWorld	breakVoxelSound: GameSoundEffect;
+prop	GameWorld	currentTick: number;
+prop	GameWorld	fogColor: GameRGBColor;
+prop	GameWorld	fogHeightFalloff: number;
+prop	GameWorld	fogHeightOffset: number;
+prop	GameWorld	fogStartDistance: number;
+prop	GameWorld	fogUniformDensity: number;
+prop	GameWorld	gain?: number;
+prop	GameWorld	gain?: number;
+prop	GameWorld	gamma: number;
+prop	GameWorld	globalLight: number;
+prop	GameWorld	gravity: number;
+prop	GameWorld	lightMode: 'natural' | 'manual';
+prop	GameWorld	lunarPhase: number;
+prop	GameWorld	maxFog: number;
+prop	GameWorld	moderation: GameModeration;
+prop	GameWorld	nextChat: GameEventFuture<GameChatEvent>;
+prop	GameWorld	nextClick: GameEventFuture<GameClickEvent>;
+prop	GameWorld	nextDie: GameEventFuture<GameDieEvent>;
+prop	GameWorld	nextEntityContact: GameEventFuture<GameEntityContactEvent>;
+prop	GameWorld	nextEntityCreate: GameEventFuture<GameEntityEvent>;
+prop	GameWorld	nextEntityDestroy: GameEventFuture<GameEntityEvent>;
+prop	GameWorld	nextEntitySeparate: GameEventFuture<GameEntityContactEvent>;
+prop	GameWorld	nextFluidEnter: GameEventFuture<GameFluidContactEvent>;
+prop	GameWorld	nextFluidLeave: GameEventFuture<GameFluidContactEvent>;
+prop	GameWorld	nextInteract: GameEventFuture<GameInteractEvent>;
+prop	GameWorld	nextPlayerJoin: GameEventFuture<GamePlayerEntityEvent>;
+prop	GameWorld	nextPlayerLeave: GameEventFuture<GamePlayerEntityEvent>;
+prop	GameWorld	nextPress: GameEventFuture<GameInputEvent>;
+prop	GameWorld	nextRelease: GameEventFuture<GameInputEvent>;
+prop	GameWorld	nextRespawn: GameEventFuture<GameRespawnEvent>;
+prop	GameWorld	nextTakeDamage: GameEventFuture<GameDamageEvent>;
+prop	GameWorld	nextTick: GameEventFuture<GameTickEvent>;
+prop	GameWorld	nextVoxelContact: GameEventFuture<GameVoxelContactEvent>;
+prop	GameWorld	nextVoxelSeparate: GameEventFuture<GameVoxelContactEvent>;
+prop	GameWorld	onChat: GameEventChannel<GameChatEvent>, nextChat: GameEventFuture<GameChatEvent>, 
+prop	GameWorld	onChat: GameEventChannel<GameChatEvent>;
+prop	GameWorld	onClick: GameEventChannel<GameClickEvent>, nextClick: GameEventFuture<GameClickEvent>, 
+prop	GameWorld	onClick: GameEventChannel<GameClickEvent>;
+prop	GameWorld	onDie: GameEventChannel<GameDieEvent>, nextDie: GameEventFuture<GameDieEvent>, 
+prop	GameWorld	onDie: GameEventChannel<GameDieEvent>;
+prop	GameWorld	onEntityContact: GameEventChannel<GameEntityContactEvent>, nextEntityContact: GameEventFuture<GameEntityContactEvent>, 
+prop	GameWorld	onEntityContact: GameEventChannel<GameEntityContactEvent>;
+prop	GameWorld	onEntityCreate: GameEventChannel<GameEntityEvent>, nextEntityCreate: GameEventFuture<GameEntityEvent>, 
+prop	GameWorld	onEntityCreate: GameEventChannel<GameEntityEvent>;
+prop	GameWorld	onEntityDestroy: GameEventChannel<GameEntityEvent>, nextEntityDestroy: GameEventFuture<GameEntityEvent>, 
+prop	GameWorld	onEntityDestroy: GameEventChannel<GameEntityEvent>;
+prop	GameWorld	onEntitySeparate: GameEventChannel<GameEntityContactEvent>, nextEntitySeparate: GameEventFuture<GameEntityContactEvent>, 
+prop	GameWorld	onEntitySeparate: GameEventChannel<GameEntityContactEvent>;
+prop	GameWorld	onFluidEnter: GameEventChannel<GameFluidContactEvent>, nextFluidEnter: GameEventFuture<GameFluidContactEvent>, 
+prop	GameWorld	onFluidEnter: GameEventChannel<GameFluidContactEvent>;
+prop	GameWorld	onFluidLeave: GameEventChannel<GameFluidContactEvent>, nextFluidLeave: GameEventFuture<GameFluidContactEvent>, 
+prop	GameWorld	onFluidLeave: GameEventChannel<GameFluidContactEvent>;
+prop	GameWorld	onInteract: GameEventChannel<GameInteractEvent>, nextInteract: GameEventFuture<GameInteractEvent>, 
+prop	GameWorld	onInteract: GameEventChannel<GameInteractEvent>;
+prop	GameWorld	onPlayerJoin: GameEventChannel<GamePlayerEntityEvent>, nextPlayerJoin: GameEventFuture<GamePlayerEntityEvent>, 
+prop	GameWorld	onPlayerJoin: GameEventChannel<GamePlayerEntityEvent>;
+prop	GameWorld	onPlayerLeave: GameEventChannel<GamePlayerEntityEvent>, nextPlayerLeave: GameEventFuture<GamePlayerEntityEvent>, 
+prop	GameWorld	onPlayerLeave: GameEventChannel<GamePlayerEntityEvent>;
+prop	GameWorld	onPress: GameEventChannel<GameInputEvent>, nextPress: GameEventFuture<GameInputEvent>, 
+prop	GameWorld	onPress: GameEventChannel<GameInputEvent>;
+prop	GameWorld	onRelease: GameEventChannel<GameInputEvent>, nextRelease: GameEventFuture<GameInputEvent>, 
+prop	GameWorld	onRelease: GameEventChannel<GameInputEvent>;
+prop	GameWorld	onRespawn: GameEventChannel<GameRespawnEvent>, nextRespawn: GameEventFuture<GameRespawnEvent>, 
+prop	GameWorld	onRespawn: GameEventChannel<GameRespawnEvent>;
+prop	GameWorld	onTakeDamage: GameEventChannel<GameDamageEvent>, nextTakeDamage: GameEventFuture<GameDamageEvent>, 
+prop	GameWorld	onTakeDamage: GameEventChannel<GameDamageEvent>;
+prop	GameWorld	onTick: GameEventChannel<GameTickEvent>, nextTick: GameEventFuture<GameTickEvent>, 
+prop	GameWorld	onTick: GameEventChannel<GameTickEvent>;
+prop	GameWorld	onVoxelContact: GameEventChannel<GameVoxelContactEvent>, nextVoxelContact: GameEventFuture<GameVoxelContactEvent>, 
+prop	GameWorld	onVoxelContact: GameEventChannel<GameVoxelContactEvent>;
+prop	GameWorld	onVoxelSeparate: GameEventChannel<GameVoxelContactEvent>, nextVoxelSeparate: GameEventFuture<GameVoxelContactEvent>, 
+prop	GameWorld	onVoxelSeparate: GameEventChannel<GameVoxelContactEvent>;
+prop	GameWorld	pitch?: number;
+prop	GameWorld	pitch?: number;
+prop	GameWorld	placeVoxelSound: GameSoundEffect;
+prop	GameWorld	playerJoinSound: GameSoundEffect;
+prop	GameWorld	playerLeaveSound: GameSoundEffect;
+prop	GameWorld	position?: GameVector3;
+prop	GameWorld	position?: GameVector3;
+prop	GameWorld	projectName: string;
+prop	GameWorld	radius?: number;
+prop	GameWorld	radius?: number;
+prop	GameWorld	rainColor: GameRGBAColor;
+prop	GameWorld	rainDensity: number;
+prop	GameWorld	rainDirection: GameVector3;
+prop	GameWorld	rainInterference: number;
+prop	GameWorld	rainSizeHi: number;
+prop	GameWorld	rainSizeLo: number;
+prop	GameWorld	rainSpeed: number;
+prop	GameWorld	sample: string;
+prop	GameWorld	sample: string;
+prop	GameWorld	serverId: string);
+prop	GameWorld	serverId: string;
+prop	GameWorld	skyBackLight: GameRGBColor;
+prop	GameWorld	skyBottomLight: GameRGBColor;
+prop	GameWorld	skyFrontLight: GameRGBColor;
+prop	GameWorld	skyLeftLight: GameRGBColor;
+prop	GameWorld	skyRightLight: GameRGBColor;
+prop	GameWorld	skyTopLight: GameRGBColor;
+prop	GameWorld	snowColor: GameRGBAColor;
+prop	GameWorld	snowDensity: number;
+prop	GameWorld	snowFallSpeed: number;
+prop	GameWorld	snowSizeHi: number;
+prop	GameWorld	snowSizeLo: number;
+prop	GameWorld	snowSpinSpeed: number;
+prop	GameWorld	snowTexture: string;
+prop	GameWorld	sunDirection: GameVector3;
+prop	GameWorld	sunFrequency: number;
+prop	GameWorld	sunLight: GameRGBColor;
+prop	GameWorld	sunPhase: number;
+prop	GameWorld	teleport: TeleportType, 
+prop	GameWorld	teleport: TeleportType;
+prop	GameWorld	url: URL, 
+prop	GameWorld	url: URL;
+prop	GameWorld	useOBB: boolean;
+prop	GameWorldKeyframe	airFriction: number;
+prop	GameWorldKeyframe	duration: number;
+prop	GameWorldKeyframe	easeIn: GameEasing;
+prop	GameWorldKeyframe	easeOut: GameEasing;
+prop	GameWorldKeyframe	fogColor: GameRGBColor;
+prop	GameWorldKeyframe	fogHeightFalloff: number;
+prop	GameWorldKeyframe	fogHeightOffset: number;
+prop	GameWorldKeyframe	fogStartDistance: number;
+prop	GameWorldKeyframe	fogUniformDensity: number;
+prop	GameWorldKeyframe	gravity: number;
+prop	GameWorldKeyframe	lightMode: 'natural' | 'manual';
+prop	GameWorldKeyframe	lunarPhase: number;
+prop	GameWorldKeyframe	maxFog: number;
+prop	GameWorldKeyframe	rainColor: GameRGBAColor;
+prop	GameWorldKeyframe	rainDensity: number;
+prop	GameWorldKeyframe	rainDirection: GameVector3;
+prop	GameWorldKeyframe	rainInterference: number;
+prop	GameWorldKeyframe	rainSizeHi: number;
+prop	GameWorldKeyframe	rainSizeLo: number;
+prop	GameWorldKeyframe	rainSpeed: number;
+prop	GameWorldKeyframe	skyBackLight: GameRGBColor;
+prop	GameWorldKeyframe	skyBottomLight: GameRGBColor;
+prop	GameWorldKeyframe	skyFrontLight: GameRGBColor;
+prop	GameWorldKeyframe	skyLeftLight: GameRGBColor;
+prop	GameWorldKeyframe	skyRightLight: GameRGBColor;
+prop	GameWorldKeyframe	skyTopLight: GameRGBColor;
+prop	GameWorldKeyframe	snowColor: GameRGBAColor;
+prop	GameWorldKeyframe	snowDensity: number;
+prop	GameWorldKeyframe	snowFallSpeed: number;
+prop	GameWorldKeyframe	snowSizeHi: number;
+prop	GameWorldKeyframe	snowSizeLo: number;
+prop	GameWorldKeyframe	snowSpinSpeed: number;
+prop	GameWorldKeyframe	snowTexture: string;
+prop	GameWorldKeyframe	sunDirection: GameVector3;
+prop	GameWorldKeyframe	sunFrequency: number;
+prop	GameWorldKeyframe	sunLight: GameRGBColor;
+prop	GameWorldKeyframe	sunPhase: number;
+prop	GameZone	bounds: GameBounds3;
+prop	GameZone	bounds: GameBounds3;
+prop	GameZone	fogColor: GameRGBColor;
+prop	GameZone	fogColor: GameRGBColor;
+prop	GameZone	fogDensity: number;
+prop	GameZone	fogDensity: number;
+prop	GameZone	fogEnabled: boolean;
+prop	GameZone	fogEnabled: boolean;
+prop	GameZone	fogHeightFalloff: number;
+prop	GameZone	fogHeightFalloff: number;
+prop	GameZone	fogHeightOffset: number;
+prop	GameZone	fogHeightOffset: number;
+prop	GameZone	fogMax: number;
+prop	GameZone	fogMax: number;
+prop	GameZone	fogStartDistance: number;
+prop	GameZone	fogStartDistance: number;
+prop	GameZone	force: GameVector3;
+prop	GameZone	force: GameVector3;
+prop	GameZone	massScale: number;
+prop	GameZone	massScale: number;
+prop	GameZone	nextEnter: GameEventFuture<GameTriggerEvent>;
+prop	GameZone	nextLeave: GameEventFuture<GameTriggerEvent>;
+prop	GameZone	onEnter: GameEventChannel<GameTriggerEvent>, nextEnter: GameEventFuture<GameTriggerEvent>, 
+prop	GameZone	onEnter: GameEventChannel<GameTriggerEvent>;
+prop	GameZone	onLeave: GameEventChannel<GameTriggerEvent>, nextLeave: GameEventFuture<GameTriggerEvent>, 
+prop	GameZone	onLeave: GameEventChannel<GameTriggerEvent>;
+prop	GameZone	rainColor: GameRGBAColor;
+prop	GameZone	rainColor: GameRGBAColor;
+prop	GameZone	rainDensity: number;
+prop	GameZone	rainDensity: number;
+prop	GameZone	rainDirection: GameVector3;
+prop	GameZone	rainDirection: GameVector3;
+prop	GameZone	rainEnabled: boolean;
+prop	GameZone	rainEnabled: boolean;
+prop	GameZone	rainInterference: number;
+prop	GameZone	rainInterference: number;
+prop	GameZone	rainSizeHi: number;
+prop	GameZone	rainSizeHi: number;
+prop	GameZone	rainSizeLo: number;
+prop	GameZone	rainSizeLo: number;
+prop	GameZone	rainSpeed: number;
+prop	GameZone	rainSpeed: number;
+prop	GameZone	selector: GameSelectorString;
+prop	GameZone	selector: GameSelectorString;
+prop	GameZone	skyBackLight: GameRGBColor;
+prop	GameZone	skyBackLight: GameRGBColor;
+prop	GameZone	skyBottomLight: GameRGBColor;
+prop	GameZone	skyBottomLight: GameRGBColor;
+prop	GameZone	skyEnabled: boolean;
+prop	GameZone	skyEnabled: boolean;
+prop	GameZone	skyFrontLight: GameRGBColor;
+prop	GameZone	skyFrontLight: GameRGBColor;
+prop	GameZone	skyLeftLight: GameRGBColor;
+prop	GameZone	skyLeftLight: GameRGBColor;
+prop	GameZone	skyLunarPhase: number;
+prop	GameZone	skyLunarPhase: number;
+prop	GameZone	skyMode: 'natural' | 'manual';
+prop	GameZone	skyMode: 'natural' | 'manual';
+prop	GameZone	skyRightLight: GameRGBColor;
+prop	GameZone	skyRightLight: GameRGBColor;
+prop	GameZone	skySunDirection: GameVector3;
+prop	GameZone	skySunDirection: GameVector3;
+prop	GameZone	skySunFrequency: number;
+prop	GameZone	skySunFrequency: number;
+prop	GameZone	skySunLight: GameRGBColor;
+prop	GameZone	skySunLight: GameRGBColor;
+prop	GameZone	skySunPhase: number;
+prop	GameZone	skySunPhase: number;
+prop	GameZone	skyTopLight: GameRGBColor;
+prop	GameZone	skyTopLight: GameRGBColor;
+prop	GameZone	snowColor: GameRGBAColor;
+prop	GameZone	snowColor: GameRGBAColor;
+prop	GameZone	snowDensity: number;
+prop	GameZone	snowDensity: number;
+prop	GameZone	snowEnabled: boolean;
+prop	GameZone	snowEnabled: boolean;
+prop	GameZone	snowFallSpeed: number;
+prop	GameZone	snowFallSpeed: number;
+prop	GameZone	snowSizeHi: number;
+prop	GameZone	snowSizeHi: number;
+prop	GameZone	snowSizeLo: number;
+prop	GameZone	snowSizeLo: number;
+prop	GameZone	snowSpinSpeed: number;
+prop	GameZone	snowSpinSpeed: number;
+prop	GameZone	snowTexture: string;
+prop	GameZone	snowTexture: string;
+prop	Gamepad	actionA: string;
+prop	Gamepad	actionB: string;
+prop	Gamepad	crouch: string;
+prop	Gamepad	flyButton: string;
+prop	Gamepad	flyingBackground: string;
+prop	Gamepad	flyingController: string;
+prop	Gamepad	joystickBackground: string;
+prop	Gamepad	joystickController: string;
+prop	Gamepad	jump: string;
+prop	PlayerNavigator	data: object;
+prop	PlayerNavigator	data: object;
+prop	QueryList	isLastPage: boolean;
+prop	ServerRemoteChannel	onServerEvent: GameEventChannel<ServerEvent>;
+prop	ServerRemoteChannel	sendClientEvent: SendClientEventType;
+prop	console	clear: GameLoggerMethod;
+prop	console	debug: GameLoggerMethod;
+prop	console	error: GameLoggerMethod;
+prop	console	log: GameLoggerMethod;
+prop	console	warn: GameLoggerMethod;
+prop	moderationValidationError	ban: ModerationBan;
+prop	moderationValidationError	createdAt: string;
+prop	moderationValidationError	durationSeconds: number;
+prop	moderationValidationError	error: ModerationError;
+prop	moderationValidationError	expiresAt: string | null;
+prop	moderationValidationError	id: string;
+prop	moderationValidationError	index: number;
+prop	moderationValidationError	index: number;
+prop	moderationValidationError	kind: 'account' | 'ip' | 'device';
+prop	moderationValidationError	kind?: 'account' | 'ip' | 'device';
+prop	moderationValidationError	page?: number;
+prop	moderationValidationError	pageSize?: number;
+prop	moderationValidationError	path: readonly PropertyKey[];
+prop	moderationValidationError	player?: GamePlayer;
+prop	moderationValidationError	reason: string;
+prop	moderationValidationError	reason: string;
+prop	moderationValidationError	remainingSeconds: number | null;
+prop	moderationValidationError	requestId?: string;
+prop	moderationValidationError	revokedAt: string | null;
+prop	moderationValidationError	status: 'active' | 'expired' | 'revoked';
+prop	moderationValidationError	status?: 'active' | 'expired' | 'revoked' | 'all';
+prop	moderationValidationError	success: false;
+prop	moderationValidationError	success: true;
+prop	moderationValidationError	userId: string | null;
+prop	module	exports: any;

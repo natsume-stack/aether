@@ -1,0 +1,10 @@
+{
+  "extends": "./api-tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./scripts/assets/client_api/js"
+  },
+  "include": [
+    "src/engine/script/apis/*.ts",
+    "../../internals/schema/api/common.ts"
+  ]
+}

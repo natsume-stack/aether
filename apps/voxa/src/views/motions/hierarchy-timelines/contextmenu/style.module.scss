@@ -1,0 +1,64 @@
+@use '../../../colors.module.scss' as colors;
+@use '../../../texts.module.scss' as texts;
+
+.contextMenu {
+  display: flex;
+  flex-direction: column;
+
+  background-color: colors.$background2;
+
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.25);
+  border-radius: 8px;
+
+  overflow: hidden;
+
+  :global(.boxMenu) {
+    border-radius: 0;
+  }
+
+  .interpolationSelector {
+    .title {
+      color: colors.$textWhiteTertiary;
+      @include texts.b12;
+
+      text-indent: 19px;
+
+      height: 20px;
+
+      margin-top: 12px;
+    }
+
+    .types {
+      width: 128px;
+
+      margin: 16px 0 24px 0;
+
+      padding: 0 24px 0 24px;
+
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+
+      gap: 20px;
+
+      justify-items: center;
+
+      :global(.boxIcon) {
+        width: 24px;
+        height: 24px;
+
+        use {
+          fill: none;
+          stroke: white;
+        }
+      }
+
+      :global(.boxButton):active :global(.boxIcon) use {
+        fill: none;
+      }
+
+      .selected :global(.boxIcon) use {
+        stroke: colors.$primary90;
+      }
+    }
+  }
+}

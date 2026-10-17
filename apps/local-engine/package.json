@@ -1,0 +1,23 @@
+{
+  "name": "@box/local-engine",
+  "version": "2026.1.4",
+  "private": true,
+  "description": "Offline-first local runner for the Box engine",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test src/play-derived-resources.test.js && node scripts/regression-project-compatibility.js && node scripts/regression-create-project-bind-mount.js && node scripts/regression-runtime-data-permissions.js && node scripts/regression-built-in-skin-runtime-assets.js && node scripts/regression-runtime-lifecycle.js && node scripts/regression-edit-library.js && node scripts/regression-play-library.js && node scripts/regression-import-permissions.js && node scripts/regression-import-bind-mount-permissions.js && node scripts/regression-import-cleanup.js && node scripts/regression-publish-voxa-blobs.js && node scripts/regression-project-snapshots.js && node scripts/regression-map-groups.js && node scripts/regression-map-group-play-bundle.js && node scripts/regression-creator-resource-manifest.js",
+    "build:creator": "node src/build.js --creator",
+    "build:play": "node src/build.js --play",
+    "prepare-assets": "node src/prepare-assets.js",
+    "sync-default-avatar": "node src/sync-default-avatar.js",
+    "dev": "node src/launcher.js --creator",
+    "start:creator": "node src/launcher.js --production --creator",
+    "start:play": "node src/launcher.js --production --play"
+  },
+  "dependencies": {
+    "@box/utils": "workspace:2.1.0",
+    "@box/apis": "workspace:0.2.0",
+    "@box/build-system": "workspace:0.3.1",
+    "@box/content-server": "workspace:*"
+  }
+}

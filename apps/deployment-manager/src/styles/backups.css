@@ -1,0 +1,65 @@
+.backup-list {
+    overflow: hidden;
+    margin: 12px 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--panel);
+}
+
+.backup-row {
+    min-height: 66px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 12px 10px 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.backup-actions {
+    display: flex;
+    flex: 0 0 auto;
+    gap: 8px;
+}
+
+.backup-row:last-child {
+    border-bottom: 0;
+}
+
+.backup-row strong,
+.backup-row span {
+    display: block;
+}
+
+.backup-row strong {
+    overflow: hidden;
+    max-width: 650px;
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.backup-row span {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.empty-backup {
+    min-height: 148px;
+    display: grid;
+    place-content: center;
+    gap: 5px;
+    padding: 24px;
+    color: var(--muted);
+    text-align: center;
+}
+
+.empty-backup strong {
+    color: var(--text);
+    font-size: 13px;
+}
+
+.empty-backup span {
+    font-size: 12px;
+}

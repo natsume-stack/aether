@@ -1,0 +1,12 @@
+# 本仓库的 shell 工具必须在 WSL/Linux 内直接执行（slim/tools/compat-check.sh 是地图兼容性回归闸），
+# 而 Windows 上 clone 时 core.autocrlf=true 会把它们落成 CRLF —— bash 会直接报
+# "No such file or directory"（解释器名被 \r 污染），没有任何本地包装层兜底。
+# 另外 dts 与 members 清单是契约指纹的哈希对象，换行符一变指纹就假红。
+# 因此这两类文件强制 LF，与运行环境无关。
+*.sh    text eol=lf
+*.py    text eol=lf
+packages/script-api/dts/** text eol=lf
+slim/**.tsv text eol=lf
+slim/**.json text eol=lf
+slim/**.mjs text eol=lf
+slim/poc/** text eol=lf

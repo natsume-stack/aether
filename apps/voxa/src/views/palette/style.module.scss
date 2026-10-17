@@ -1,0 +1,35 @@
+@use '../colors.module.scss' as colors;
+
+.palette {
+  height: 100%;
+  display: grid;
+  grid-template-columns: 100%;
+  grid-template-rows: minmax(30px, auto) 224px;
+
+  .groups {
+    display: flex;
+    flex-direction: column;
+
+    width: 100%;
+    padding: 8px;
+    padding-top: 0;
+    overflow-y: scroll;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+}
+
+.extra {
+  width: 104px;
+  height: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .iconBtn {
+    width: 24px;
+    height: 24px;
+  }
+}

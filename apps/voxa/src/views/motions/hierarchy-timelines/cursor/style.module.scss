@@ -1,0 +1,25 @@
+@use '../../../colors.module.scss' as colors;
+
+.cursor {
+  position: absolute;
+
+  width: 1px;
+
+  padding-top: 17px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+
+  pointer-events: none;
+
+  z-index: 3;
+
+  .pole {
+    width: 1px;
+    height: calc(100% - 17px);
+
+    background-color: #d9d9d9;
+  }
+}

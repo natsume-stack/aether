@@ -1,0 +1,116 @@
+{
+  "sourceArchiveSha256": "5424f33f423f80396efd3b6077dd84e90d7155dae3735d47e5ebdfb5d0264f30",
+  "formatVersion": 2,
+  "imageTag": "v2026.1.4-linux-amd64",
+  "platform": "linux/amd64",
+  "images": [
+    {
+      "formatVersion": 1,
+      "image": "box-local-engine-creator",
+      "imageId": "sha256:f897ebfd4a556a1d61cd056b8075abe1c55fbad4f20d39eb9c4a5776d8b0434f",
+      "imageIds": [
+        "sha256:f897ebfd4a556a1d61cd056b8075abe1c55fbad4f20d39eb9c4a5776d8b0434f",
+        "sha256:be2a08e610be3d449abbf1abe758e3ed2a2920ee8606f76413677d22d7da8c84"
+      ],
+      "imageTag": "v2026.1.4-linux-amd64",
+      "tag": "v2026.1.4-linux-amd64",
+      "archive": "box-local-engine-image-creator-amd64-04391d8c78c9966f713bf2e7713a6f80867ff0f8a31b45f8393c4048ad7c25ec.tar.gz",
+      "platform": "linux/amd64",
+      "createdAt": "2026-10-16T13:49:11.180590385Z",
+      "sourceRevision": "06b0b47cbcdfae610c87b77833153b48ce61318b",
+      "buildSource": "github-actions",
+      "sha256": "04391d8c78c9966f713bf2e7713a6f80867ff0f8a31b45f8393c4048ad7c25ec",
+      "size": 263029978
+    },
+    {
+      "formatVersion": 1,
+      "image": "box-local-engine-voxa",
+      "imageId": "sha256:386b8214412992329f69ecba5883fea7cf1193aefcdaa2d47e3f574bb2c2ea36",
+      "imageIds": [
+        "sha256:386b8214412992329f69ecba5883fea7cf1193aefcdaa2d47e3f574bb2c2ea36",
+        "sha256:327d20d3ea857b8bca71231cc38e94ab2e30b7192cf1a0aaa7fb8762e9e4f2e7"
+      ],
+      "imageTag": "v2026.1.4-linux-amd64",
+      "tag": "v2026.1.4-linux-amd64",
+      "archive": "box-local-engine-image-voxa-amd64-4fc669cdc8aa301211aeeda47919a3795f5fb1e0a1143d2a56d34c2ac6311212.tar.gz",
+      "platform": "linux/amd64",
+      "createdAt": "2026-10-16T13:55:11.900482872Z",
+      "sourceRevision": "06b0b47cbcdfae610c87b77833153b48ce61318b",
+      "buildSource": "github-actions",
+      "sha256": "4fc669cdc8aa301211aeeda47919a3795f5fb1e0a1143d2a56d34c2ac6311212",
+      "size": 182383424
+    },
+    {
+      "formatVersion": 1,
+      "image": "box-local-engine-play",
+      "imageId": "sha256:17e19af276fe98a7b7978d606241fc1138785980fdcb36d131abf340171a7363",
+      "imageIds": [
+        "sha256:17e19af276fe98a7b7978d606241fc1138785980fdcb36d131abf340171a7363",
+        "sha256:65b3a75a153b23f8e3ca34aab0478dd37b45649ff1972dbcd0c39711818c66a6"
+      ],
+      "imageTag": "v2026.1.4-linux-amd64",
+      "tag": "v2026.1.4-linux-amd64",
+      "archive": "box-local-engine-image-play-amd64-73d674956f058f25be4702a9449f4e56e72987f344d8b968c6dc5b9bf97b5f43.tar.gz",
+      "platform": "linux/amd64",
+      "createdAt": "2026-10-16T13:52:43.220732915Z",
+      "sourceRevision": "06b0b47cbcdfae610c87b77833153b48ce61318b",
+      "buildSource": "github-actions",
+      "sha256": "73d674956f058f25be4702a9449f4e56e72987f344d8b968c6dc5b9bf97b5f43",
+      "size": 240669370
+    },
+    {
+      "formatVersion": 1,
+      "image": "box-local-engine-player-service",
+      "imageId": "sha256:173dba6c4e8b7685be2b0efa38ca5746986771eb99760f7f8aebbbd67a4ac595",
+      "imageIds": [
+        "sha256:173dba6c4e8b7685be2b0efa38ca5746986771eb99760f7f8aebbbd67a4ac595",
+        "sha256:cff208303becd71aaec42a09f7a609c0614b38cb46e50d1e18f15b8302ca0c1a"
+      ],
+      "imageTag": "v2026.1.4-linux-amd64",
+      "tag": "v2026.1.4-linux-amd64",
+      "archive": "box-local-engine-image-player-service-amd64-3d7f4a04b19e852f230e1292e689a37395e040af25233fb9eb452c72f2e2fd26.tar.gz",
+      "platform": "linux/amd64",
+      "createdAt": "2026-10-16T13:41:52.745628214Z",
+      "sourceRevision": "06b0b47cbcdfae610c87b77833153b48ce61318b",
+      "buildSource": "github-actions",
+      "sha256": "3d7f4a04b19e852f230e1292e689a37395e040af25233fb9eb452c72f2e2fd26",
+      "size": 203712541
+    },
+    {
+      "formatVersion": 1,
+      "image": "box-local-engine-player-auth-portal",
+      "imageId": "sha256:38231c1674a86929d6a8d845798be4357cea29ffe154c0d1dfb3d7d8f15cc5ff",
+      "imageIds": [
+        "sha256:38231c1674a86929d6a8d845798be4357cea29ffe154c0d1dfb3d7d8f15cc5ff",
+        "sha256:a19892d6af0cc2ed53fc350e1e55116f329ee728865969075693f2f508d532e6"
+      ],
+      "imageTag": "v2026.1.4-linux-amd64",
+      "tag": "v2026.1.4-linux-amd64",
+      "archive": "box-local-engine-image-player-auth-portal-amd64-7ba95b425c74bf4501b802bf914ec7a7cf3104d9a2ea3b0bd209f16b2b4b24a9.tar.gz",
+      "platform": "linux/amd64",
+      "createdAt": "2026-10-16T13:42:24.333646559Z",
+      "sourceRevision": "06b0b47cbcdfae610c87b77833153b48ce61318b",
+      "buildSource": "github-actions",
+      "sha256": "7ba95b425c74bf4501b802bf914ec7a7cf3104d9a2ea3b0bd209f16b2b4b24a9",
+      "size": 86925875
+    },
+    {
+      "formatVersion": 1,
+      "image": "box-local-engine-server-manager",
+      "imageId": "sha256:a073810d2cb43e1e1b3dafdfab8618048f25d1e452554a4ecbe05d998e58e00f",
+      "imageIds": [
+        "sha256:a073810d2cb43e1e1b3dafdfab8618048f25d1e452554a4ecbe05d998e58e00f",
+        "sha256:c0a3351396b46497fbdeda4d8c6d8dd885c7179861af73dacebf1bd1f6732e31"
+      ],
+      "imageTag": "v2026.1.4-linux-amd64",
+      "tag": "v2026.1.4-linux-amd64",
+      "archive": "box-local-engine-image-server-manager-amd64-4cb908cee3d9f097e4f7e6f310158e313ab4fc1fc462d3cb170e770b73322179.tar.gz",
+      "platform": "linux/amd64",
+      "createdAt": "2026-10-16T13:44:54.100471149Z",
+      "sourceRevision": "06b0b47cbcdfae610c87b77833153b48ce61318b",
+      "buildSource": "github-actions",
+      "sha256": "4cb908cee3d9f097e4f7e6f310158e313ab4fc1fc462d3cb170e770b73322179",
+      "size": 83924951
+    }
+  ]
+}

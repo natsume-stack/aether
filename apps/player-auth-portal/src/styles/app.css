@@ -1,0 +1,488 @@
+@import './theme.css';
+
+/* 页面与品牌布局，窄屏允许滚动，不固定表单高度。 */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+    min-width: 320px;
+    min-height: 100%;
+    margin: 0;
+}
+
+body {
+    min-height: 100vh;
+    color: var(--text);
+    background: var(--canvas);
+    font-family:
+        MiSans,
+        Montserrat,
+        'Microsoft YaHei',
+        -apple-system,
+        BlinkMacSystemFont,
+        'Segoe UI',
+        sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+button,
+input {
+    font: inherit;
+}
+
+button,
+a,
+input {
+    -webkit-tap-highlight-color: transparent;
+}
+
+.portal-layout {
+    min-height: 100vh;
+}
+
+.portal-header {
+    display: flex;
+    width: 100%;
+    min-height: 64px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--sidebar);
+}
+
+.portal-brand {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 10px;
+}
+.portal-brand > span:last-child {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+}
+
+.portal-brand strong {
+    overflow: hidden;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.portal-brand small {
+    color: var(--subtle);
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+}
+
+.brand-mark {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 8px;
+    color: var(--accent-foreground);
+    background: var(--accent);
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: -0.03em;
+}
+
+.icon-button,
+.input-action {
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    color: var(--muted);
+    background: transparent;
+    cursor: pointer;
+    transition:
+        color 140ms ease,
+        background-color 140ms ease,
+        transform 140ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.icon-button {
+    width: 36px;
+    height: 36px;
+    flex: 0 0 auto;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    background: var(--surface);
+}
+
+.icon-button:active,
+.input-action:active,
+.tab-trigger:active,
+.primary-button:active,
+.secondary-button:active {
+    transform: scale(0.97);
+}
+
+.page-shell {
+    display: grid;
+    min-height: calc(100vh - 65px);
+    place-items: center;
+    padding: 42px 20px 64px;
+}
+
+.auth-card {
+    width: min(100%, 448px);
+    padding: 28px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+}
+
+.auth-header {
+    margin-bottom: 22px;
+}
+.eyebrow {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--subtle);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+}
+
+.auth-header h1 {
+    margin: 0;
+    color: var(--text);
+    font-size: 24px;
+    font-weight: 720;
+    letter-spacing: -0.035em;
+    line-height: 1.25;
+}
+
+.auth-header p {
+    margin: 8px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+/* 表单、提示、按钮；不要删掉焦点/禁用/错误状态。 */
+.tab-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+    margin-bottom: 20px;
+    padding: 4px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--surface-muted);
+}
+
+.tab-trigger {
+    min-height: 36px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 6px;
+    outline: 0;
+    color: var(--muted);
+    background: transparent;
+    font-size: 11px;
+    font-weight: 650;
+    cursor: pointer;
+    transition:
+        color 140ms ease,
+        background-color 140ms ease,
+        box-shadow 140ms ease,
+        transform 140ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.tab-trigger[data-state='active'] {
+    color: var(--text-secondary);
+    background: var(--surface);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.09);
+}
+
+.tab-content {
+    outline: 0;
+    animation: content-in 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.auth-form {
+    display: grid;
+    gap: 16px;
+}
+.field-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+.field {
+    display: grid;
+    min-width: 0;
+    gap: 7px;
+}
+.field > span:first-child {
+    color: var(--text-secondary);
+    font-size: 10px;
+    font-weight: 650;
+}
+
+.field input {
+    width: 100%;
+    height: 42px;
+    padding: 0 11px;
+    border: 1px solid var(--border-strong);
+    border-radius: 7px;
+    outline: 0;
+    color: var(--text);
+    background: var(--input);
+    font-size: 12px;
+    transition:
+        border-color 140ms ease,
+        box-shadow 140ms ease,
+        background-color 140ms ease;
+}
+
+.input-shell {
+    position: relative;
+    display: block;
+}
+.input-shell input {
+    padding-right: 42px;
+}
+
+.input-action {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 34px;
+    height: 34px;
+    border-radius: 5px;
+}
+
+.field input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--focus);
+}
+.field-hint {
+    margin-top: -5px;
+    color: var(--subtle);
+    font-size: 9px;
+    line-height: 1.5;
+}
+
+.primary-button,
+.secondary-button {
+    display: inline-flex;
+    min-height: 42px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: 7px;
+    font-size: 11px;
+    font-weight: 650;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+        color 140ms ease,
+        background-color 140ms ease,
+        border-color 140ms ease,
+        transform 140ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.primary-button {
+    border-color: var(--accent);
+    color: var(--accent-foreground);
+    background: var(--accent);
+}
+.secondary-button {
+    color: var(--text-secondary);
+    background: var(--surface);
+}
+
+.primary-button:disabled,
+.secondary-button:disabled {
+    opacity: 0.58;
+    cursor: wait;
+}
+
+.icon-button:focus-visible,
+.input-action:focus-visible,
+.tab-trigger:focus-visible,
+.primary-button:focus-visible,
+.secondary-button:focus-visible,
+.field input:focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+}
+
+.message {
+    margin: 0 0 16px;
+    padding: 10px 11px;
+    border: 1px solid color-mix(in srgb, var(--danger) 28%, var(--border));
+    border-radius: 7px;
+    color: var(--danger);
+    background: var(--danger-bg);
+    font-size: 10px;
+    line-height: 1.55;
+    white-space: pre-line;
+}
+
+.message-success {
+    color: var(--text-secondary);
+    border-color: var(--border);
+    background: var(--surface);
+}
+
+.password-fields {
+    display: grid;
+    gap: 16px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+/* 账号状态、响应式布局和减少动画偏好。 */
+.state-view {
+    display: flex;
+    min-height: 136px;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.spinner,
+.button-spinner {
+    animation: spin 700ms linear infinite;
+}
+
+.account-view {
+    display: grid;
+    justify-items: center;
+    gap: 15px;
+    padding-top: 2px;
+    text-align: center;
+}
+
+.success-mark {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    border-radius: 10px;
+    color: var(--accent-foreground);
+    background: var(--accent);
+}
+
+.account-copy {
+    display: grid;
+    max-width: 100%;
+    gap: 4px;
+}
+
+.account-copy strong,
+.account-copy span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.account-copy strong {
+    color: var(--text);
+    font-size: 15px;
+}
+.account-copy span {
+    color: var(--muted);
+    font-size: 10px;
+}
+.account-view .message,
+.account-actions {
+    width: 100%;
+}
+.account-view .message {
+    margin: 0;
+}
+.account-actions {
+    display: grid;
+    gap: 9px;
+    margin-top: 3px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+@keyframes content-in {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .icon-button:hover,
+    .input-action:hover,
+    .secondary-button:hover {
+        color: var(--text-secondary);
+        background: var(--surface-hover);
+    }
+    .primary-button:hover {
+        border-color: var(--accent-hover);
+        background: var(--accent-hover);
+    }
+    .tab-trigger:not([data-state='active']):hover {
+        color: var(--text-secondary);
+    }
+}
+
+@media (max-width: 560px) {
+    .portal-header {
+        min-height: 58px;
+        padding: 0 16px;
+    }
+    .page-shell {
+        min-height: calc(100vh - 59px);
+        align-items: start;
+        padding: 24px 14px 40px;
+    }
+    .auth-card {
+        padding: 22px 18px;
+        box-shadow: none;
+    }
+    .auth-header h1 {
+        font-size: 22px;
+    }
+    .field-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}

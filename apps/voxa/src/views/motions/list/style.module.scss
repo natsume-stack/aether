@@ -1,0 +1,53 @@
+@use '../../colors.module.scss' as colors;
+
+.motionList {
+  grid-area: motionList;
+
+  overflow: hidden;
+
+  margin-right: 1px;
+
+  .body {
+    height: calc(100% - 28px);
+
+    .tree {
+      overflow-x: hidden;
+      overflow-y: auto;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+
+      .treeNode {
+        :global(.boxTreeNodeContainer) {
+          height: 28px;
+
+          padding-left: 16px;
+
+          & > span:first-child {
+            display: none;
+          }
+
+          :global(.boxTreeNodeName) {
+            max-width: 146px;
+
+            & > div {
+              overflow: hidden;
+              text-overflow: ellipsis;
+            }
+          }
+        }
+
+        &.selected :global(.boxTreeNodeContainer) {
+          padding-left: 2px;
+
+          color: colors.$textWhitePrimary;
+
+          :global(.boxInput) {
+            overflow: auto;
+          }
+        }
+      }
+    }
+  }
+}

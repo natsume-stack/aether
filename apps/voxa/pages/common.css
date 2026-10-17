@@ -1,0 +1,54 @@
+/* rubik-regular - latin */
+@font-face {
+  font-family: Rubik;
+  font-style: normal;
+  src: url(../assets/fonts/rubik-v20-latin-regular.woff2) format('woff2'),
+    url(../assets/fonts/rubik-v20-latin-regular.woff) format('woff');
+  font-display: swap;
+}
+
+/* rubik-600 - latin */
+@font-face {
+  font-family: 'Rubik-600';
+  font-style: normal;
+  src: url(../assets/fonts/rubik-v20-latin-600.woff2) format('woff2'),
+    url(../assets/fonts/rubik-v20-latin-600.woff) format('woff');
+  font-display: swap;
+}
+
+/* rubik-700 - latin */
+@font-face {
+  font-family: 'Rubik-700';
+  font-style: normal;
+  src: url(../assets/fonts/rubik-v20-latin-700.woff2) format('woff2'),
+    url(../assets/fonts/rubik-v20-latin-700.woff) format('woff');
+  font-display: swap;
+}
+
+/* MiSans-Regular */
+@font-face {
+  font-family: MiSans;
+  font-style: normal;
+  src: url(../assets/fonts/MiSans-Regular.woff) format('woff');
+  font-display: swap;
+}
+
+/* MiSans-Bold */
+@font-face {
+  font-family: 'MiSans-Bold';
+  font-style: normal;
+  src: url(../assets/fonts/MiSans-Bold.woff) format('woff');
+  font-display: swap;
+}
+
+body {
+  font-family: 'Rubik', 'MiSans';
+  padding: 0;
+  margin: 0;
+
+  width: 100%;
+  height: 100%;
+
+  user-select: none;
+  cursor: default;
+}

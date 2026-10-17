@@ -1,0 +1,37 @@
+@use '../../colors.module.scss' as colors;
+@use '../../texts.module.scss' as texts;
+
+.controls {
+  grid-area: controls;
+
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+
+  gap: 16px;
+
+  border-bottom: 1px solid colors.$primary0;
+
+  :global(.boxButton) {
+    width: 20px;
+    height: 20px;
+  }
+
+  .divider {
+    width: 1px;
+    height: 12px;
+
+    border-radius: 2px;
+
+    background-color: colors.$opacityWhite12;
+  }
+
+  .time {
+    width: 31px;
+
+    @include texts.b12;
+
+    color: colors.$textWhitePrimary;
+  }
+}

@@ -1,0 +1,240 @@
+.about-page {
+    width: min(1400px, 100%);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    container-type: inline-size;
+}
+
+.about-card,
+.about-release-card {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-panel);
+    background: var(--panel);
+}
+
+.about-release-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 24px;
+    padding: 24px;
+}
+
+.about-product {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.about-product > img {
+    width: 56px;
+    height: 56px;
+    flex: none;
+    object-fit: contain;
+}
+
+.about-product-title {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.about-product-title h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 650;
+    letter-spacing: -0.03em;
+}
+
+.about-version {
+    padding: 4px 7px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-control);
+    color: var(--muted);
+    font:
+        12px/1.2 ui-monospace,
+        SFMono-Regular,
+        Menlo,
+        monospace;
+}
+
+.about-product p {
+    margin: 5px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.about-update-button {
+    gap: 7px;
+    white-space: nowrap;
+}
+
+.about-update-button svg {
+    width: 14px;
+    height: 14px;
+}
+
+.about-release-facts {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 32px;
+    margin: 0;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+}
+
+.about-release-facts > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.about-release-facts dt,
+.about-release-facts dd {
+    margin: 0;
+}
+
+.about-release-facts dt {
+    color: var(--muted);
+}
+
+.about-content-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 16px;
+}
+
+.about-card-heading {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 16px;
+}
+
+.about-card-heading h2 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 650;
+}
+
+.about-card-heading > span {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.about-document-list {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+}
+
+.about-document-row {
+    width: 100%;
+    min-width: 0;
+    min-height: 82px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border: 0;
+    border-right: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 140ms ease;
+}
+
+.about-document-row:last-child {
+    border-right: 0;
+}
+
+.about-document-row > span:not(.about-link-icon) {
+    min-width: 0;
+    flex: 1;
+    display: grid;
+    gap: 5px;
+}
+
+.about-document-row strong {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.about-document-row small {
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.about-link-icon {
+    width: 32px;
+    height: 32px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border-radius: var(--radius-control);
+    background: var(--panel-soft);
+    color: var(--muted);
+}
+
+.about-document-row > svg {
+    width: 14px;
+    height: 14px;
+    flex: none;
+    color: var(--muted);
+}
+
+.about-document-row:focus-visible {
+    outline: 2px solid var(--text);
+    outline-offset: -3px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .about-document-row:hover {
+        background: var(--panel-soft);
+    }
+}
+
+@container (max-width: 740px) {
+    .about-content-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .about-link-icon {
+        display: none;
+    }
+}
+
+@container (max-width: 500px) {
+    .about-release-card {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .about-update-button {
+        justify-self: start;
+    }
+
+    .about-document-list {
+        grid-auto-flow: row;
+    }
+
+    .about-document-row {
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .about-document-row:last-child {
+        border-bottom: 0;
+    }
+}

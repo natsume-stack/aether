@@ -1,0 +1,28 @@
+{
+  "name": "@box/player-admin",
+  "version": "2026.1.4",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "dev": "max dev",
+    "build": "max build",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@box/deployment-routing": "workspace:0.1.0",
+    "@box/player-policy": "workspace:0.1.0",
+    "@box/realtime-client": "workspace:0.1.0",
+    "@box/apis": "workspace:0.2.0",
+    "@ant-design/icons": "5.6.1",
+    "antd": "5.29.3",
+    "react": "19.2.1",
+    "react-dom": "19.2.1",
+    "@ant-design/v5-patch-for-react-19": "1.0.3"
+  },
+  "devDependencies": {
+    "@umijs/max": "4.7.20",
+    "@types/react": "19.2.4",
+    "@types/react-dom": "19.2.3",
+    "typescript": "5.6.3"
+  }
+}

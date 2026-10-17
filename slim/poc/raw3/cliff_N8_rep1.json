@@ -1,0 +1,199 @@
+{
+ "config": {
+  "HANG_MODE": "async",
+  "HANG_COUNT": 1,
+  "N_ISO": 8,
+  "TICK_MS": 50,
+  "DURATION_MS": 6000,
+  "TIMEOUT": 10000,
+  "HANG_FROM": 1200,
+  "HANG_MS": 2500,
+  "memMB": 512,
+  "cores": 8
+ },
+ "hangEvents": [
+  {
+   "atMs": 1200.3,
+   "msg": "isolate#0..#0 start while(true); form=async budget=2500ms"
+  },
+  {
+   "iso": 0,
+   "atMs": 2501.3,
+   "msg": "timeout FIRED",
+   "err": "Script execution timed out.",
+   "thisIsolateAlive": true,
+   "othersAlive": true
+  }
+ ],
+ "victim_summary": {
+  "n": 7,
+  "worst_before_p50": 1.04,
+  "worst_during_p99": 3.76
+ },
+ "hanger_summary": {
+  "n": 1,
+  "worst_before_p50": 0.77,
+  "worst_during_p99": 2463.96
+ },
+ "perIsolate": [
+  {
+   "idx": 0,
+   "role": "HANGER",
+   "ticksBefore": 61,
+   "ticksDuring": 8,
+   "jitter_before_ms": {
+    "p50": 0.77,
+    "p99": 5.29,
+    "max": 5.29
+   },
+   "jitter_during_ms": {
+    "p50": 1.34,
+    "p99": 2463.96,
+    "max": 2463.96
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 1,
+   "role": "victim",
+   "ticksBefore": 60,
+   "ticksDuring": 57,
+   "jitter_before_ms": {
+    "p50": 0.97,
+    "p99": 4.9,
+    "max": 4.9
+   },
+   "jitter_during_ms": {
+    "p50": 0.84,
+    "p99": 2.07,
+    "max": 2.07
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 2,
+   "role": "victim",
+   "ticksBefore": 60,
+   "ticksDuring": 57,
+   "jitter_before_ms": {
+    "p50": 0.92,
+    "p99": 4.53,
+    "max": 4.53
+   },
+   "jitter_during_ms": {
+    "p50": 0.92,
+    "p99": 2.68,
+    "max": 2.68
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 3,
+   "role": "victim",
+   "ticksBefore": 60,
+   "ticksDuring": 57,
+   "jitter_before_ms": {
+    "p50": 1.02,
+    "p99": 5.57,
+    "max": 5.57
+   },
+   "jitter_during_ms": {
+    "p50": 0.77,
+    "p99": 3.76,
+    "max": 3.76
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 4,
+   "role": "victim",
+   "ticksBefore": 60,
+   "ticksDuring": 57,
+   "jitter_before_ms": {
+    "p50": 0.83,
+    "p99": 6.01,
+    "max": 6.01
+   },
+   "jitter_during_ms": {
+    "p50": 0.83,
+    "p99": 2.04,
+    "max": 2.04
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 5,
+   "role": "victim",
+   "ticksBefore": 60,
+   "ticksDuring": 57,
+   "jitter_before_ms": {
+    "p50": 1.04,
+    "p99": 4.83,
+    "max": 4.83
+   },
+   "jitter_during_ms": {
+    "p50": 0.85,
+    "p99": 2.08,
+    "max": 2.08
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 6,
+   "role": "victim",
+   "ticksBefore": 60,
+   "ticksDuring": 57,
+   "jitter_before_ms": {
+    "p50": 0.94,
+    "p99": 4.05,
+    "max": 4.05
+   },
+   "jitter_during_ms": {
+    "p50": 0.97,
+    "p99": 2.49,
+    "max": 2.49
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 7,
+   "role": "victim",
+   "ticksBefore": 60,
+   "ticksDuring": 57,
+   "jitter_before_ms": {
+    "p50": 0.88,
+    "p99": 5.72,
+    "max": 5.72
+   },
+   "jitter_during_ms": {
+    "p50": 1.06,
+    "p99": 2.47,
+    "max": 2.47
+   },
+   "callErrors": 0,
+   "firstError": null
+  }
+ ],
+ "mainEventLoopDelay_ms": {
+  "p50": 20.17,
+  "p99": 21.07,
+  "max": 22.58
+ },
+ "post_hang_health": [
+  "0:OK tick=418",
+  "1:OK tick=706",
+  "2:OK tick=706",
+  "3:OK tick=706",
+  "4:OK tick=706",
+  "5:OK tick=706",
+  "6:OK tick=706",
+  "7:OK tick=706"
+ ]
+}

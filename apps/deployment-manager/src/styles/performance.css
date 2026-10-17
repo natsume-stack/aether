@@ -1,0 +1,142 @@
+.diagnostic-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.diagnostic-list > div {
+    min-height: 82px;
+    padding: 12px 13px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--panel);
+}
+
+.diagnostic-list b,
+.diagnostic-list span {
+    display: block;
+}
+
+.diagnostic-list b {
+    margin-bottom: 5px;
+    font-size: 12px;
+}
+
+.diagnostic-list span {
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.metric-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.metric-grid article {
+    min-width: 0;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--panel);
+}
+
+.metric-grid span,
+.metric-grid strong,
+.metric-grid small {
+    display: block;
+}
+
+.metric-grid span {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.metric-grid strong {
+    margin-top: 5px;
+    font-size: 21px;
+    letter-spacing: -0.025em;
+}
+
+.metric-grid small {
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.performance-panel {
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--panel);
+}
+
+.performance-head,
+.performance-row {
+    display: grid;
+    grid-template-columns: minmax(150px, 1.3fr) 0.55fr 1.1fr 1.2fr 0.45fr 0.7fr;
+    align-items: center;
+    gap: 14px;
+    padding: 0 15px;
+}
+
+.performance-head {
+    height: 36px;
+    background: var(--panel-soft);
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.performance-row {
+    min-height: 61px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+}
+
+.performance-row.disabled {
+    color: var(--muted);
+    background: var(--panel-soft);
+}
+
+.performance-row b {
+    font-size: 12px;
+    font-weight: 620;
+}
+
+.performance-row small {
+    display: block;
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.performance-name {
+    display: flex;
+    align-items: center;
+}
+
+.memory-meter {
+    display: grid;
+    grid-template-columns: minmax(50px, 1fr) 39px;
+    align-items: center;
+    gap: 8px;
+}
+
+.memory-meter-bar {
+    display: block;
+    appearance: none;
+    width: 100%;
+    border: 0;
+    height: 5px;
+    overflow: hidden;
+    border-radius: 99px;
+    background: var(--border);
+}
+
+.performance-note {
+    margin: 10px 2px 0;
+    color: var(--muted);
+    font-size: 11px;
+}

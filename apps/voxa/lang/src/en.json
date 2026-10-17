@@ -1,0 +1,810 @@
+{
+  "+PxnGS": {
+    "defaultMessage": "Adjust coordinate in local mode",
+    "description": "Animator local axis mode button description"
+  },
+  "+itf/D": {
+    "defaultMessage": "Save",
+    "description": "Save button"
+  },
+  "+oquv5": {
+    "defaultMessage": "Delete",
+    "description": "Confirm text of removing motion"
+  },
+  "/ZqIi6": {
+    "defaultMessage": "Create picture object",
+    "description": "Animator tool add object 2D"
+  },
+  "01V4Kr": {
+    "defaultMessage": "Toggle mirror on X-axis",
+    "description": "Mirror X Button Tooltip Text"
+  },
+  "1EuXM8": {
+    "defaultMessage": "Publish",
+    "description": "Publish button"
+  },
+  "1nRmF9": {
+    "defaultMessage": "Color Picker",
+    "description": "toolColorPicker"
+  },
+  "1nw1MI": {
+    "defaultMessage": "Make a copy of the selection",
+    "description": "Animator tool make a copy description"
+  },
+  "1yAbzn": {
+    "defaultMessage": "Move",
+    "description": "Animator tool move title"
+  },
+  "24xvzO": {
+    "defaultMessage": "Custom",
+    "description": "HitBox Mode Button Custom"
+  },
+  "26V8lc": {
+    "defaultMessage": "Marquee Select",
+    "description": "toolSelectRect"
+  },
+  "2J/zM8": {
+    "defaultMessage": "Modify the height of voxel volume",
+    "description": "toolExtrudeDescription"
+  },
+  "2JJw80": {
+    "defaultMessage": "Size",
+    "description": "Workspace Size Inputs"
+  },
+  "2h9toY": {
+    "defaultMessage": "Move voxels in X/Y/Z-axis",
+    "description": "toolMoveDescription"
+  },
+  "2xmCan": {
+    "defaultMessage": "Save failed",
+    "description": "Title of failing to save model"
+  },
+  "3yrrDx": {
+    "defaultMessage": "简体中文",
+    "description": "File menu set language as zh-Hans"
+  },
+  "4Ekn9t": {
+    "defaultMessage": "Undo",
+    "description": "Undo"
+  },
+  "4fc2TC": {
+    "defaultMessage": "工程导出失败",
+    "description": "VOXA project export error"
+  },
+  "5L7Io3": {
+    "defaultMessage": "Extrude",
+    "description": "toolExtrude"
+  },
+  "5RUrbt": {
+    "defaultMessage": "Build voxels by box",
+    "description": "toolAttachBoxDescription"
+  },
+  "6U/+tg": {
+    "defaultMessage": "Language",
+    "description": "File Menu Language"
+  },
+  "6vK2wk": {
+    "defaultMessage": "Keep",
+    "description": "Confirm clearing unused colors when import"
+  },
+  "77VQFq": {
+    "defaultMessage": "Scale the size of the selected object, bone",
+    "description": "Animator tool scale description"
+  },
+  "8OjT+I": {
+    "defaultMessage": "Delete group",
+    "description": "Delete color group of palette"
+  },
+  "8Ons8Q": {
+    "defaultMessage": "Delete",
+    "description": "Timeline context menu delete"
+  },
+  "8ssL5K": {
+    "defaultMessage": "drag and drop for this item is only available in setup mode",
+    "description": "motion mode drag tooltip text"
+  },
+  "90/w0s": {
+    "defaultMessage": "Create motion",
+    "description": "Create motion when animation is empty"
+  },
+  "9Tfd42": {
+    "defaultMessage": "模型工程和皮肤工程不能互相导入",
+    "description": "VOXA project import type mismatch"
+  },
+  "9df2WV": {
+    "defaultMessage": "Profiler",
+    "description": "Animator profiler button"
+  },
+  "9eObJ7": {
+    "defaultMessage": "Orthogonal",
+    "description": "Orthogonal Camera"
+  },
+  "9yPUBc": {
+    "defaultMessage": "Erase Box",
+    "description": "toolEraseBox"
+  },
+  "ANoAvh": {
+    "defaultMessage": "Delete",
+    "description": "Confirm deleting palette group"
+  },
+  "Aa8Nms": {
+    "defaultMessage": "More Color",
+    "description": "buttonMoreColor"
+  },
+  "AfnN/J": {
+    "defaultMessage": "Bounding box",
+    "description": "Animator skin skinNodes box button"
+  },
+  "Axmmmz": {
+    "defaultMessage": "Move",
+    "description": "toolMoveTitle"
+  },
+  "B7Tzcf": {
+    "defaultMessage": "Successfully saved",
+    "description": "Save model successfully"
+  },
+  "BAcX6N": {
+    "defaultMessage": "Ground",
+    "description": "Animator grid button"
+  },
+  "BcmDEV": {
+    "defaultMessage": "Global Mode",
+    "description": "Param panel tab global mode"
+  },
+  "BnQ1I0": {
+    "defaultMessage": "Toggle mirror on Y-axis",
+    "description": "Mirror Y Button Tooltip Text"
+  },
+  "C+pxqH": {
+    "defaultMessage": "Flip Z",
+    "description": "Flip Z Button Tooltip Title"
+  },
+  "DMQNe5": {
+    "defaultMessage": "transparent",
+    "description": "profile hasTransparent"
+  },
+  "DOmSVx": {
+    "defaultMessage": "Model Pivot Tool",
+    "description": "Animator model pivot mode button title"
+  },
+  "E3MdK1": {
+    "defaultMessage": "Trim",
+    "description": "Trim Button Tooltip Title"
+  },
+  "EuXQXN": {
+    "defaultMessage": "Flip along the X-axis",
+    "description": "Flip X Button Tooltip Text"
+  },
+  "Ew4vy+": {
+    "defaultMessage": "Avatar",
+    "description": "Skin mode title"
+  },
+  "EyVzxe": {
+    "defaultMessage": "Hide Edges",
+    "description": "Hide Voxel Edges"
+  },
+  "F/RH8h": {
+    "defaultMessage": "Adjust coordinate in global mode",
+    "description": "Animator global axis mode button description"
+  },
+  "FJ14PD": {
+    "defaultMessage": "Next keyframe",
+    "description": "Motion button next keyframe"
+  },
+  "G20sfi": {
+    "defaultMessage": "Flip X",
+    "description": "Flip X Button Tooltip Title"
+  },
+  "G8uRxi": {
+    "defaultMessage": "Yesterday",
+    "description": "Yesterday"
+  },
+  "GM6rFc": {
+    "defaultMessage": "faces",
+    "description": "profile faces"
+  },
+  "GRcKUy": {
+    "defaultMessage": "Back to Object",
+    "description": "Switch App Button"
+  },
+  "GeHFts": {
+    "defaultMessage": "Create object",
+    "description": "Animator tool add object 3D"
+  },
+  "GhIhYl": {
+    "defaultMessage": "Create bone",
+    "description": "Contextmenu create bone"
+  },
+  "GhU34t": {
+    "defaultMessage": "Cancel",
+    "description": "Cancel text of removing motion"
+  },
+  "GpE5YP": {
+    "defaultMessage": "Perspective",
+    "description": "Perspective Camera"
+  },
+  "H6lILh": {
+    "defaultMessage": "Please select another name",
+    "description": "Toast description when renaming motion with duplicated name"
+  },
+  "HDFxU6": {
+    "defaultMessage": "Rotate Z",
+    "description": "Rotate Z Button Tooltip Title"
+  },
+  "HEC2QX": {
+    "defaultMessage": "First keyframe",
+    "description": "Motion button first keyframe"
+  },
+  "Hds+xH": {
+    "defaultMessage": "Retry",
+    "description": "Retry launching"
+  },
+  "HvhCsP": {
+    "defaultMessage": "Mode",
+    "description": "HitBox Mode Buttons"
+  },
+  "I+LWSY": {
+    "defaultMessage": "工程导入成功",
+    "description": "VOXA project import success"
+  },
+  "I2zGOR": {
+    "defaultMessage": "导入工程",
+    "description": "File menu import VOXA project"
+  },
+  "J7uU3S": {
+    "defaultMessage": "Create a new object",
+    "description": "Animator tool create description"
+  },
+  "JPZxkQ": {
+    "defaultMessage": "Import VOX",
+    "description": "File menu import VOX as object"
+  },
+  "JThcHR": {
+    "defaultMessage": "Select target voxels",
+    "description": "toolSelectVoxelDescription"
+  },
+  "JaWlC1": {
+    "defaultMessage": "Build Box",
+    "description": "toolAttachBox"
+  },
+  "JtBxpG": {
+    "defaultMessage": "Toggle mirror on Z-axis",
+    "description": "Mirror Z Button Tooltip Text"
+  },
+  "Juy5Ri": {
+    "defaultMessage": "Confirm to clear all unused colors in the group?",
+    "description": "Content of clearing unused colors when import"
+  },
+  "Koo5Va": {
+    "defaultMessage": "Mirror Y",
+    "description": "Mirror Y Button Tooltip Title"
+  },
+  "Kvb1oz": {
+    "defaultMessage": "Play",
+    "description": "Motion button play"
+  },
+  "L+PAOT": {
+    "defaultMessage": "Scale",
+    "description": "Animator tool scale title"
+  },
+  "L42Lgw": {
+    "defaultMessage": "Make a copy",
+    "description": "Contextmenu make a copy"
+  },
+  "LK2Wbr": {
+    "defaultMessage": "Animation",
+    "description": "Title of animation interpolation selector"
+  },
+  "LMhuMV": {
+    "defaultMessage": "Clear",
+    "description": "clearUnusedColorsConfirm"
+  },
+  "LZKom8": {
+    "defaultMessage": "Redo",
+    "description": "Redo"
+  },
+  "Lhk1um": {
+    "defaultMessage": "Rename",
+    "description": "Contextmenu rename object or bone"
+  },
+  "LioR8d": {
+    "defaultMessage": "Make a copy",
+    "description": "Motion list context menu make a copy"
+  },
+  "M1NfDd": {
+    "defaultMessage": "Rotate 90° around X-axis",
+    "description": "Rotate X Button Tooltip Text"
+  },
+  "MPzBxk": {
+    "defaultMessage": "Paint Bucket",
+    "description": "toolPaintBucket"
+  },
+  "MxT1bL": {
+    "defaultMessage": "There are {count} components without bound skeletons. Unable to save this skin.",
+    "description": "Content of free skin saving"
+  },
+  "NLc9C0": {
+    "defaultMessage": "Restore",
+    "description": "Title of confirm restoring history version"
+  },
+  "O1CTZL": {
+    "defaultMessage": "Delete the motion",
+    "description": "Title of removing motion"
+  },
+  "O9kYOP": {
+    "defaultMessage": "Display Background Objects",
+    "description": "Display Background Objects"
+  },
+  "OAtVgC": {
+    "defaultMessage": "Make a Copy",
+    "description": "Animator tool make a copy title"
+  },
+  "OMir+P": {
+    "defaultMessage": "Go to handle",
+    "description": "Go to handle"
+  },
+  "Owa8DK": {
+    "defaultMessage": "Flip Y",
+    "description": "Flip Y Button Tooltip Title"
+  },
+  "OzL5QW": {
+    "defaultMessage": "Clear unused colors",
+    "description": "clearUnusedColorsTitle"
+  },
+  "PUsa7p": {
+    "defaultMessage": "Create motion",
+    "description": "Motion button create motion"
+  },
+  "Q/WzNR": {
+    "defaultMessage": "Hierarchies",
+    "description": "Hierarchy Timelines"
+  },
+  "Q60eBG": {
+    "defaultMessage": "Motion",
+    "description": "Animator mode button for motion"
+  },
+  "QHIqcY": {
+    "defaultMessage": "Emissive",
+    "description": "Palette Emissive"
+  },
+  "QKw0WL": {
+    "defaultMessage": "Save failed",
+    "description": "Title of free skin saving"
+  },
+  "QM0nNf": {
+    "defaultMessage": "Today",
+    "description": "Today"
+  },
+  "QzHEB8": {
+    "defaultMessage": "Cannot trim bounding area without model",
+    "description": "Trim Without Model Toast"
+  },
+  "R4U6jD": {
+    "defaultMessage": "Skeleton",
+    "description": "Animator skeleton button"
+  },
+  "RNMl92": {
+    "defaultMessage": "Designed by JohnEast",
+    "description": "Reset Scale"
+  },
+  "Ruj5aG": {
+    "defaultMessage": "Rotate",
+    "description": "Animator tool rotate title"
+  },
+  "S28eK1": {
+    "defaultMessage": "Erase voxels by clicking or click-and-drag",
+    "description": "toolEraseVoxelDescription"
+  },
+  "SXejwi": {
+    "defaultMessage": "Import",
+    "description": "File Menu Import"
+  },
+  "SrY68m": {
+    "defaultMessage": "Retry",
+    "description": "Retry saving model"
+  },
+  "T8YJJ7": {
+    "defaultMessage": "Show Edges",
+    "description": "Show Voxel Edges"
+  },
+  "Tee9Mp": {
+    "defaultMessage": "Create",
+    "description": "Animator tool create title"
+  },
+  "Uu2DmJ": {
+    "defaultMessage": "Delete color group",
+    "description": "Title of deleting palette group with items"
+  },
+  "UvGGoD": {
+    "defaultMessage": "Move object(s) in X/Y/Z-axis",
+    "description": "Animator tool move description"
+  },
+  "V0byM+": {
+    "defaultMessage": "Rotate 90° around Y-axis",
+    "description": "Rotate Y Button Tooltip Text"
+  },
+  "VCHjZI": {
+    "defaultMessage": "Parameter",
+    "description": "Parameter Collapse Panel"
+  },
+  "VX+6Js": {
+    "defaultMessage": "Export GLTF",
+    "description": "File menu export GLTF"
+  },
+  "VmouEB": {
+    "defaultMessage": "Reset the hitbox",
+    "description": "Reset Hit box"
+  },
+  "W25hyc": {
+    "defaultMessage": "Group selection",
+    "description": "Contextmenu group selection"
+  },
+  "WKn/ni": {
+    "defaultMessage": "Rename",
+    "description": "Motion list context menu rename"
+  },
+  "WYq8HP": {
+    "defaultMessage": "Select target area",
+    "description": "toolSelectRectDescription"
+  },
+  "XcCe1n": {
+    "defaultMessage": "Clear unused colors",
+    "description": "Title of clearing unused colors when import"
+  },
+  "XtU5VP": {
+    "defaultMessage": "Delete",
+    "description": "Contextmenu delete"
+  },
+  "XzNosL": {
+    "defaultMessage": "Voxel Select",
+    "description": "toolSelectVoxel"
+  },
+  "Y2hTfK": {
+    "defaultMessage": "Restored",
+    "description": "Restore successfully"
+  },
+  "YTJpWz": {
+    "defaultMessage": "{ hasTransparent, select, true {yes} other {no} }",
+    "description": "profile hasTransparent value"
+  },
+  "YTM+9K": {
+    "defaultMessage": "Overwrite current project with history version",
+    "description": "Content of confirm restoring history version"
+  },
+  "Yk1f0H": {
+    "defaultMessage": "Erase voxels by box",
+    "description": "toolEraseBoxDescription"
+  },
+  "ZajeL5": {
+    "defaultMessage": "Pause",
+    "description": "Motion button pause"
+  },
+  "ZiKFVA": {
+    "defaultMessage": "Create keyframe",
+    "description": "Motion button create keyframe"
+  },
+  "b1wB8u": {
+    "defaultMessage": "Grids",
+    "description": "Grids"
+  },
+  "b7XtOv": {
+    "defaultMessage": "Flip",
+    "description": "Flip Buttons"
+  },
+  "bd+Xe3": {
+    "defaultMessage": "无法读取该工程文件",
+    "description": "VOXA project import invalid file"
+  },
+  "buP2Ip": {
+    "defaultMessage": "List",
+    "description": "Hierarchy Collapse Panel"
+  },
+  "c67ktF": {
+    "defaultMessage": "Add object",
+    "description": "Contextmenu add object"
+  },
+  "cZtqpK": {
+    "defaultMessage": "Local Mode",
+    "description": "Animator local axis mode button title"
+  },
+  "ca0XXM": {
+    "defaultMessage": "Create object",
+    "description": "Contextmenu create object"
+  },
+  "cjUGLc": {
+    "defaultMessage": "Export",
+    "description": "File Menu Export"
+  },
+  "csgOo2": {
+    "defaultMessage": "Model box",
+    "description": "Animator Default hit box button"
+  },
+  "dSckch": {
+    "defaultMessage": "Copy",
+    "description": "Timeline context menu copy"
+  },
+  "dUje32": {
+    "defaultMessage": "No Project",
+    "description": "Empty Card List"
+  },
+  "dtHrXZ": {
+    "defaultMessage": "Please check your network connection",
+    "description": "Content of failing to save model"
+  },
+  "eFuPu/": {
+    "defaultMessage": "Rotate X",
+    "description": "Rotate X Button Tooltip Title"
+  },
+  "eMLCWw": {
+    "defaultMessage": "Set origin of the object/group",
+    "description": "Animator pivot mode button description"
+  },
+  "eZ3ev9": {
+    "defaultMessage": "Ungroup",
+    "description": "Contextmenu ungroup"
+  },
+  "fB0QY5": {
+    "defaultMessage": "Paint Brush",
+    "description": "toolPainter"
+  },
+  "fNra8/": {
+    "defaultMessage": "Pick the color from a voxel",
+    "description": "toolColorPickerDescription"
+  },
+  "gRVyKB": {
+    "defaultMessage": "History",
+    "description": "File Menu History"
+  },
+  "h0x6LE": {
+    "defaultMessage": "Create Bone",
+    "description": "Animator tool add bone title"
+  },
+  "hDDWXw": {
+    "defaultMessage": "Mirror Z",
+    "description": "Mirror Z Button Tooltip Title"
+  },
+  "hdNd6j": {
+    "defaultMessage": "Paint contiguous voxels with same color",
+    "description": "toolPaintBucketDescription"
+  },
+  "hiccwG": {
+    "defaultMessage": "Restore",
+    "description": "Confirm restoring history version"
+  },
+  "iG1hxk": {
+    "defaultMessage": "Launching...",
+    "description": "Launching"
+  },
+  "iSgsHD": {
+    "defaultMessage": "bones",
+    "description": "profile bones"
+  },
+  "ifv4L8": {
+    "defaultMessage": "Import model to object",
+    "description": "Text for importing model to object"
+  },
+  "jCCMm+": {
+    "defaultMessage": "Pivot Tool",
+    "description": "Animator pivot mode button title"
+  },
+  "jgH/zj": {
+    "defaultMessage": "Confirm to clear all unused colors in the swatch?",
+    "description": "clearUnusedColorsContent"
+  },
+  "jqNerb": {
+    "defaultMessage": "Confirm to delete the motion",
+    "description": "Content of removing motion"
+  },
+  "k+YLBm": {
+    "defaultMessage": "Set origin of the model",
+    "description": "Animator model pivot mode button description"
+  },
+  "k2SFKt": {
+    "defaultMessage": "Paint color by clicking or click-and-drag",
+    "description": "toolPainterDescription"
+  },
+  "kFXd9M": {
+    "defaultMessage": "Clear unused colors",
+    "description": "buttonClearUnusedColor"
+  },
+  "kLrg2G": {
+    "defaultMessage": "Color",
+    "description": "Palette Collapse Panel"
+  },
+  "lStPSE": {
+    "defaultMessage": "Shrink bounding box to fit voxels",
+    "description": "Trim Button Tooltip Text"
+  },
+  "lW/+dx": {
+    "defaultMessage": "Clear",
+    "description": "Confirm clearing unused colors when import"
+  },
+  "lW0YNn": {
+    "defaultMessage": "Select voxels in same color based on volume",
+    "description": "toolMagicWandDescription"
+  },
+  "lX98kt": {
+    "defaultMessage": "Magic Wand",
+    "description": "toolMagicWand"
+  },
+  "lrvzCR": {
+    "defaultMessage": "Mirror X",
+    "description": "Mirror X Button Tooltip Title"
+  },
+  "ml2rC2": {
+    "defaultMessage": "New Color Group",
+    "description": "buttonNewColorGroup"
+  },
+  "n3spsr": {
+    "defaultMessage": "Paste",
+    "description": "Timeline context menu paste"
+  },
+  "n4re5g": {
+    "defaultMessage": "Name is already existed, failed to save",
+    "description": "Failed to save"
+  },
+  "nPgNih": {
+    "defaultMessage": "Motions",
+    "description": "Motions List"
+  },
+  "o/VnOv": {
+    "defaultMessage": "Cancel",
+    "description": "Cancel deleting palette group"
+  },
+  "oMeeGW": {
+    "defaultMessage": "Edit object",
+    "description": "Contextmenu edit object"
+  },
+  "oTEb+0": {
+    "defaultMessage": "Cancel",
+    "description": "Cancel retrying saving model"
+  },
+  "pEfK4p": {
+    "defaultMessage": "Flip along the Z-axis",
+    "description": "Flip Z Button Tooltip Text"
+  },
+  "pLZ1xo": {
+    "defaultMessage": "Create a new bone",
+    "description": "Animator tool add bone description"
+  },
+  "pTFTfR": {
+    "defaultMessage": "Rotate",
+    "description": "Rotate Buttons"
+  },
+  "pgvcJe": {
+    "defaultMessage": "Failed to export",
+    "description": "Error message for exporting GLTF"
+  },
+  "pgy1xY": {
+    "defaultMessage": "English",
+    "description": "File menu set Language as en"
+  },
+  "pzAtKM": {
+    "defaultMessage": "Build Voxel",
+    "description": "toolAttachVoxel"
+  },
+  "qKrwqe": {
+    "defaultMessage": "Global Mode",
+    "description": "Animator global axis mode button title"
+  },
+  "qLI3JL": {
+    "defaultMessage": "导出工程",
+    "description": "File menu export VOXA project"
+  },
+  "qQYiib": {
+    "defaultMessage": "Rotate 90° around Z-axis",
+    "description": "Rotate Z Button Tooltip Text"
+  },
+  "qUxQJr": {
+    "defaultMessage": "Used colors will be moved to the default color card",
+    "description": "Content of deleting palette group with items"
+  },
+  "r8CtNK": {
+    "defaultMessage": "Recenter camera",
+    "description": "RecenterCamera"
+  },
+  "t4fVD+": {
+    "defaultMessage": "工程已导出",
+    "description": "VOXA project export success"
+  },
+  "t5EBa4": {
+    "defaultMessage": "Add node",
+    "description": "Contextmenu add child bone node"
+  },
+  "t7+ziq": {
+    "defaultMessage": "Rotate object(s) around X/Y/Z-axis",
+    "description": "Animator tool rotate description"
+  },
+  "tRI+uc": {
+    "defaultMessage": "Reset the pivot",
+    "description": "Float button for reset pivot"
+  },
+  "uFtMrU": {
+    "defaultMessage": "object",
+    "description": "profile skins"
+  },
+  "uSyEDz": {
+    "defaultMessage": "Mirror",
+    "description": "Mirror Buttons"
+  },
+  "veOX3p": {
+    "defaultMessage": "Home",
+    "description": "Home Button Tooltip Text"
+  },
+  "w+6OpO": {
+    "defaultMessage": "The motion name is already in use",
+    "description": "Toast content when renaming motion with duplicated name"
+  },
+  "w35L6L": {
+    "defaultMessage": "Emissive",
+    "description": "Animator emissive button"
+  },
+  "wBV0Y3": {
+    "defaultMessage": "Flip along the Y-axis",
+    "description": "Flip Y Button Tooltip Text"
+  },
+  "wJr5te": {
+    "defaultMessage": "Local Mode",
+    "description": "Param panel tab local mode"
+  },
+  "wT4hFq": {
+    "defaultMessage": "Blank",
+    "description": "Create New Project"
+  },
+  "wr73mi": {
+    "defaultMessage": "Rotate Y",
+    "description": "Rotate Y Button Tooltip Title"
+  },
+  "xNfx8i": {
+    "defaultMessage": "Setup",
+    "description": "Animator mode button for setup"
+  },
+  "xW1mGj": {
+    "defaultMessage": "Default",
+    "description": "HitBox Mode Button Default"
+  },
+  "xheg3F": {
+    "defaultMessage": "Unbound",
+    "description": "Contextmenu unbind object"
+  },
+  "yFwyfo": {
+    "defaultMessage": "Build voxels by clicking or click-and-drag",
+    "description": "toolAttachVoxelDescription"
+  },
+  "yRZPai": {
+    "defaultMessage": "Eyedropper",
+    "description": "buttonPaletteColorPicker"
+  },
+  "yehl3f": {
+    "defaultMessage": "Last keyframe",
+    "description": "Motion button last keyframe"
+  },
+  "ygTP6m": {
+    "defaultMessage": "Previous keyframe",
+    "description": "Motion button prev keyframe"
+  },
+  "ygdJgy": {
+    "defaultMessage": "Cancel",
+    "description": "Cancel restoring history version"
+  },
+  "yvIC1C": {
+    "defaultMessage": "Hitbox",
+    "description": "Animator mode button for hitBox"
+  },
+  "yx8o5r": {
+    "defaultMessage": "Erase Voxel",
+    "description": "toolEraseVoxel"
+  },
+  "z6oJTe": {
+    "defaultMessage": "Delete",
+    "description": "Motion list context menu delete"
+  },
+  "zY3nY2": {
+    "defaultMessage": "Keep",
+    "description": "clearUnusedColorsCancel"
+  },
+  "ziZtWz": {
+    "defaultMessage": "Fail to restore. Please try again later.",
+    "description": "Restore error"
+  }
+}

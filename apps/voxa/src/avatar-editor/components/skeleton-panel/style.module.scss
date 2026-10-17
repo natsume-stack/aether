@@ -1,0 +1,29 @@
+.skeletonPanel {
+  width: fit-content;
+  height: 100%;
+  color: #fff;
+  background-color: transparent;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.label {
+  display: inline-block;
+  width: 100px;
+}
+
+.fileLabel {
+  display: inline-block;
+  width: 130px;
+}
+
+.title {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin: 15px 0px 5px 0px;
+}
+
+.inputBox {
+  height: 28px;
+}

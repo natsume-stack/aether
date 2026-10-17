@@ -1,0 +1,313 @@
+.runtime-list {
+    column-count: 2;
+    column-gap: 12px;
+}
+
+.runtime-catalog-tabs {
+    display: flex;
+    gap: 8px;
+    margin: 0 0 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.runtime-catalog-tabs button {
+    padding: 9px 12px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    background: transparent;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.runtime-catalog-tabs button:hover {
+    color: var(--text);
+}
+
+.runtime-catalog-tabs button.active {
+    border-bottom-color: var(--text);
+    color: var(--text);
+}
+
+.runtime-catalog-tabs span {
+    margin-left: 5px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.runtime-profile-form {
+    margin: 0 0 18px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--panel);
+}
+
+.runtime-profile-form-header,
+.runtime-profile-saved-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.runtime-profile-form-header {
+    padding: 20px 22px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(
+        115deg,
+        color-mix(in srgb, var(--accent) 10%, var(--panel)),
+        var(--panel) 46%
+    );
+}
+
+.eyebrow {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.runtime-profile-form h2,
+.runtime-profile-saved h2,
+.runtime-profile-section h3 {
+    margin: 0;
+}
+
+.runtime-profile-form-header h2,
+.runtime-profile-saved h2 {
+    font-size: 17px;
+}
+
+.runtime-profile-form-header p,
+.runtime-profile-section-heading p {
+    margin: 5px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.runtime-profile-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
+}
+
+.runtime-profile-section {
+    min-width: 0;
+    padding: 20px 22px 22px;
+}
+
+.runtime-profile-section + .runtime-profile-section {
+    border-left: 1px solid var(--border);
+}
+
+.runtime-profile-section-heading {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 17px;
+}
+
+.runtime-profile-section h3 {
+    font-size: 14px;
+}
+
+.runtime-profile-step {
+    display: grid;
+    width: 22px;
+    height: 22px;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.runtime-profile-grid {
+    gap: 14px 12px;
+}
+
+.runtime-isolation-switch {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 16px;
+    padding: 11px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.runtime-isolation-switch input {
+    position: absolute;
+    opacity: 0;
+}
+
+.runtime-isolation-switch > span {
+    position: relative;
+    width: 32px;
+    height: 18px;
+    flex: 0 0 auto;
+    border-radius: 99px;
+    background: var(--border);
+    transition: background 160ms ease;
+}
+
+.runtime-isolation-switch > span::after {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--text);
+    content: '';
+    transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.runtime-isolation-switch input:checked + span {
+    background: var(--accent);
+}
+
+.runtime-isolation-switch input:checked + span::after {
+    transform: translateX(14px);
+}
+
+.runtime-isolation-switch strong,
+.runtime-isolation-switch small {
+    display: block;
+}
+
+.runtime-isolation-switch strong {
+    font-size: 12px;
+}
+
+.runtime-isolation-switch small {
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.runtime-isolation-fields {
+    opacity: 0.48;
+    transition: opacity 160ms ease;
+}
+
+.isolation-enabled .runtime-isolation-fields {
+    opacity: 1;
+}
+
+.runtime-profile-saved {
+    margin-top: 4px;
+}
+
+.runtime-profile-saved-heading {
+    margin: 0 2px 12px;
+}
+
+.runtime-profile-actions {
+    justify-content: flex-end;
+}
+
+.runtime-profile-saved-heading > span {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.runtime-profile-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    column-count: unset;
+    gap: 12px;
+}
+
+.runtime-profile-list .runtime-project {
+    margin: 0;
+}
+
+.runtime-profile-list .runtime-empty {
+    grid-column: 1 / -1;
+}
+
+.runtime-profile-empty {
+    display: grid;
+    gap: 5px;
+    min-height: 120px;
+    place-content: center;
+    text-align: center;
+}
+
+.runtime-profile-empty strong {
+    color: var(--text);
+}
+
+.runtime-profile-empty span {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.runtime-profile-card .runtime-profile-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.runtime-profile-mode {
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--panel-soft);
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.runtime-profile-limits {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.runtime-profile-limits strong {
+    color: var(--text);
+    font-size: 12px;
+}
+
+.map-runtime-profile-dialog {
+    width: min(100%, 600px);
+}
+
+.map-runtime-profile-dialog form {
+    display: grid;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.map-runtime-profile-dialog .runtime-isolation-switch {
+    margin: 2px 0 0;
+}
+
+@media (max-width: 760px) {
+    .runtime-profile-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .runtime-profile-section + .runtime-profile-section {
+        border-top: 1px solid var(--border);
+        border-left: 0;
+    }
+
+    .runtime-profile-form-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

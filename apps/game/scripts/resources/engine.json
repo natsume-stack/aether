@@ -1,0 +1,45 @@
+{
+  "func": "swapExtensions",
+  "args": [
+    {
+      "table": {
+        "water.png": {
+          "func": "buildWater",
+          "args": [{ "file": "water/water-bump.jpg" }]
+        },
+        "sky": {
+          "func": "optimizeDir",
+          "args": [
+            {
+              "table": {
+                "stars.png": { "file": "sky/stars.png" },
+                "perlin.png": { "file": "sky/perlin.png" },
+                "cloud_nx.png": { "file": "sky/cloud_nx.png" },
+                "cloud_ny.png": { "file": "sky/cloud_ny.png" },
+                "cloud_nz.png": { "file": "sky/cloud_nz.png" },
+                "cloud_px.png": { "file": "sky/cloud_px.png" },
+                "cloud_py.png": { "file": "sky/cloud_py.png" },
+                "cloud_pz.png": { "file": "sky/cloud_pz.png" }
+              }
+            }
+          ],
+          "ret": "json"
+        },
+        "damageNumbers": {
+          "func": "optimizeDir",
+          "args": [
+            {
+              "dir": "style_number"
+            }
+          ],
+          "ret": "json"
+        },
+        "anim": {
+          "func": "buildAnim",
+          "args": [{ "file": "animation/player-anim.json" }]
+        }
+      }
+    }
+  ],
+  "ret": "json"
+}

@@ -1,0 +1,341 @@
+:root {
+  --color-white: #fff;
+  --color-white-60: rgb(255, 255, 255, 0.6);
+  --color-white-30: rgb(255, 255, 255, 0.3);
+  --color-white-15: rgb(255, 255, 255, 0.15);
+  --color-black: #000;
+
+  --color-gray: #595959;
+  --color-grey1: #121212;
+  --color-grey1-90: rgba(18, 18, 18, 0.9);
+  --color-grey1-60: rgba(18, 18, 18, 0.6);
+  --color-grey1-30: rgba(18, 18, 18, 0.3);
+  --color-grey2: #343434;
+  --color-grey2-90: rgba(52, 52, 52, 0.9);
+  --color-grey3: #565656;
+  --color-grey3-60: rgba(86, 86, 86, 0.6);
+  --color-grey4: #787878;
+  --color-grey5-24: rgba(129, 129, 129, 0.24);
+  --color-grey6: #c4c4c4;
+  --color-grey7: #f5f5f5;
+  --color-gray-8: #404040;
+
+  --color-black-8: rgba(0, 0, 0, 0.08);
+  --color-black-10: rgba(0, 0, 0, 0.1);
+  --color-black-12: rgba(0, 0, 0, 0.12);
+  --color-black-15: rgba(0, 0, 0, 0.15);
+  --color-black-24: rgba(0, 0, 0, 0.24);
+  --color-black-32: rgba(0, 0, 0, 0.32);
+  --color-black-56: rgba(0, 0, 0, 0.56);
+  --color-black-80: rgba(0, 0, 0, 0.8);
+  --color-black-90: rgba(0, 0, 0, 0.9);
+
+  --basePadding: 16px;
+  --bigPadding: 32px;
+  --smallPadding: 8px;
+  --tinyPadding: 4px;
+
+  --disableOpacity: 0.3;
+
+  --baseRadius: 8px;
+  --bigRadius: 16px;
+  --hugeRadius: 32px;
+
+  --text-h1: 24px;
+  --text-h2: 16px;
+  --text-h3: 14px;
+  --text-h4: 12px;
+
+  --font-regular:
+    Rubik, MiSans, Montserrat-Regular,
+    noto-sans-sc-v12-latin_chinese-simplified-regular, PingFangSC-Regular,
+    Helvetica, arial;
+  --font-bold:
+    Rubik-700, MiSans-Bold, Montserrat-Bold,
+    noto-sans-sc-v12-latin_chinese-simplified-700, PingFangSC-Semibold,
+    PingFang SC, Helvetica, arial;
+
+  /* Shared with the desktop launcher and service dashboards. */
+  --color-primary: #ffdb00;
+  --color-primary-hover: #ffe44d;
+  --color-primary-press: #d9b500;
+  --color-primary-light: rgba(255, 219, 0, 0.22);
+  --color-danger: #f44336;
+  --color-danger-hover: #f6695e;
+  --color-danger-press: #dc4336;
+  --color-dot-green: #80d741;
+
+  --color-font-white: rgba(255, 255, 255, 1);
+  --color-font-white-minor: rgba(255, 255, 255, 0.6);
+  --color-font-white-disabled: rgba(255, 255, 255, 0.3);
+  --color-font-black: #353535;
+  --color-font-black-minor: #888;
+  --color-font-black-disabled: #bbb;
+  --color-font-black-important: #222;
+
+  /* using in button */
+  --button-height: 40px;
+  --button-width-tiny: 64px;
+  --button-height-tiny: 24px;
+  --button-width-small: 120px;
+  --button-width-regular: 160px;
+  --button-width-large: 327px;
+  --button-width-full: 100%;
+  --button-radius: 24px;
+
+  /* New UI colors */
+  --color-red-gradient: linear-gradient(270deg, #fa3333 0%, #fe7a0e 100%);
+  --color-red: #f91212;
+  --color-orange: #ff952b;
+  --color-green: #5ad9aa;
+  --color-purple: #783b95;
+  --color-blue: #386ffc;
+  --color-background: #f5f5f5;
+  --color-divider: #ededed;
+  --title-height: 30px;
+
+  --z-mobile-topbar: 5;
+  --z-over-mobile-topbar: 7;
+  --z-head-menu: 9;
+  --z-mobile-homepage-head: 10;
+  --z-overlay: 20;
+  --z-dropdown: 25;
+  --z-popup: 25;
+
+  --mobileMenuHeight: 64px;
+  --mobileTopBarHeight: 45px;
+  --mobileContainerPadding: 16px;
+  --desktopMenuHeight: 80px;
+  --desktopMenuHeight_72: 72px;
+  --tabletContainerPadding: 24px;
+
+  /* (v2023.6.0) new new ui color */
+  --color-yellow: #ffdb00;
+  --text-h2-lineHeight: 24px;
+
+  /* Arena - 主色 */
+  --theme-primary95: #ffdb99;
+  --theme-primary90: #ffa93f;
+  --theme-primary80: #ff8100;
+  --theme-primary70: #d46b00;
+  --theme-primary60: #b05900;
+  --theme-primary50: #924a00;
+  --theme-primary40: #793d00;
+  --theme-primary30: #643300;
+  --theme-primary20: #4f2800;
+  --theme-primary10: #361c00;
+  /* Arena - 次色 */
+  --theme-secondary95: #f1ede3;
+  --theme-secondary90: #e4dfd4;
+  --theme-secondary80: #cbc1ad;
+  --theme-secondary70: #b2a386;
+  --theme-secondary60: #9d8a66;
+  --theme-secondary50: #837354;
+  --theme-secondary40: #6d5f46;
+  --theme-secondary30: #544935;
+  --theme-secondary20: #3e331d;
+  --theme-secondary10: #302819;
+}
+
+@font-face {
+  font-family: noto-sans-sc-v12-latin_chinese-simplified-700;
+  font-style: normal;
+  font-weight: 700;
+  src:
+    local(noto-sans-sc-v12-latin_chinese-simplified-700),
+    local('Noto Sans SC Bold'),
+    url(../assets/fonts/noto-sans-sc-v12-latin_chinese-simplified-700.woff2)
+      format('woff2'),
+    url(../assets/fonts/noto-sans-sc-v12-latin_chinese-simplified-700.woff)
+      format('woff');
+}
+
+@font-face {
+  font-family: noto-sans-sc-v12-latin_chinese-simplified-regular;
+  font-style: normal;
+  font-weight: 500;
+  src:
+    local(noto-sans-sc-v12-latin_chinese-simplified-regular),
+    local('Noto Sans SC Regular'),
+    url(../assets/fonts/noto-sans-sc-v12-latin_chinese-simplified-regular.woff2)
+      format('woff2'),
+    url(../assets/fonts/noto-sans-sc-v12-latin_chinese-simplified-regular.woff)
+      format('woff');
+}
+
+@font-face {
+  font-family: NotoSans-Regular;
+  font-style: normal;
+  font-weight: 500;
+  src:
+    local(NotoSans-Regular),
+    local('NotoSans-Regular'),
+    url(../assets/fonts/NotoSans-Regular.woff) format('woff');
+}
+
+@font-face {
+  font-family: NotoSans-Bold;
+  font-style: normal;
+  font-weight: 500;
+  src:
+    local(NotoSans-Bold),
+    local('NotoSans-Bold'),
+    url(../assets/fonts/NotoSans-Bold.woff) format('woff');
+}
+
+@font-face {
+  font-family: Montserrat-Regular;
+  font-style: normal;
+  font-weight: 500;
+  src: url(../assets/fonts/Montserrat-Regular.woff) format('woff');
+}
+
+@font-face {
+  font-family: Montserrat-Medium;
+  font-style: normal;
+  font-weight: 500;
+  src: url(../assets/fonts/Montserrat-Medium.woff) format('woff');
+}
+
+@font-face {
+  font-family: Montserrat-Bold;
+  font-style: normal;
+  font-weight: 700;
+  src: url(../assets/fonts/Montserrat-Bold.woff) format('woff');
+}
+
+/* rubik-regular - latin */
+@font-face {
+  font-family: Rubik;
+  font-style: normal;
+  src:
+    url(../assets/fonts/rubik-v20-latin-regular.woff2) format('woff2'),
+    url(../assets/fonts/rubik-v20-latin-regular.woff) format('woff');
+  font-display: swap;
+}
+
+/* rubik-600 - latin */
+@font-face {
+  font-family: 'Rubik-600';
+  font-style: normal;
+  src:
+    url(../assets/fonts/rubik-v20-latin-600.woff2) format('woff2'),
+    url(../assets/fonts/rubik-v20-latin-600.woff) format('woff');
+  font-display: swap;
+}
+
+/* rubik-700 - latin */
+@font-face {
+  font-family: 'Rubik-700';
+  font-style: normal;
+  src:
+    url(../assets/fonts/rubik-v20-latin-700.woff2) format('woff2'),
+    url(../assets/fonts/rubik-v20-latin-700.woff) format('woff');
+  font-display: swap;
+}
+
+/* MiSans-Regular */
+@font-face {
+  font-family: MiSans;
+  font-style: normal;
+  src: url(../assets/fonts/MiSans-Regular.woff) format('woff');
+  font-display: swap;
+}
+
+/* MiSans-Bold */
+@font-face {
+  font-family: 'MiSans-Bold';
+  font-style: normal;
+  src: url(../assets/fonts/MiSans-Bold.woff) format('woff');
+  font-display: swap;
+}
+
+html,
+body,
+#__next,
+#__next__root {
+  font-family: var(--font-regular);
+  height: 100%;
+  width: 100%;
+}
+
+/* 注意：已删除与 Tailwind 冲突的全局样式 */
+/* - margin/padding 重置：Tailwind 会处理
+   - user-select, cursor: 应由具体组件处理
+   - button 样式：Tailwind 会处理
+   - box-sizing: Tailwind 已包含
+   - h1/h2 样式：应由具体组件的 CSS modules 处理 */
+
+/* 非公共的特殊 CSS - 仅保留特定场景的样式 */
+.website input:disabled .website textarea:disabled,
+.mobile .inputTextContainer {
+  box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.08);
+}
+
+.NotoSans.bold {
+  font-family: NotoSans-Bold, var(--font-bold);
+}
+
+input[type='checkbox']::after {
+  background-color: #ffffff;
+  color: #000;
+}
+
+input[type='color']:disabled {
+  background-color: rgba(239, 239, 239, 0.3);
+  color: rgba(16, 16, 16, 0.3);
+  border-color: rgba(118, 118, 118, 0.3);
+  cursor: not-allowed;
+}
+
+input[type='color']::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+input[type='color']::-webkit-color-swatch {
+  border: none;
+}
+
+textarea::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+textarea::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+}
+
+textarea::-webkit-scrollbar-thumb:hover {
+  background: rgba(175, 175, 175, 0.6);
+}
+
+textarea::-webkit-scrollbar-track {
+  background-color: rgba(0, 0, 0, 0.048);
+  border-radius: 2px;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                               Utilities class                              */
+/* -------------------------------------------------------------------------- */
+
+/* 注意：大多数 Utilities classes 已被删除，因为它们与 Tailwind CSS 冲突。 */
+/* AI 相关代码使用 Tailwind CSS，非 AI 代码则使用以下 classes。 */
+
+.input-text {
+  margin-bottom: 16px;
+  min-width: 343px;
+}
+
+.website input:disabled,
+.website textarea:disabled,
+.inputTextContainer input:disabled,
+.textareaContainer textarea:disabled {
+  cursor: not-allowed;
+}
+
+.play-react {
+  width: 100%;
+  height: 100%;
+}

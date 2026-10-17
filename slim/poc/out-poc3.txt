@@ -1,0 +1,11 @@
+ivm.lib keys: 
+file:///poc/poc3-fairness.mjs:74
+  iso[0].hang.applySync(undefined, [], { timeout: HANG_MS })
+              ^
+
+Error: Script execution timed out.
+    at globalThis.__hang (<isolated-vm>:1:29)
+    at (<isolated-vm boundary>)
+    at file:///poc/poc3-fairness.mjs:74:15
+
+Node.js v22.17.0

@@ -1,0 +1,83 @@
+{
+  "name": "@box/player-launcher",
+  "version": "2026.1.2",
+  "private": true,
+  "description": "Standalone BOX3 player launcher for locally prepared online maps",
+  "license": "MIT",
+  "author": "深圳奇梦岛科技有限公司",
+  "main": "dist-electron/main.cjs",
+  "scripts": {
+    "dev": "vite --port 1421",
+    "build": "vite build",
+    "check": "npm run typecheck && npm run build && npm test && npm run build:electron-main",
+    "test": "tsx --test electron/application/*.test.ts electron/network/*.test.ts electron/runtime/*.test.ts electron/security/*.test.ts electron/storage/*.test.ts tests/*.test.ts scripts/*.test.mts",
+    "build:desktop-smoke": "esbuild electron/testing/launcher-smoke.ts --bundle --platform=node --format=cjs --external:electron --outfile=dist-electron/launcher-smoke.cjs",
+    "test:desktop": "npm run build:desktop-smoke && node --experimental-strip-types scripts/run-smoke.mts desktop",
+    "test:menu": "esbuild electron/testing/menu-smoke.ts --bundle --platform=node --format=cjs --external:electron --outfile=dist-electron/menu-smoke.cjs && node --experimental-strip-types scripts/run-smoke.mts menu",
+    "test:cache": "esbuild electron/testing/cache-smoke.ts --bundle --platform=node --format=cjs --external:electron --outfile=dist-electron/cache-smoke.cjs && node --experimental-strip-types scripts/run-smoke.mts cache",
+    "typecheck": "tsc --noEmit",
+    "bundle": "npm run bundle:electron",
+    "dev:electron": "npm run build:electron-main && electron . --dev",
+    "build:electron-main": "esbuild electron/main.ts electron/preload.ts electron/build/after-pack.ts --bundle --platform=node --target=node22 --format=cjs --outdir=dist-electron --out-extension:.js=.cjs --external:electron --external:vite",
+    "build:electron": "npm run typecheck && npm run build && npm run build:electron-main",
+    "bundle:electron": "npm run build:electron && electron-builder --config scripts/electron-builder.cjs"
+  },
+  "devDependencies": {
+    "@box/apis": "workspace:0.2.0",
+    "@types/node": "22.20.4",
+    "electron": "^44.4.5",
+    "electron-builder": "^26.15.3",
+    "esbuild": "0.28.2",
+    "tsx": "4.23.15",
+    "typescript": "5.6.3",
+    "vite": "^7.1.0"
+  },
+  "build": {
+    "appId": "com.box.player.launcher",
+    "productName": "BOX3 Player Launcher",
+    "asar": true,
+    "npmRebuild": false,
+    "afterPack": "./dist-electron/build/after-pack.cjs",
+    "compression": "maximum",
+    "electronLanguages": [
+      "en-US",
+      "zh-CN"
+    ],
+    "files": [
+      "dist/**/*",
+      "dist-electron/main.cjs",
+      "dist-electron/preload.cjs",
+      "resources/icons/icon.png",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "resources/icons",
+      "output": "release-electron"
+    },
+    "mac": {
+      "category": "public.app-category.games",
+      "icon": "resources/icons/icon.icns",
+      "extendInfo": {
+        "CFBundleDisplayName": "BOX3 Player Launcher",
+        "CFBundleName": "BOX3 Player Launcher"
+      },
+      "target": [
+        "dmg"
+      ]
+    },
+    "win": {
+      "icon": "resources/icons/icon.ico",
+      "target": [
+        "nsis"
+      ]
+    },
+    "linux": {
+      "executableName": "box3-player-launcher",
+      "category": "Game",
+      "icon": "resources/icons/icon.png",
+      "target": [
+        "AppImage"
+      ]
+    }
+  }
+}

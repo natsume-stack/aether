@@ -1,0 +1,10 @@
+@import './styles/base-shell.css';
+@import './styles/dialogs.css';
+@import './styles/servers-and-login.css';
+@import './styles/player-account.css';
+@import './styles/map-browser.css';
+@import './styles/storage.css';
+@import './styles/map-details.css';
+@import './styles/server-onboarding.css';
+@import './styles/feedback.css';
+@import './styles/responsive.css';

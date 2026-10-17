@@ -1,0 +1,300 @@
+.network-layout {
+    display: grid;
+    align-content: start;
+    gap: 16px;
+}
+
+.network-primary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 16px;
+}
+
+.network-service-card {
+    min-width: 0;
+    align-self: start;
+    display: grid;
+    align-content: start;
+    gap: 16px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--panel);
+}
+
+.network-access-card {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+}
+
+.network-access-card .network-card-heading {
+    min-width: 0;
+}
+
+.network-access-card .access-choice {
+    justify-self: end;
+}
+
+.network-access-address {
+    grid-column: 1 / -1;
+    width: 100%;
+}
+
+.network-service-card .field {
+    gap: 6px;
+    grid-template-rows: auto 34px;
+}
+
+.network-service-card .field.no-hint {
+    grid-template-rows: auto 34px;
+}
+
+.network-service-card > .form-grid {
+    gap: 16px;
+}
+
+.network-service-card .field small {
+    min-height: 15px;
+    overflow: visible;
+    line-height: 1.35;
+    text-overflow: clip;
+    white-space: normal;
+}
+
+.network-card-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.network-card-heading h2 {
+    margin: 0;
+    font-size: 14px;
+    letter-spacing: -0.01em;
+}
+
+.network-card-heading span {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.access-choice {
+    display: inline-flex;
+    width: fit-content;
+    padding: 3px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--panel-soft);
+}
+
+.access-choice button {
+    height: 28px;
+    padding: 0 9px;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.access-choice button.active {
+    background: var(--panel);
+    color: var(--text);
+    box-shadow: 0 1px 3px color-mix(in srgb, #000 12%, transparent);
+}
+
+.access-choice button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.card-port-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: auto;
+}
+
+.network-primary-grid .card-port-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.player-service-card {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start;
+}
+
+.player-service-card .network-card-heading,
+.player-service-card .player-port-grid {
+    grid-column: 1 / -1;
+}
+
+.player-port-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.group-title {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.group-title h2,
+.group-title span {
+    display: inline;
+}
+
+.group-title h2 {
+    margin: 0 8px 0 0;
+    font-size: 13px;
+}
+
+.group-title span {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.network-endpoint-setting,
+.network-access-address {
+    min-width: 0;
+    display: grid;
+    align-content: start;
+    gap: 16px;
+}
+.ssl-address-certificate {
+    min-width: 0;
+    margin: 0;
+}
+.ssl-address-certificate .form-grid {
+    margin-top: 0;
+}
+.ssl-address-certificate .database-download-note {
+    margin: 0 0 12px;
+}
+.ssl-address-certificate[open] summary {
+    margin-bottom: 12px;
+}
+.ssl-address-certificate summary {
+    height: auto;
+    min-height: 38px;
+    flex-wrap: wrap;
+}
+.ssl-title-status {
+    margin-left: 8px;
+    font-size: 11px;
+    line-height: 1.5;
+}
+.ssl-title-status.expiring {
+    color: #d6a62b;
+}
+.ssl-title-status.expired {
+    color: var(--danger);
+}
+.ssl-expiry-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+.ssl-expiry-card > span {
+    flex: 1;
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.5;
+}
+.ssl-expiry-card.expiring {
+    color: #d6a62b;
+    border-color: color-mix(in srgb, #d6a62b 45%, var(--border));
+    background: color-mix(in srgb, #d6a62b 8%, var(--panel-soft));
+}
+.ssl-expiry-card.expired {
+    color: var(--danger);
+    border-color: color-mix(in srgb, var(--danger) 45%, var(--border));
+    background: color-mix(in srgb, var(--danger) 8%, var(--panel-soft));
+}
+.ssl-expiry-card.expiring > span {
+    color: #d6a62b;
+}
+.ssl-expiry-card.expired > span {
+    color: var(--danger);
+}
+.ssl-delete-certificate {
+    flex: 0 0 auto;
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    padding: 5px;
+    border: 0;
+    border-radius: 6px;
+    color: var(--muted);
+    background: transparent;
+    cursor: pointer;
+}
+.ssl-delete-certificate svg {
+    width: 16px;
+    height: 16px;
+}
+.ssl-delete-certificate:hover {
+    color: var(--danger);
+    background: color-mix(in srgb, var(--danger) 10%, transparent);
+}
+.ssl-delete-certificate:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+.network-endpoint-preview {
+    min-width: 0;
+    color: var(--muted);
+    font-size: 11px;
+}
+.network-endpoint-preview code {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    color: var(--muted);
+    line-height: 1.5;
+}
+.network-access-card .access-choice {
+    flex-wrap: wrap;
+}
+
+.config-group pre {
+    max-width: 100%;
+    overflow-x: auto;
+    padding: 16px;
+    border-radius: 8px;
+    background: var(--surface-raised, #222);
+}
+
+.ssl-input-choice {
+    margin: 10px 0 14px;
+}
+.ssl-address-certificate .field input {
+    width: 100%;
+    min-width: 0;
+}
+.external-guide-choices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 12px 0;
+}
+
+.network-access-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+}
+.network-access-controls .external-guide-choices {
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+.network-access-controls .external-guide-choices > span {
+    color: var(--muted);
+    font-size: 11px;
+}

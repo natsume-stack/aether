@@ -1,0 +1,503 @@
+{
+ "config": {
+  "HANG_MODE": "async",
+  "HANG_COUNT": 1,
+  "N_ISO": 24,
+  "TICK_MS": 50,
+  "DURATION_MS": 6000,
+  "TIMEOUT": 10000,
+  "HANG_FROM": 1200,
+  "HANG_MS": 2500,
+  "memMB": 512,
+  "cores": 8
+ },
+ "hangEvents": [
+  {
+   "atMs": 1205.4,
+   "msg": "isolate#0..#0 start while(true); form=async budget=2500ms"
+  },
+  {
+   "iso": 0,
+   "atMs": 2503.8,
+   "msg": "timeout FIRED",
+   "err": "Script execution timed out.",
+   "thisIsolateAlive": true,
+   "othersAlive": true
+  }
+ ],
+ "victim_summary": {
+  "n": 23,
+  "worst_before_p50": 2.95,
+  "worst_during_p99": 19.38
+ },
+ "hanger_summary": {
+  "n": 1,
+  "worst_before_p50": 1.82,
+  "worst_during_p99": 2449.46
+ },
+ "perIsolate": [
+  {
+   "idx": 0,
+   "role": "HANGER",
+   "ticksBefore": 56,
+   "ticksDuring": 8,
+   "jitter_before_ms": {
+    "p50": 1.82,
+    "p99": 36.03,
+    "max": 36.03
+   },
+   "jitter_during_ms": {
+    "p50": 1.3,
+    "p99": 2449.46,
+    "max": 2449.46
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 1,
+   "role": "victim",
+   "ticksBefore": 56,
+   "ticksDuring": 54,
+   "jitter_before_ms": {
+    "p50": 2.69,
+    "p99": 28.67,
+    "max": 28.67
+   },
+   "jitter_during_ms": {
+    "p50": 1.71,
+    "p99": 18.89,
+    "max": 18.89
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 2,
+   "role": "victim",
+   "ticksBefore": 56,
+   "ticksDuring": 54,
+   "jitter_before_ms": {
+    "p50": 2.3,
+    "p99": 28.84,
+    "max": 28.84
+   },
+   "jitter_during_ms": {
+    "p50": 1.97,
+    "p99": 17.59,
+    "max": 17.59
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 3,
+   "role": "victim",
+   "ticksBefore": 56,
+   "ticksDuring": 55,
+   "jitter_before_ms": {
+    "p50": 2.22,
+    "p99": 34.7,
+    "max": 34.7
+   },
+   "jitter_during_ms": {
+    "p50": 1.56,
+    "p99": 15.65,
+    "max": 15.65
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 4,
+   "role": "victim",
+   "ticksBefore": 56,
+   "ticksDuring": 55,
+   "jitter_before_ms": {
+    "p50": 2.32,
+    "p99": 34.69,
+    "max": 34.69
+   },
+   "jitter_during_ms": {
+    "p50": 1.36,
+    "p99": 15.76,
+    "max": 15.76
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 5,
+   "role": "victim",
+   "ticksBefore": 56,
+   "ticksDuring": 55,
+   "jitter_before_ms": {
+    "p50": 2.29,
+    "p99": 34.75,
+    "max": 34.75
+   },
+   "jitter_during_ms": {
+    "p50": 1.6,
+    "p99": 16.05,
+    "max": 16.05
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 6,
+   "role": "victim",
+   "ticksBefore": 56,
+   "ticksDuring": 54,
+   "jitter_before_ms": {
+    "p50": 2.15,
+    "p99": 27.91,
+    "max": 27.91
+   },
+   "jitter_during_ms": {
+    "p50": 1.86,
+    "p99": 17.6,
+    "max": 17.6
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 7,
+   "role": "victim",
+   "ticksBefore": 56,
+   "ticksDuring": 55,
+   "jitter_before_ms": {
+    "p50": 2.62,
+    "p99": 32.33,
+    "max": 32.33
+   },
+   "jitter_during_ms": {
+    "p50": 1.72,
+    "p99": 16.37,
+    "max": 16.37
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 8,
+   "role": "victim",
+   "ticksBefore": 56,
+   "ticksDuring": 54,
+   "jitter_before_ms": {
+    "p50": 2.36,
+    "p99": 34.6,
+    "max": 34.6
+   },
+   "jitter_during_ms": {
+    "p50": 1.84,
+    "p99": 18.48,
+    "max": 18.48
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 9,
+   "role": "victim",
+   "ticksBefore": 56,
+   "ticksDuring": 54,
+   "jitter_before_ms": {
+    "p50": 2.7,
+    "p99": 34.59,
+    "max": 34.59
+   },
+   "jitter_during_ms": {
+    "p50": 2.2,
+    "p99": 17.11,
+    "max": 17.11
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 10,
+   "role": "victim",
+   "ticksBefore": 56,
+   "ticksDuring": 54,
+   "jitter_before_ms": {
+    "p50": 2.08,
+    "p99": 27.78,
+    "max": 27.78
+   },
+   "jitter_during_ms": {
+    "p50": 1.7,
+    "p99": 16.25,
+    "max": 16.25
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 11,
+   "role": "victim",
+   "ticksBefore": 55,
+   "ticksDuring": 54,
+   "jitter_before_ms": {
+    "p50": 2.15,
+    "p99": 62.31,
+    "max": 62.31
+   },
+   "jitter_during_ms": {
+    "p50": 1.93,
+    "p99": 19.38,
+    "max": 19.38
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 12,
+   "role": "victim",
+   "ticksBefore": 56,
+   "ticksDuring": 55,
+   "jitter_before_ms": {
+    "p50": 2.77,
+    "p99": 25.68,
+    "max": 25.68
+   },
+   "jitter_during_ms": {
+    "p50": 1.31,
+    "p99": 16.06,
+    "max": 16.06
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 13,
+   "role": "victim",
+   "ticksBefore": 56,
+   "ticksDuring": 54,
+   "jitter_before_ms": {
+    "p50": 2.07,
+    "p99": 27.96,
+    "max": 27.96
+   },
+   "jitter_during_ms": {
+    "p50": 1.82,
+    "p99": 18.65,
+    "max": 18.65
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 14,
+   "role": "victim",
+   "ticksBefore": 56,
+   "ticksDuring": 54,
+   "jitter_before_ms": {
+    "p50": 2.37,
+    "p99": 28.71,
+    "max": 28.71
+   },
+   "jitter_during_ms": {
+    "p50": 1.68,
+    "p99": 18.88,
+    "max": 18.88
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 15,
+   "role": "victim",
+   "ticksBefore": 55,
+   "ticksDuring": 54,
+   "jitter_before_ms": {
+    "p50": 2.4,
+    "p99": 61.86,
+    "max": 61.86
+   },
+   "jitter_during_ms": {
+    "p50": 1.68,
+    "p99": 18.98,
+    "max": 18.98
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 16,
+   "role": "victim",
+   "ticksBefore": 56,
+   "ticksDuring": 54,
+   "jitter_before_ms": {
+    "p50": 2.22,
+    "p99": 28.25,
+    "max": 28.25
+   },
+   "jitter_during_ms": {
+    "p50": 1.74,
+    "p99": 18.42,
+    "max": 18.42
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 17,
+   "role": "victim",
+   "ticksBefore": 56,
+   "ticksDuring": 54,
+   "jitter_before_ms": {
+    "p50": 2.49,
+    "p99": 27.79,
+    "max": 27.79
+   },
+   "jitter_during_ms": {
+    "p50": 1.78,
+    "p99": 16.93,
+    "max": 16.93
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 18,
+   "role": "victim",
+   "ticksBefore": 56,
+   "ticksDuring": 54,
+   "jitter_before_ms": {
+    "p50": 2.41,
+    "p99": 28.05,
+    "max": 28.05
+   },
+   "jitter_during_ms": {
+    "p50": 1.66,
+    "p99": 18.15,
+    "max": 18.15
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 19,
+   "role": "victim",
+   "ticksBefore": 55,
+   "ticksDuring": 54,
+   "jitter_before_ms": {
+    "p50": 1.98,
+    "p99": 64.54,
+    "max": 64.54
+   },
+   "jitter_during_ms": {
+    "p50": 2.05,
+    "p99": 17.15,
+    "max": 17.15
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 20,
+   "role": "victim",
+   "ticksBefore": 55,
+   "ticksDuring": 54,
+   "jitter_before_ms": {
+    "p50": 2.59,
+    "p99": 64.88,
+    "max": 64.88
+   },
+   "jitter_during_ms": {
+    "p50": 1.68,
+    "p99": 18.48,
+    "max": 18.48
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 21,
+   "role": "victim",
+   "ticksBefore": 55,
+   "ticksDuring": 54,
+   "jitter_before_ms": {
+    "p50": 2.95,
+    "p99": 64.21,
+    "max": 64.21
+   },
+   "jitter_during_ms": {
+    "p50": 1.91,
+    "p99": 19.36,
+    "max": 19.36
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 22,
+   "role": "victim",
+   "ticksBefore": 56,
+   "ticksDuring": 54,
+   "jitter_before_ms": {
+    "p50": 2.7,
+    "p99": 24.94,
+    "max": 24.94
+   },
+   "jitter_during_ms": {
+    "p50": 1.87,
+    "p99": 16.95,
+    "max": 16.95
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 23,
+   "role": "victim",
+   "ticksBefore": 55,
+   "ticksDuring": 54,
+   "jitter_before_ms": {
+    "p50": 2.32,
+    "p99": 64.74,
+    "max": 64.74
+   },
+   "jitter_during_ms": {
+    "p50": 1.67,
+    "p99": 17.75,
+    "max": 17.75
+   },
+   "callErrors": 0,
+   "firstError": null
+  }
+ ],
+ "mainEventLoopDelay_ms": {
+  "p50": 20.19,
+  "p99": 33.82,
+  "max": 67.37
+ },
+ "post_hang_health": [
+  "0:OK tick=388",
+  "1:OK tick=664",
+  "2:OK tick=664",
+  "3:OK tick=670",
+  "4:OK tick=670",
+  "5:OK tick=670",
+  "6:OK tick=664",
+  "7:OK tick=670",
+  "8:OK tick=664",
+  "9:OK tick=664",
+  "10:OK tick=664",
+  "11:OK tick=658",
+  "12:OK tick=670",
+  "13:OK tick=664",
+  "14:OK tick=664",
+  "15:OK tick=658",
+  "16:OK tick=664",
+  "17:OK tick=664",
+  "18:OK tick=664",
+  "19:OK tick=658",
+  "20:OK tick=658",
+  "21:OK tick=658",
+  "22:OK tick=664",
+  "23:OK tick=658"
+ ]
+}

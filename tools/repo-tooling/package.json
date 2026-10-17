@@ -1,0 +1,17 @@
+{
+  "name": "@box/repo-tooling",
+  "version": "0.2.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "format": "node ../../scripts/format-repository.js --write",
+    "format:check": "node ../../scripts/format-repository.js",
+    "lint:root": "eslint ../../apps/local-engine/src ../../apps/local-engine/scripts ../../scripts --ext .js,.cjs"
+  },
+  "devDependencies": {
+    "eslint": "8.57.1",
+    "eslint-config-prettier": "9.1.0",
+    "js-yaml": "4.3.2",
+    "prettier": "3.6.2"
+  }
+}

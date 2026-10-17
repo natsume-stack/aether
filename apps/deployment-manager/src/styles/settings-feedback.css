@@ -1,0 +1,312 @@
+.backup-switch {
+    display: inline-flex;
+    height: 30px;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 8px;
+    padding: 0 2px 0 0;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.backup-switch input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    clip-path: inset(50%);
+}
+
+.backup-switch > span {
+    position: relative;
+    width: 34px;
+    height: 20px;
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    background: var(--panel-soft);
+    transition:
+        background-color 140ms ease,
+        border-color 140ms ease;
+}
+
+.backup-switch > span::after {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--muted);
+    content: '';
+    transition:
+        transform 160ms var(--ease-out),
+        background-color 140ms ease;
+}
+
+.backup-switch input:checked + span {
+    border-color: var(--accent);
+    background: var(--accent);
+}
+
+.backup-switch input:checked + span::after {
+    transform: translateX(14px);
+    background: #fff;
+}
+
+.backup-switch input:focus-visible + span {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.backup-switch strong {
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.setting-toggle-list {
+    display: grid;
+    gap: 8px;
+}
+
+.setting-toggle {
+    min-height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--panel-soft);
+    cursor: pointer;
+}
+
+.setting-toggle > span:first-child,
+.setting-toggle strong,
+.setting-toggle small {
+    display: block;
+}
+
+.setting-toggle strong {
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.setting-toggle small {
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.config-switch {
+    position: relative;
+    width: 36px;
+    height: 22px;
+    flex: 0 0 auto;
+}
+
+.config-switch input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    clip-path: inset(50%);
+}
+
+.config-switch i {
+    position: absolute;
+    inset: 0;
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    background: var(--panel);
+    transition:
+        background-color 140ms ease,
+        border-color 140ms ease;
+}
+
+.config-switch i::after {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--muted);
+    content: '';
+    transition:
+        transform 160ms var(--ease-out),
+        background-color 140ms ease;
+}
+
+.config-switch input:checked + i {
+    border-color: var(--accent);
+    background: var(--accent);
+}
+
+.config-switch input:checked + i::after {
+    transform: translateX(14px);
+    background: #fff;
+}
+
+.config-switch input:focus-visible + i {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.config-note {
+    margin: 2px 0 0;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.setup-explainer {
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.setup-explainer summary {
+    height: 38px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--muted);
+    font-weight: 500;
+    list-style: none;
+}
+
+.setup-explainer summary::-webkit-details-marker {
+    display: none;
+}
+
+.setup-explainer summary::before {
+    width: 7px;
+    height: 7px;
+    margin-right: 8px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    content: '';
+    transform: rotate(-45deg);
+    transition: transform 140ms var(--ease-out);
+}
+
+.setup-explainer[open] summary::before {
+    transform: rotate(45deg) translate(-2px, -2px);
+}
+
+.setup-explainer-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 24px;
+    padding: 0 1px 14px 15px;
+}
+
+.setup-explainer-grid div {
+    display: grid;
+    gap: 3px;
+}
+
+.setup-explainer-grid strong {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.setup-explainer-grid span {
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.55;
+}
+
+.toast {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    /* Feedback stays above dialogs (20) and the processing overlay (30). */
+    z-index: 40;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 20px;
+    grid-template-rows: auto auto;
+    align-items: start;
+    gap: 4px 8px;
+    width: min(440px, calc(100vw - 48px));
+    min-height: 38px;
+    padding: 10px 8px 10px 12px;
+    border: 1px solid color-mix(in srgb, var(--success) 28%, var(--border));
+    border-radius: 7px;
+    background: var(--panel);
+    box-shadow: 0 10px 26px color-mix(in srgb, #000 16%, transparent);
+    font-size: 12px;
+}
+
+.toast span {
+    grid-column: 1;
+    grid-row: 1;
+    color: var(--success);
+    font-weight: 650;
+}
+
+.toast.danger {
+    border-color: color-mix(in srgb, var(--danger) 38%, var(--border));
+}
+
+.toast.danger span {
+    color: var(--danger);
+}
+
+.toast small {
+    grid-column: 1;
+    grid-row: 2;
+    color: var(--muted);
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.toast button {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    width: 20px;
+    height: 20px;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 17px;
+    line-height: 1;
+}
+
+.toast button:hover {
+    background: var(--panel-soft);
+    color: var(--text);
+}
+
+.log-filters {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.log-filters button {
+    min-height: 30px;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--panel);
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.log-filters button.active {
+    border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+    background: color-mix(in srgb, var(--accent) 8%, var(--panel));
+    color: var(--accent);
+}

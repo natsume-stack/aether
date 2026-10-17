@@ -1,0 +1,71 @@
+@use '../colors.module.scss' as colors;
+@use '../texts.module.scss' as texts;
+
+.hierarchy {
+  width: 100%;
+  color: colors.$textWhiteSecondary;
+  @include texts.b12;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  :global(.boxTreeNodeAttachableIcon) use {
+    fill: colors.$primary90;
+  }
+
+  :global(.boxTreeNodeAttachableName) {
+    color: colors.$primary90;
+  }
+}
+
+.dragSkin {
+  cursor: url('./drag-skin.svg') 0 0, auto;
+}
+
+.dragBone {
+  cursor: url('./drag-bone.svg') 0 0, auto;
+}
+
+.bindSkin {
+  cursor: url('./bind-skin.svg') 0 0, auto;
+}
+
+.replaceSkin {
+  cursor: url('./replace-skin.svg') 0 0, auto;
+}
+
+.notAllowed {
+  cursor: url('./not-allowed.svg') 0 0, auto;
+}
+
+.tooltip {
+  width: 205px;
+}
+
+.rootNode {
+  margin-top: 8px;
+}
+
+.boneNodeUnselected {
+  & > div > div > :global(.boxTreeNodeContainer) {
+    color: colors.$primary50;
+    :global(.boxTreeNodeAttachableName) {
+      color: colors.$primary50;
+    }
+    :global(.boxTreeNodeAttachableIcon) use {
+      fill: colors.$primary50;
+    }
+  }
+}
+.skinPartNodeUnselected {
+  & > div > div > :global(.boxTreeNodeContainer) {
+    background: unset;
+    :global(.boxTreeNodeName) {
+      color: colors.$textWhiteDisabled;
+    }
+    :global(.boxTreeNodeExtraIcon) use {
+      fill: colors.$textWhiteDisabled;
+    }
+  }
+}

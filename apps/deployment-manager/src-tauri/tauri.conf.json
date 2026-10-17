@@ -1,0 +1,43 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "BOX3 Engine Launcher",
+  "version": "2026.1.4",
+  "identifier": "com.box.engine.manager",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "BOX3 Engine Launcher",
+        "width": 1180,
+        "height": 760,
+        "minWidth": 940,
+        "minHeight": 640,
+        "center": true,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; frame-src http: https:; connect-src ipc: http://ipc.localhost https://assets.box3.fun http://localhost:* http://127.0.0.1:*"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "resources": ["payload"],
+    "icon": ["icons/icon.ico", "icons/icon.icns"],
+    "category": "DeveloperTool",
+    "shortDescription": "Install and manage BOX3 Engine Launcher",
+    "longDescription": "A native graphical installer and operations console for BOX3 Engine Launcher.",
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
+      }
+    }
+  }
+}

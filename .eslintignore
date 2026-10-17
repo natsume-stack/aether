@@ -1,0 +1,11 @@
+**/node_modules/
+**/.next/
+**/dist/
+**/coverage/
+apps/game/html-report/
+apps/local-engine/data/
+apps/local-engine/projects/
+apps/local-engine/play-worlds/
+apps/local-engine/backups/
+apps/voxa/data/
+apps/migrator/

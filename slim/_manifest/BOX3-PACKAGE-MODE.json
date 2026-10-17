@@ -1,0 +1,7 @@
+{
+  "mode": "slim",
+  "channel": "production",
+  "version": "2026.1.4",
+  "imageTag": "v2026.1.4-linux-amd64",
+  "platform": "linux/amd64"
+}

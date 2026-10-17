@@ -1,0 +1,102 @@
+/* Shared surface language -------------------------------------------------
+   The launcher has one visual hierarchy: compact controls, grouped surfaces,
+   and page-level panels. These overrides intentionally live together so a
+   future screen cannot drift by introducing a one-off radius. */
+.nav-item,
+.theme-menu button,
+.dialog-close,
+.start-scope-list button,
+.button,
+.icon-button,
+.open-button,
+.service-commands button,
+.service-icon,
+.service-more-menu button,
+.copy-connection,
+.access-choice button,
+.field input,
+.toast button {
+    border-radius: var(--radius-control);
+}
+
+.theme-trigger,
+.theme-menu,
+.progress-panel,
+.summary-bar,
+.backup-dialog-file,
+.service-grid,
+.service-more-menu,
+.backup-list,
+.raw-environment,
+.database-mode-choice button,
+.managed-database-summary,
+.database-download-note,
+.managed-service-note,
+.setting-toggle,
+.access-choice,
+.about-card,
+.about-image-meta,
+.diagnostic-list > div,
+.runtime-submap,
+.toast {
+    border-radius: var(--radius-surface);
+}
+
+.start-dialog,
+.config-group,
+.network-service-card,
+.managed-install-card,
+.managed-connection-card,
+.about-release-card,
+.legal-dialog,
+.metric-grid article,
+.performance-panel,
+.runtime-project {
+    border-radius: var(--radius-panel);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .nav-item:hover,
+    .theme-trigger:hover,
+    .theme-menu button:hover {
+        background: var(--panel-soft);
+        color: var(--text);
+    }
+
+    .button:hover,
+    .icon-button:hover,
+    .open-button:hover,
+    .service-commands button:hover {
+        background: var(--panel-soft);
+    }
+
+    .button.primary:hover {
+        background: var(--accent-hover);
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']):not([data-theme='dark']) {
+        color-scheme: dark;
+        --bg: #0d0d0d;
+        --panel: #171717;
+        --panel-soft: #242424;
+        --text: #f5f5f5;
+        --muted: #a3a3a3;
+        --border: #333333;
+        --accent: #ffdb00;
+        --accent-hover: #ffe34d;
+    }
+}
+
+:root[data-theme='dark'] {
+    color-scheme: dark;
+    --bg: #0d0d0d;
+    --panel: #171717;
+    --panel-soft: #242424;
+    --text: #f5f5f5;
+    --muted: #a3a3a3;
+    --border: #333333;
+    --accent: #ffdb00;
+    --accent-hover: #ffe34d;
+}

@@ -1,0 +1,41 @@
+{
+  "name": "@box/player-auth-portal",
+  "version": "2026.1.4",
+  "private": true,
+  "description": "Player login and registration portal for BOX Local Engine",
+  "license": "MIT",
+  "type": "module",
+  "main": "build/library.cjs",
+  "types": "build/types/server/index.d.ts",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env build/server.cjs",
+    "dev": "node --watch --import tsx scripts/tasks.ts dev",
+    "dev:live": "node --watch --import tsx scripts/tasks.ts dev --live",
+    "build": "tsx scripts/tasks.ts build",
+    "typecheck": "tsc --noEmit",
+    "package": "tsx scripts/tasks.ts package",
+    "export:template": "tsx scripts/tasks.ts export",
+    "test": "tsx --test test/*.test.ts",
+    "test:ui": "tsx scripts/tasks.ts ui",
+    "check": "tsx scripts/tasks.ts check"
+  },
+  "dependencies": {
+    "@box/apis": "workspace:0.2.0",
+    "@box/deployment-routing": "workspace:0.1.0",
+    "lucide-react": "0.553.0",
+    "radix-ui": "~1.4.3",
+    "react": "19.2.1",
+    "react-dom": "19.2.1"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "typescript": "5.6.3",
+    "tsx": "4.20.5",
+    "@types/node": "22.17.0",
+    "@types/react": "19.2.4",
+    "@types/react-dom": "19.2.3"
+  },
+  "engines": {
+    "node": ">=22.17.0"
+  }
+}

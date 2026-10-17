@@ -1,0 +1,133 @@
+.storage-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--muted);
+    text-align: left;
+    cursor: pointer;
+}
+.storage-nav.active,
+.storage-nav:hover {
+    background: var(--panel-soft);
+    color: var(--text);
+}
+.storage-nav svg {
+    width: 18px;
+    height: 18px;
+}
+.storage-list {
+    display: grid;
+    gap: 14px;
+}
+.storage-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 22px;
+}
+.storage-row h3 {
+    margin: 0 0 8px;
+}
+.storage-row p {
+    color: var(--muted);
+    overflow-wrap: anywhere;
+    margin: 0 0 8px;
+}
+.storage-row small {
+    color: var(--muted);
+}
+.storage-row .storage-mode {
+    margin: 10px 0 0;
+    font-size: 12px;
+    line-height: 1.5;
+}
+.storage-confirm {
+    flex-shrink: 0;
+}
+.storage-confirm .button {
+    margin-right: 8px;
+}
+.storage-server-trigger {
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    color: var(--text);
+}
+.storage-server-trigger:hover {
+    background: var(--panel-soft);
+}
+.storage-server-trigger > span {
+    font-size: 24px;
+    color: var(--muted);
+}
+.storage-back {
+    margin-bottom: 22px;
+}
+.storage-browser-cache {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 20px 22px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-panel);
+    background: var(--panel);
+}
+.browser-cache-copy {
+    min-width: 0;
+}
+.browser-cache-copy h3 {
+    margin: 0 0 6px;
+    font-size: 14px;
+}
+.browser-cache-copy p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+.browser-cache-actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 18px;
+}
+.browser-cache-size {
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+.browser-cache-warning {
+    display: block;
+    margin-top: 5px;
+    color: var(--muted);
+    font-size: 11px;
+}
+.browser-cache-actions .storage-confirm {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.browser-cache-actions .storage-confirm .button {
+    margin: 0;
+}
+@media (max-width: 620px) {
+    .storage-browser-cache {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 14px;
+    }
+    .browser-cache-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+}

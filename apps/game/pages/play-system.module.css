@@ -1,0 +1,159 @@
+.page, .page :global(*) { box-sizing: border-box; }
+
+.page {
+  width: min(1120px, calc(100% - 40px));
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 44px 0 80px;
+  color: #202124;
+  background: #f7f7f8;
+  box-shadow: 0 0 0 100vmax #f7f7f8;
+  clip-path: inset(0 -100vmax);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.header { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
+.headerTitle { display: flex; align-items: baseline; gap: 12px; min-width: 0; }
+.headerTitle h1 { margin: 0; font-size: 26px; letter-spacing: -.02em; }
+.headerTitle > span { overflow: hidden; color: #85888f; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.headerActions { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; }
+.back, .refreshButton {
+  display: inline-flex;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 14px;
+  border: 1px solid #d9dadd;
+  border-radius: 7px;
+  color: #303238;
+  background: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 140ms cubic-bezier(.23,1,.32,1), background-color 140ms ease, border-color 140ms ease;
+}
+.back:active, .refreshButton:active { transform: scale(.97); }
+.refreshButton:disabled { cursor: wait; opacity: .55; transform: none; }
+.overall { display: inline-flex; height: 36px; align-items: center; gap: 8px; padding: 0 12px; border: 1px solid #dfe7e2; border-radius: 7px; color: #39734f; background: #f1f8f3; font-size: 12px; }
+.overall > span { width: 7px; height: 7px; border-radius: 50%; background: #45a56b; box-shadow: 0 0 0 3px #e0f1e6; }
+.overall.warning { border-color: #eee0bd; color: #8a6824; background: #fff9ea; }
+.overall.warning > span { background: #d6a13d; box-shadow: 0 0 0 3px #f6ebce; }
+
+.content { width: 100%; }
+.intro { margin: -8px 0 22px; color: #73767d; font-size: 13px; line-height: 1.6; }
+.error { margin-bottom: 18px; padding: 11px 13px; border: 1px solid #efd0d0; border-radius: 7px; color: #b42323; background: #fff5f5; font-size: 12px; }
+
+.summaryGrid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; margin-bottom: 14px; }
+.summaryGrid article { display: flex; min-height: 92px; align-items: center; gap: 13px; padding: 17px; border: 1px solid #e3e5e7; border-radius: 10px; background: #fff; }
+.summaryGrid svg { color: #62676e; }
+.summaryGrid div { display: grid; gap: 3px; }
+.summaryGrid strong { color: #292c31; font-size: 20px; }
+.summaryGrid span { color: #85888f; font-size: 11px; }
+
+.panel { margin-top: 14px; padding: 20px; border: 1px solid #e3e5e7; border-radius: 10px; background: #fff; }
+.panelTitle { display: flex; align-items: flex-start; gap: 10px; }
+.panelTitle > svg { margin-top: 1px; color: #62676e; }
+.panelTitle h2 { margin: 0; color: #303238; font-size: 15px; }
+.panelTitle p { margin: 5px 0 0; color: #93969c; font-size: 11px; }
+
+.creatorGrid { display: grid; grid-template-columns: 1.35fr repeat(3,minmax(0,1fr)); gap: 1px; overflow: hidden; margin-top: 17px; border: 1px solid #e8e9eb; border-radius: 8px; background: #e8e9eb; }
+.creatorGrid > div { display: grid; min-width: 0; min-height: 86px; align-content: center; gap: 5px; padding: 13px; background: #fafafb; }
+.creatorGrid > div > span { color: #8a8e94; font-size: 9px; }
+.creatorGrid > div > strong { display: flex; min-width: 0; align-items: center; gap: 5px; overflow: hidden; color: #44484f; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.creatorGrid > div > small { overflow: hidden; color: #999ca2; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.creatorPrimary { gap: 6px !important; }
+.creatorPrimary > strong { color: #292c31 !important; font-size: 14px !important; }
+.creatorState { display: inline-flex; align-items: center; gap: 6px; color: #3b7d55 !important; }
+.creatorState i { width: 6px; height: 6px; border-radius: 50%; background: #45a56b; box-shadow: 0 0 0 3px #e3f2e8; }
+
+.diagnosticsPanel { border-color: #ead9ae; background: #fffdf7; }
+.diagnosticsPanel .panelTitle > svg { color: #b78022; }
+.diagnosticList { display: grid; gap: 6px; margin-top: 16px; }
+.diagnosticList > div { display: grid; grid-template-columns: minmax(130px,.35fr) minmax(0,1fr) auto; align-items: center; gap: 12px; min-height: 44px; padding: 9px 11px; border-radius: 7px; background: #fff7e3; }
+.diagnosticList span { color: #8a6824; font-size: 10px; }
+.diagnosticList p { overflow-wrap: anywhere; margin: 0; color: #5f6268; font-size: 10px; }
+.diagnosticList em { color: #8a8d93; font-size: 9px; font-style: normal; }
+
+.serviceGrid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin-top: 17px; }
+.service { display: flex; min-width: 0; min-height: 68px; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid #ebeced; border-radius: 8px; background: #fafafb; }
+.service > svg { flex: 0 0 auto; color: #8b8f95; }
+.service > div { display: grid; min-width: 0; flex: 1; gap: 3px; }
+.service strong { color: #3a3d43; font-size: 12px; }
+.service span, .service small { overflow: hidden; color: #7f8389; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.service small { color: #a1a4a9; font-size: 9px; }
+.service em, .runtimeCellTop em { flex: 0 0 auto; padding: 4px 7px; border-radius: 999px; font-size: 10px; font-style: normal; }
+.state_healthy { color: #277346; background: #eaf6ee; }
+.state_warning { color: #8a6824; background: #fff3d7; }
+.state_unhealthy { color: #b93232; background: #fdecec; }
+.state_disabled { color: #7d8187; background: #eceef0; }
+
+.runtimeList { display: grid; gap: 8px; margin-top: 17px; }
+.runtime { display: grid; grid-template-columns: minmax(190px,.65fr) minmax(260px,1fr); overflow: hidden; border: 1px solid #e8e9eb; border-radius: 8px; background: #e8e9eb; }
+.playRuntime { grid-template-columns: minmax(190px,.65fr) minmax(260px,1fr); }
+.runtimeIdentity { display: grid; min-width: 0; align-content: center; gap: 5px; padding: 13px; background: #fafafb; }
+.runtime strong { overflow: hidden; color: #303238; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.runtime code { overflow: hidden; color: #8e9298; font-size: 9px; text-overflow: ellipsis; }
+.runtimeIdentity small { color: #9a9da3; font-size: 9px; }
+.runtimeCell { display: grid; min-width: 0; align-content: start; gap: 6px; padding: 11px 12px; background: #fafafb; }
+.runtimeCellTop { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.runtimeCellTop small { color: #60646a; font-size: 9px; font-weight: 650; }
+.runtimeCell p { overflow: hidden; margin: 0; color: #73777d; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.runtimeMeta { display: flex; flex-wrap: wrap; gap: 4px 9px; color: #a0a3a8; font-size: 8px; }
+.runtimeProgress { overflow: hidden; height: 3px; border-radius: 99px; background: #e4e6e8; }
+.runtimeProgress span { display: block; height: 100%; border-radius: inherit; background: #30343a; transition: width 220ms cubic-bezier(.23,1,.32,1); }
+.loading { padding: 18px; color: #92959b; font-size: 11px; text-align: center; }
+
+.diskPanel { display: flex; align-items: center; gap: 11px; margin-top: 14px; padding: 15px 20px; border: 1px solid #e3e5e7; border-radius: 10px; background: #fff; }
+.diskPanel > svg { color: #62676e; }
+.diskPanel > div:nth-child(2) { display: grid; min-width: 190px; gap: 4px; }
+.diskPanel strong { color: #3a3d43; font-size: 12px; }
+.diskPanel span { color: #85888f; font-size: 10px; }
+.diskTrack { overflow: hidden; height: 6px; flex: 1; border-radius: 99px; background: #eceef0; }
+.diskTrack span { display: block; height: 100%; background: #45a56b; }
+.checkedAt { margin: 13px 2px 0; color: #a0a3a8; font-size: 10px; text-align: right; }
+.spinning { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (hover: hover) and (pointer: fine) {
+  .back:hover, .refreshButton:hover { background: #f3f4f5; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .back, .refreshButton, .runtimeProgress span { transition-duration: 0ms; }
+  .spinning { animation-duration: 1.5s; }
+}
+@media (max-width: 900px) {
+  .header { align-items: flex-start; flex-direction: column; }
+  .headerActions { flex-wrap: wrap; }
+  .summaryGrid, .creatorGrid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .creatorPrimary { grid-column: span 2; }
+}
+@media (max-width: 640px) {
+  .page { width: min(100% - 24px,1120px); padding-top: 24px; }
+  .headerTitle { align-items: flex-start; flex-direction: column; gap: 5px; }
+  .headerTitle > span { white-space: normal; }
+  .headerActions { width: 100%; }
+  .overall { margin-right: auto; }
+  .summaryGrid, .serviceGrid, .creatorGrid, .runtime, .playRuntime { grid-template-columns: 1fr; }
+  .creatorPrimary { grid-column: auto; }
+  .diagnosticList > div { grid-template-columns: 1fr auto; }
+  .diagnosticList p { grid-column: 1 / -1; }
+  .diskPanel { align-items: flex-start; flex-wrap: wrap; }
+  .diskTrack { min-width: 100%; }
+}
+
+/* Shared Arena surface language: this page intentionally retains its dense
+   monitoring layout while using the same palette, radii and emphasis rules as
+   Creator, Play and the desktop launcher. */
+.page { color: rgba(255,255,255,.9); background: #262626; box-shadow: 0 0 0 100vmax #262626; font-family: var(--font-regular), sans-serif; }
+.headerTitle h1 { color: #fff; }.headerTitle > span,.intro,.checkedAt { color: rgba(255,255,255,.45); }
+.back,.refreshButton { border-color: rgba(255,255,255,.14); color: rgba(255,255,255,.8); background: #404040; }.back:hover,.refreshButton:hover { background: #4a4a4a; }
+.overall { border-color: rgba(120,201,93,.25); color: #9be7b0; background: rgba(120,201,93,.09); }.overall > span { background: #78c95d; box-shadow: 0 0 0 3px rgba(120,201,93,.13); }.overall.warning { border-color: rgba(240,184,75,.25); color: #ffd278; background: rgba(240,184,75,.09); }.overall.warning > span { background: #f0b84b; box-shadow: 0 0 0 3px rgba(240,184,75,.13); }
+.error { border-color: rgba(246,82,82,.3); color: #ff9a9a; background: rgba(246,82,82,.08); }
+.summaryGrid article,.panel,.diskPanel { border-color: rgba(255,255,255,.08); background: #333; }.summaryGrid svg,.panelTitle > svg,.diskPanel > svg { color: #ffdb00; }.summaryGrid strong,.panelTitle h2,.runtime strong,.diskPanel strong { color: #fff; }.summaryGrid span,.panelTitle p { color: rgba(255,255,255,.45); }
+.creatorGrid,.runtime { border-color: transparent; background: rgba(255,255,255,.08); }.creatorGrid > div,.runtimeIdentity,.runtimeCell { background: #404040; }.creatorGrid > div > span,.creatorGrid > div > small,.runtimeIdentity small,.runtime code,.runtimeMeta { color: rgba(255,255,255,.32); }.creatorGrid > div > strong,.runtimeCellTop small { color: rgba(255,255,255,.84); }.creatorPrimary > strong { color: #fff !important; }.creatorState { color: #9be7b0 !important; }.creatorState i { background: #78c95d; box-shadow: 0 0 0 3px rgba(120,201,93,.12); }
+.diagnosticsPanel { border-color: rgba(240,184,75,.2); background: #333; }.diagnosticsPanel .panelTitle > svg { color: #f0b84b; }.diagnosticList > div { background: rgba(240,184,75,.06); }.diagnosticList span { color: #ffd278; }.diagnosticList p { color: rgba(255,255,255,.64); }.diagnosticList em { color: rgba(255,255,255,.4); }
+.service { border-color: rgba(255,255,255,.08); background: #404040; }.service > svg { color: rgba(255,255,255,.42); }.service strong { color: rgba(255,255,255,.86); }.service span,.service small { color: rgba(255,255,255,.44); }.service em,.runtimeCellTop em { color: rgba(255,255,255,.72); }.state_healthy { color: #9be7b0; background: rgba(82,196,116,.14); }.state_warning { color: #ffd278; background: rgba(240,184,75,.14); }.state_unhealthy { color: #ff9999; background: rgba(246,82,82,.13); }.state_disabled { color: rgba(255,255,255,.45); background: rgba(255,255,255,.07); }
+.runtimeCell p { color: rgba(255,255,255,.56); }.runtimeProgress,.diskTrack { background: rgba(255,255,255,.1); }.runtimeProgress span { background: #ffdb00; }.diskTrack span { background: #78c95d; }

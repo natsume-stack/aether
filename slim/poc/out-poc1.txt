@@ -1,0 +1,126 @@
+author script size          = 3982 bytes
+cachedData produced         = -1 bytes  (kind=[object Object])
+cachedDataRejected (cold)   = false
+cachedDataRejected (warm)   = false
+sample tick result = {"tick":20,"moved":1280,"dropped":1}
+{
+ "meta": {
+  "node": "v22.17.0",
+  "ivm": "5.0.4",
+  "memoryLimitMB": 512,
+  "authorScriptBytes": 3982,
+  "samples": 20,
+  "warmupDiscarded": 3,
+  "host": {
+   "cpu": "AMD Ryzen 7 H 255 w/ Radeon 780M Graphics",
+   "cores": 8
+  }
+ },
+ "NOCACHE_create": {
+  "n": 20,
+  "min": 1.417,
+  "p50": 9.957,
+  "p95": 11.411,
+  "max": 11.664
+ },
+ "CACHE_create": {
+  "n": 20,
+  "min": 1.318,
+  "p50": 1.607,
+  "p95": 11.109,
+  "max": 11.339
+ },
+ "NOCACHE_context": {
+  "n": 20,
+  "min": 0.391,
+  "p50": 0.584,
+  "p95": 0.886,
+  "max": 9.729
+ },
+ "CACHE_context": {
+  "n": 20,
+  "min": 0.417,
+  "p50": 0.534,
+  "p95": 0.765,
+  "max": 1.875
+ },
+ "NOCACHE_compile": {
+  "n": 20,
+  "min": 0.461,
+  "p50": 0.553,
+  "p95": 0.686,
+  "max": 0.694
+ },
+ "CACHE_compile": {
+  "n": 20,
+  "min": 0.099,
+  "p50": 0.131,
+  "p95": 0.304,
+  "max": 8.681
+ },
+ "NOCACHE_run": {
+  "n": 20,
+  "min": 0.368,
+  "p50": 0.497,
+  "p95": 8.438,
+  "max": 9.414
+ },
+ "CACHE_run": {
+  "n": 20,
+  "min": 0.328,
+  "p50": 0.512,
+  "p95": 9.788,
+  "max": 10.653
+ },
+ "NOCACHE_firstCall": {
+  "n": 20,
+  "min": 1.438,
+  "p50": 1.834,
+  "p95": 9.985,
+  "max": 11.437
+ },
+ "CACHE_firstCall": {
+  "n": 20,
+  "min": 1.323,
+  "p50": 1.954,
+  "p95": 11.414,
+  "max": 11.928
+ },
+ "NOCACHE_dispose": {
+  "n": 20,
+  "min": 0.416,
+  "p50": 0.533,
+  "p95": 1.001,
+  "max": 9.676
+ },
+ "CACHE_dispose": {
+  "n": 20,
+  "min": 0.442,
+  "p50": 0.488,
+  "p95": 0.867,
+  "max": 9.868
+ },
+ "NOCACHE_total": {
+  "n": 20,
+  "min": 5.073,
+  "p50": 13.96,
+  "p95": 15.358,
+  "max": 15.509
+ },
+ "CACHE_total": {
+  "n": 20,
+  "min": 3.921,
+  "p50": 13.596,
+  "p95": 14.96,
+  "max": 24.431
+ },
+ "delta_pct": {
+  "create": -83.9,
+  "context": -8.6,
+  "compile": -76.3,
+  "run": 3.1,
+  "firstCall": 6.5,
+  "dispose": -8.4,
+  "total": -2.6
+ }
+}

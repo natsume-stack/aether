@@ -1,0 +1,398 @@
+.dialog-backdrop {
+    position: fixed;
+    z-index: 20;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgb(0 0 0 / 58%);
+    backdrop-filter: blur(3px);
+    animation: modal-scrim-in 180ms ease-out both;
+}
+
+.update-check {
+    margin-left: auto;
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
+}
+.icon-button.update-check.update-available {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #fff;
+}
+.icon-button.update-check.update-available:hover {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+}
+.update-backdrop {
+    z-index: 35;
+    /* Background status refreshes can rebuild the shell while this dialog is open. */
+    animation: none;
+}
+.start-dialog.update-dialog {
+    width: min(100%, 640px);
+    max-height: calc(100dvh - 48px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+    border-radius: 14px;
+    animation: none;
+}
+.update-dialog .update-header {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: 14px;
+    margin: 0;
+    padding: 24px 26px;
+    border-bottom: 1px solid var(--border);
+}
+.update-header > div {
+    flex: 1;
+    min-width: 0;
+}
+.update-header h2 {
+    font-size: 20px;
+    letter-spacing: -0.025em;
+}
+.update-header p {
+    font-size: 12px;
+    line-height: 1.6;
+}
+.update-dialog:focus {
+    outline: none;
+}
+.update-dialog .dialog-close:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}
+.update-footer {
+    padding: 18px 26px 22px;
+    border-top: 1px solid var(--border);
+    background: var(--panel-soft);
+    flex: 0 0 auto;
+}
+.update-footer-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+.update-footer-actions > .dialog-actions:first-child {
+    margin-left: auto;
+}
+.update-ready-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    color: var(--success);
+    font-size: 12px;
+}
+.update-download-status {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 18px;
+    font-size: 12px;
+    color: var(--muted);
+}
+.update-download-status progress {
+    width: 100%;
+    height: 6px;
+    border: 0;
+    border-radius: 999px;
+    overflow: hidden;
+    accent-color: var(--accent);
+}
+.update-download-status progress::-webkit-progress-bar {
+    background: var(--border);
+    border-radius: 999px;
+}
+.update-download-status progress::-webkit-progress-value {
+    background: var(--accent);
+    border-radius: 999px;
+}
+.update-footer .update-error {
+    color: var(--danger);
+    margin: 0 0 14px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+.update-footer .button {
+    box-sizing: border-box;
+    width: 128px;
+    min-width: 128px;
+    height: 38px;
+    min-height: 38px;
+    padding: 0 10px;
+    border-width: 1px;
+    border-style: solid;
+    font-size: 13px;
+    line-height: 1;
+    transition:
+        transform 120ms var(--ease-out),
+        background-color 120ms ease;
+}
+.update-footer .button:active:not(:disabled) {
+    transform: scale(0.98);
+}
+@media (prefers-reduced-motion: reduce) {
+    .update-footer .button {
+        transition: none;
+    }
+    .update-footer .button:active:not(:disabled) {
+        transform: none;
+    }
+}
+.update-notes {
+    margin: 0;
+    padding: 6px 26px 24px;
+    overflow-y: auto;
+    min-height: 0;
+    overscroll-behavior: contain;
+    font-size: 13px;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+}
+.update-notes h3 {
+    font-size: 14px;
+    margin: 20px 0 8px;
+}
+.update-notes ul {
+    padding-left: 20px;
+    margin: 0;
+}
+.update-dialog .dialog-actions {
+    display: grid;
+    grid-template-columns: 128px;
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.update-cleanup-choice {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1.6;
+}
+.update-cleanup-choice input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: var(--accent);
+}
+
+.start-dialog {
+    width: min(100%, 410px);
+    padding: 18px;
+    border: 1px solid color-mix(in srgb, var(--text) 18%, var(--border));
+    border-radius: 8px;
+    background: var(--panel);
+    box-shadow:
+        0 24px 70px rgb(0 0 0 / 38%),
+        0 0 0 1px rgb(255 255 255 / 3%);
+    animation: modal-panel-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.runtime-destroy-dialog {
+    width: min(100%, 410px);
+}
+
+@keyframes modal-scrim-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes modal-panel-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.start-dialog header {
+    min-height: 32px;
+    margin: 0 0 14px;
+}
+
+.start-dialog h2,
+.start-dialog p {
+    margin: 0;
+}
+
+.backup-dialog-file {
+    display: grid;
+    gap: 4px;
+    margin-bottom: 18px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--panel) 85%, var(--text));
+}
+
+.backup-dialog-file span {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.backup-dialog-file strong {
+    overflow: hidden;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.backup-env-choice {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+    cursor: pointer;
+}
+
+.backup-env-choice input {
+    flex: 0 0 auto;
+    margin: 2px 0 0;
+}
+
+.backup-env-hint {
+    margin: 6px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.start-dialog h2 {
+    font-size: 16px;
+}
+
+.start-dialog p {
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.dialog-close {
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 21px;
+    line-height: 1;
+}
+
+.start-scope-list {
+    display: grid;
+    gap: 6px;
+}
+
+.start-scope-list button {
+    min-height: 55px;
+    display: grid;
+    gap: 3px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--panel);
+    color: var(--text);
+    cursor: pointer;
+    text-align: left;
+    transition:
+        background-color 140ms ease,
+        border-color 140ms ease,
+        transform 140ms ease,
+        box-shadow 140ms ease;
+}
+
+.start-scope-list button:hover,
+.start-scope-list button:focus-visible {
+    border-color: color-mix(in srgb, var(--accent) 58%, var(--border));
+    background: color-mix(in srgb, var(--accent) 8%, var(--panel));
+    box-shadow: 0 5px 16px rgb(0 0 0 / 16%);
+    outline: none;
+    transform: translateY(-1px);
+}
+
+.start-scope-list button:active {
+    transform: translateY(0) scale(0.99);
+}
+
+.start-scope-list strong {
+    font-size: 13px;
+}
+
+.start-scope-list span {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.header-actions .icon-button {
+    width: 36px;
+    height: 36px;
+}
+
+.section-title {
+    margin: 20px 0 10px;
+}
+
+.section-title h2 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 650;
+}
+
+.start-dialog.external-nginx-dialog {
+    width: min(880px, calc(100vw - 48px));
+    max-height: calc(100dvh - 64px);
+    overflow-y: auto;
+}
+.external-nginx-dialog:focus {
+    outline: none;
+}
+.external-nginx-dialog h2 {
+    margin: 0;
+    font-size: 18px;
+}
+.external-nginx-dialog p {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.7;
+}
+.external-nginx-dialog pre {
+    padding: 16px;
+    max-height: 44dvh;
+    overflow: auto;
+    border-radius: 8px;
+    background: var(--panel-soft);
+    font-size: 12px;
+    line-height: 1.6;
+}

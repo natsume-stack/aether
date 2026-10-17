@@ -1,0 +1,28 @@
+{
+  "presets": [
+    [
+      "next/babel",
+      {
+        "preset-typescript": {
+          "allowDeclareFields": true
+        }
+      }
+    ]
+  ],
+  "plugins": [
+    [
+      // 由于 next/babel 中没有处理插件顺序，这里需要显式开启
+      // 参考 https://stackoverflow.com/questions/70690029/typescript-declare-fields-must-first-be-transformed-by-babel-plugin-transform
+      "@babel/plugin-transform-typescript",
+      {
+        "allowDeclareFields": true
+      }
+    ],
+    [
+      "formatjs",
+      {
+        "ast": true
+      }
+    ]
+  ]
+}

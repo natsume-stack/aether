@@ -1,0 +1,622 @@
+name: box-local-engine
+
+services:
+  managed-redis:
+    profiles: [desktop-redis]
+    image: ${BOX_REDIS_IMAGE:-docker.m.daocloud.io/library/redis:7-alpine}
+    restart: unless-stopped
+    mem_limit: ${BOX_MANAGED_REDIS_MEMORY_LIMIT:-256m}
+    cpus: ${BOX_MANAGED_REDIS_CPU_LIMIT:-0.5}
+    pids_limit: ${BOX_MANAGED_REDIS_PIDS_LIMIT:-128}
+    environment:
+      BOX_REDIS_PASSWORD: ${BOX_MANAGED_REDIS_PASSWORD:-${REDIS_PASSWORD:-}}
+    command:
+      - sh
+      - -c
+      - >-
+        exec redis-server --appendonly yes --requirepass "$$BOX_REDIS_PASSWORD"
+    volumes:
+      - box-managed-redis-data:/data
+    ports:
+      - "127.0.0.1:${BOX_MANAGED_REDIS_HOST_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$BOX_REDIS_PASSWORD\" ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  managed-postgres:
+    profiles: [desktop-postgres]
+    image: ${BOX_POSTGRES_IMAGE:-docker.m.daocloud.io/library/postgres:16-alpine}
+    restart: unless-stopped
+    mem_limit: ${BOX_MANAGED_POSTGRES_MEMORY_LIMIT:-512m}
+    cpus: ${BOX_MANAGED_POSTGRES_CPU_LIMIT:-1.0}
+    pids_limit: ${BOX_MANAGED_POSTGRES_PIDS_LIMIT:-256}
+    environment:
+      POSTGRES_DB: ${BOX_MANAGED_POSTGRES_DATABASE:-${BOX_DATABASE_NAME:-box}}
+      POSTGRES_USER: ${BOX_MANAGED_POSTGRES_USER:-${BOX_DATABASE_USER:-box}}
+      POSTGRES_PASSWORD: ${BOX_MANAGED_POSTGRES_PASSWORD:-${BOX_DATABASE_PASSWORD:-}}
+    volumes:
+      - box-managed-postgres-data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:${BOX_MANAGED_POSTGRES_HOST_PORT:-5432}:5432"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "PGPASSWORD=\"$$POSTGRES_PASSWORD\" psql -h 127.0.0.1 -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\" -Atqc 'SELECT 1' | grep -qx 1",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  postgres:
+    profiles: [infra]
+    image: ${BOX_POSTGRES_IMAGE:-docker.m.daocloud.io/library/postgres:16-alpine}
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${BOX_POSTGRES_DB:-box}
+      POSTGRES_USER: ${BOX_POSTGRES_USER:-box}
+      POSTGRES_PASSWORD: ${BOX_POSTGRES_PASSWORD:-local-box-change-me}
+    ports:
+      - "127.0.0.1:${BOX_POSTGRES_HOST_PORT:-5432}:5432"
+    volumes:
+      - box-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    profiles: [infra]
+    image: ${BOX_REDIS_IMAGE:-docker.m.daocloud.io/library/redis:7-alpine}
+    restart: unless-stopped
+    environment:
+      BOX_REDIS_PASSWORD: ${BOX_REDIS_PASSWORD:-}
+    command:
+      - sh
+      - -c
+      - >-
+        if [ -n "$$BOX_REDIS_PASSWORD" ]; then
+          exec redis-server --appendonly yes --requirepass "$$BOX_REDIS_PASSWORD";
+        else
+          exec redis-server --appendonly yes;
+        fi
+    ports:
+      - "127.0.0.1:${BOX_REDIS_HOST_PORT:-6379}:6379"
+    volumes:
+      - box-redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "if [ -n \"$$BOX_REDIS_PASSWORD\" ]; then redis-cli -a \"$$BOX_REDIS_PASSWORD\" ping; else redis-cli ping; fi"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  player-service:
+    profiles: [player-service]
+    platform: ${BOX_PLAY_PLATFORM:-linux/amd64}
+    image: box-local-engine-player-service:${BOX_IMAGE_TAG:-2026.1.4}
+    build:
+      context: .
+      dockerfile: apps/local-engine/Dockerfile
+      target: player-service
+      args:
+        NODE_IMAGE: ${BOX_DOCKER_NODE_IMAGE:-docker.m.daocloud.io/library/node:22.17.0-bookworm-slim}
+        BOX_BUILD_VERSION: ${BOX_BUILD_VERSION:-2026.1.4}
+        BOX_BUILD_COMMIT: ${BOX_BUILD_COMMIT:-unknown}
+        BOX_BUILD_DATE: ${BOX_BUILD_DATE:-unknown}
+        BOX_BUILD_SOURCE: ${BOX_BUILD_SOURCE:-local}
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: ${BOX_PLAYER_SERVICE_MEMORY_LIMIT:-1g}
+    cpus: ${BOX_PLAYER_SERVICE_CPU_LIMIT:-1.0}
+    pids_limit: ${BOX_PLAYER_SERVICE_PIDS_LIMIT:-256}
+    environment:
+      BOX_APP_BASE_PATH: ${BOX_PLAYER_SERVICE_BASE_PATH:-}
+      BOX_PUBLIC_SERVICE_PREFIXES_BY_ORIGIN: ${BOX_PUBLIC_SERVICE_PREFIXES_BY_ORIGIN:-{}}
+      BOX_DEPLOYMENT_MODE: player-service
+      # Keep the lightweight identity service from competing with Play's map
+      # runtime for heap on small servers. Hosts can raise this in .env.
+      NODE_OPTIONS: --max-old-space-size=${BOX_PLAYER_SERVICE_NODE_HEAP_MB:-384}
+      NEXT_PUBLIC_APP_ENV: development
+      NEXT_PUBLIC_APP_EDITION: createra
+      NEXT_PUBLIC_APP_REGION: cn
+      BOX_PLAY_ADMIN_TOKEN: ${BOX_PLAY_ADMIN_TOKEN:-}
+      PERMISSION_TOKEN_SECRET: ${PERMISSION_TOKEN_SECRET:-}
+      BOX_MODERATION_SIGNING_SECRET: ${BOX_MODERATION_SIGNING_SECRET:-}
+      BOX_SERVER_PUBLIC_URL: ${BOX_PLAYER_SERVICE_PUBLIC_URL:-http://127.0.0.1:3124}
+      BOX_PLAYER_SERVICE_PUBLIC_URL: ${BOX_PLAYER_SERVICE_PUBLIC_URL:-http://127.0.0.1:3124}
+      BOX_CREATOR_PUBLIC_URL: ${BOX_CREATOR_PUBLIC_URL:-http://127.0.0.1:3127}
+      BOX_PLAY_PUBLIC_URL: ${BOX_PLAY_PUBLIC_URL:-http://127.0.0.1:3121}
+      # Player Service proxies map administration calls to Play.  This must
+      # use Docker DNS: a public loopback URL resolves to Player Service itself.
+      BOX_PLAY_INTERNAL_URL: ${BOX_PLAY_INTERNAL_URL:-http://play:3000}
+      BOX_CREATOR_RUNTIME_INTERNAL_URL: ${BOX_CREATOR_RUNTIME_INTERNAL_URL:-http://creator:9967}
+      BOX_MAP_RUNTIME_PROFILES_PATH: /app/apps/local-engine/data/map-runtime-profiles.json
+      BOX_CREATOR_PROJECTS_PATH: /app/apps/local-engine/projects
+      BOX_PLAYER_LOGIN_URL: ${BOX_PLAYER_LOGIN_URL:-}
+      BOX_PLAYER_AUTH_API_KEY: ${BOX_PLAYER_AUTH_API_KEY:-}
+      BOX_PLAYER_AUTH_ALLOWED_ORIGINS: ${BOX_PLAYER_AUTH_ALLOWED_ORIGINS:-}
+      BOX_TRUST_PROXY: ${BOX_PLAYER_SERVICE_TRUST_PROXY:-${BOX_TRUST_PROXY:-false}}
+      BOX_RUNTIME_IDENTITY_TTL_MS: ${BOX_RUNTIME_IDENTITY_TTL_MS:-300000}
+      BOX_DATABASE_URL: ${BOX_DATABASE_URL:-}
+      BOX_IDENTITY_DATABASE_SCHEMA: ${BOX_IDENTITY_DATABASE_SCHEMA:-box_identity}
+      BOX_PLAYER_REGISTRATION_ENABLED: ${BOX_PLAYER_REGISTRATION_ENABLED:-true}
+      BOX_LOGIN_RATE_LIMIT_MAX_ATTEMPTS: ${BOX_LOGIN_RATE_LIMIT_MAX_ATTEMPTS:-10}
+      BOX_LOGIN_RATE_LIMIT_WINDOW_MS: ${BOX_LOGIN_RATE_LIMIT_WINDOW_MS:-300000}
+      BOX_REGISTRATION_RATE_LIMIT_MAX_ATTEMPTS: ${BOX_REGISTRATION_RATE_LIMIT_MAX_ATTEMPTS:-5}
+      BOX_REGISTRATION_RATE_LIMIT_WINDOW_MS: ${BOX_REGISTRATION_RATE_LIMIT_WINDOW_MS:-3600000}
+      BOX_PLAYER_COOKIE_DOMAIN: ${BOX_PLAYER_COOKIE_DOMAIN:-}
+      BOX_DATABASE_POOL_SIZE: ${BOX_DATABASE_POOL_SIZE:-4}
+      BOX_DATABASE_SSL: ${BOX_DATABASE_SSL:-false}
+      BOX_DATABASE_SSL_REJECT_UNAUTHORIZED: ${BOX_DATABASE_SSL_REJECT_UNAUTHORIZED:-true}
+    ports:
+      - "${BOX_BIND_IP:-127.0.0.1}:${BOX_PLAYER_SERVICE_PORT:-3124}:3213"
+    volumes:
+      # Player administration owns the per-map policy document.  Play keeps
+      # this directory read-only and only consumes the policy at runtime.
+      - "${BOX_DATA_DIRECTORY:-.}/apps/local-engine/data:/app/apps/local-engine/data"
+      - "${BOX_DATA_DIRECTORY:-.}/apps/local-engine/projects:/app/apps/local-engine/projects:ro"
+
+  player-auth-portal:
+    profiles: [auth-portal]
+    platform: ${BOX_PLAY_PLATFORM:-linux/amd64}
+    image: ${BOX_AUTH_PORTAL_IMAGE:-box-local-engine-player-auth-portal:${BOX_IMAGE_TAG:-2026.1.4}}
+    pull_policy: never
+    build:
+      context: .
+      dockerfile: apps/player-auth-portal/Dockerfile
+      args:
+        NODE_IMAGE: ${BOX_DOCKER_NODE_IMAGE:-docker.m.daocloud.io/library/node:22.17.0-bookworm-slim}
+        BOX_BUILD_VERSION: ${BOX_BUILD_VERSION:-2026.1.4}
+        BOX_BUILD_COMMIT: ${BOX_BUILD_COMMIT:-unknown}
+        BOX_BUILD_DATE: ${BOX_BUILD_DATE:-unknown}
+        BOX_BUILD_SOURCE: ${BOX_BUILD_SOURCE:-local}
+    restart: unless-stopped
+    init: true
+    read_only: true
+    # The portal runs with a read-only root and a private writable temp directory.
+    tmpfs:
+      - /tmp:mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: ${BOX_AUTH_PORTAL_MEMORY_LIMIT:-128m}
+    cpus: ${BOX_AUTH_PORTAL_CPU_LIMIT:-0.5}
+    pids_limit: ${BOX_AUTH_PORTAL_PIDS_LIMIT:-64}
+    environment:
+      BOX_APP_BASE_PATH: ${BOX_AUTH_PORTAL_BASE_PATH:-}
+      BOX_PUBLIC_SERVICE_PREFIXES_BY_ORIGIN: ${BOX_PUBLIC_SERVICE_PREFIXES_BY_ORIGIN:-{}}
+      NODE_OPTIONS: --max-old-space-size=${BOX_AUTH_PORTAL_NODE_HEAP_MB:-96}
+      AUTH_DEMO_HOST: 0.0.0.0
+      AUTH_DEMO_PORT: 3214
+      AUTH_DEMO_PLAYER_SERVICE_URL: http://player-service:3213
+      AUTH_DEMO_PUBLIC_URL: ${BOX_AUTH_PORTAL_PUBLIC_URL:-http://127.0.0.1:3125}
+      AUTH_DEMO_CREATOR_URL: ${BOX_CREATOR_PUBLIC_URL:-http://127.0.0.1:3127}
+      AUTH_DEMO_PLAY_URL: ${BOX_PLAY_PUBLIC_URL:-http://127.0.0.1:3121}
+      AUTH_DEMO_API_KEY: ${BOX_PLAYER_AUTH_API_KEY:-}
+      HOST: 0.0.0.0
+      PORT: 3214
+      BOX_PLAYER_SERVICE_INTERNAL_URL: http://player-service:3213
+      BOX_PLAYER_AUTH_API_KEY: ${BOX_PLAYER_AUTH_API_KEY:-}
+      BOX_AUTH_PORTAL_PUBLIC_URL: ${BOX_AUTH_PORTAL_PUBLIC_URL:-http://127.0.0.1:3125}
+      BOX_CREATOR_PUBLIC_URL: ${BOX_CREATOR_PUBLIC_URL:-http://127.0.0.1:3127}
+      BOX_PLAY_PUBLIC_URL: ${BOX_PLAY_PUBLIC_URL:-http://127.0.0.1:3121}
+      BOX_PLAYER_REGISTRATION_ENABLED: ${BOX_PLAYER_REGISTRATION_ENABLED:-true}
+      AUTH_DEMO_REGISTRATION_ENABLED: ${BOX_PLAYER_REGISTRATION_ENABLED:-true}
+      AUTH_DEMO_REQUEST_TIMEOUT_MS: ${BOX_AUTH_PORTAL_REQUEST_TIMEOUT_MS:-10000}
+      BOX_TRUST_PROXY: ${BOX_AUTH_PORTAL_TRUST_PROXY:-${BOX_TRUST_PROXY:-false}}
+      AUTH_DEMO_TRUST_PROXY: ${BOX_AUTH_PORTAL_TRUST_PROXY:-${BOX_TRUST_PROXY:-false}}
+    ports:
+      - "${BOX_BIND_IP:-127.0.0.1}:${BOX_AUTH_PORTAL_PORT:-3125}:3214"
+
+  server-manager:
+    # Creator's per-map runtime scheduler depends on this service.  Keep it
+    # outside an optional profile: `docker compose --profile creator up`
+    # otherwise removes it from the project and makes Creator invalid.
+    platform: ${BOX_PLAY_PLATFORM:-linux/amd64}
+    image: box-local-engine-server-manager:${BOX_IMAGE_TAG:-2026.1.4}
+    build:
+      context: .
+      dockerfile: apps/server-manager/Dockerfile
+      args:
+        NODE_IMAGE: ${BOX_DOCKER_NODE_IMAGE:-docker.m.daocloud.io/library/node:22.17.0-bookworm-slim}
+        DOCKER_CLI_IMAGE: ${BOX_DOCKER_CLI_IMAGE:-docker.m.daocloud.io/library/docker:27.5.1-cli}
+        RUST_IMAGE: ${BOX_DOCKER_RUST_IMAGE:-docker.m.daocloud.io/library/rust:1.93-bookworm}
+        BOX_BUILD_VERSION: ${BOX_BUILD_VERSION:-2026.1.4}
+        BOX_BUILD_COMMIT: ${BOX_BUILD_COMMIT:-unknown}
+        BOX_BUILD_DATE: ${BOX_BUILD_DATE:-unknown}
+        BOX_BUILD_SOURCE: ${BOX_BUILD_SOURCE:-local}
+    restart: unless-stopped
+    init: true
+    read_only: true
+    user: "0:0"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    # Backups/restores access private files owned by the service user (UID 1000).
+    cap_add:
+      - DAC_OVERRIDE
+    mem_limit: ${BOX_SERVER_MANAGER_MEMORY_LIMIT:-128m}
+    cpus: ${BOX_SERVER_MANAGER_CPU_LIMIT:-0.5}
+    pids_limit: 64
+    environment:
+      BOX_SERVER_MANAGER_HOST: 0.0.0.0
+      BOX_SERVER_MANAGER_PORT: 3130
+      BOX_SERVER_MANAGER_TOKEN: ${BOX_SERVER_MANAGER_TOKEN:-}
+      BOX_RUNTIME_MANAGER_TOKEN: ${BOX_RUNTIME_MANAGER_TOKEN:-}
+      BOX_IMAGE_TAG: ${BOX_IMAGE_TAG:-2026.1.4}
+      BOX_SERVER_MANAGER_ROOT: /workspace
+      BOX_SERVER_MANAGER_HOST_ROOT: ${BOX_SERVER_MANAGER_HOST_ROOT:-}
+      BOX_SERVER_MANAGER_COMPOSE_FILE: ${BOX_SERVER_MANAGER_COMPOSE_FILE:-/workspace/docker-compose.yml}
+      BOX_SERVER_MANAGER_ENV_FILE: /workspace/.env
+      # Set by install.sh from the host address. The container cannot detect
+      # the host LAN IP itself, so the Web console reads it from here.
+      BOX_LAN_IP: ${BOX_LAN_IP:-}
+    ports:
+      - "${BOX_SERVER_MANAGER_BIND_IP:-127.0.0.1}:${BOX_SERVER_MANAGER_PORT:-3130}:3130"
+    volumes:
+      # Docker access is root-equivalent. The browser never receives the
+      # socket; the manager accepts only fixed Compose operations and defaults
+      # to host loopback with an independent 256-bit management token.
+      - ${BOX_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
+      - ${BOX_SERVER_MANAGER_ROOT:-.}:/workspace
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    healthcheck:
+      test: ["CMD", "/app/server-manager", "--healthcheck"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+
+  creator:
+    profiles: [creator]
+    platform: ${BOX_PLAY_PLATFORM:-linux/amd64}
+    image: box-local-engine-creator:${BOX_IMAGE_TAG:-2026.1.4}
+    build:
+      context: .
+      dockerfile: apps/local-engine/Dockerfile
+      target: creator
+      args:
+        NODE_IMAGE: ${BOX_DOCKER_NODE_IMAGE:-docker.m.daocloud.io/library/node:22.17.0-bookworm-slim}
+        BOX_BUILD_VERSION: ${BOX_BUILD_VERSION:-2026.1.4}
+        BOX_BUILD_COMMIT: ${BOX_BUILD_COMMIT:-unknown}
+        BOX_BUILD_DATE: ${BOX_BUILD_DATE:-unknown}
+        BOX_BUILD_SOURCE: ${BOX_BUILD_SOURCE:-local}
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: ${BOX_CREATOR_MEMORY_LIMIT:-6g}
+    cpus: ${BOX_CREATOR_CPU_LIMIT:-2.0}
+    pids_limit: ${BOX_CREATOR_PIDS_LIMIT:-1024}
+    depends_on:
+      server-manager:
+        condition: service_healthy
+      creator-storage-init:
+        condition: service_completed_successfully
+    environment:
+      BOX_APP_BASE_PATH: ${BOX_CREATOR_BASE_PATH:-}
+      BOX_PUBLIC_SERVICE_PREFIXES_BY_ORIGIN: ${BOX_PUBLIC_SERVICE_PREFIXES_BY_ORIGIN:-{}}
+      BOX_DEPLOYMENT_MODE: creator
+      BOX_BUILD_VERSION: ${BOX_BUILD_VERSION:-2026.1.4}
+      BOX_BUILD_COMMIT: ${BOX_BUILD_COMMIT:-unknown}
+      BOX_BUILD_DATE: ${BOX_BUILD_DATE:-unknown}
+      BOX_BUILD_SOURCE: ${BOX_BUILD_SOURCE:-local}
+      VOXA_URL: ${BOX_VOXA_PUBLIC_URL:-http://127.0.0.1:3123}
+      BOX_VOXA_PUBLIC_URL: ${BOX_VOXA_PUBLIC_URL:-http://127.0.0.1:3123}
+      VOXA_INTERNAL_URL: http://voxa:3001
+      BOX_IMAGE_TAG: ${BOX_IMAGE_TAG:-2026.1.4}
+      BOX_PLAY_IMAGE: box-local-engine-play:${BOX_IMAGE_TAG:-2026.1.4}
+      BOX_RUNTIME_MANAGER_URL: ${BOX_RUNTIME_MANAGER_URL:-http://server-manager:3130}
+      BOX_RUNTIME_MANAGER_TOKEN: ${BOX_RUNTIME_MANAGER_TOKEN:-}
+      BOX_PLAY_IMAGE_ARCHIVE: /app/apps/local-engine/dist/images/play-image.tar
+      BOX_PLAY_PLATFORM: ${BOX_PLAY_PLATFORM:-linux/amd64}
+      # Docker publishes these ports only on host 127.0.0.1 below. Inside the
+      # container they must listen on all interfaces so Docker port forwarding
+      # can reach them; container loopback is not reachable through -p.
+      BOX_PLAY_RUNTIME_HOST: 0.0.0.0
+      BOX_EDIT_RUNTIME_HOST: 0.0.0.0
+      BOX_LOCAL_PLAYER_LIMIT: ${BOX_LOCAL_PLAYER_LIMIT:-70}
+      PERMISSION_TOKEN_SECRET: ${PERMISSION_TOKEN_SECRET:-}
+      BOX_MODERATION_SIGNING_SECRET: ${BOX_MODERATION_SIGNING_SECRET:-}
+      BOX_SERVER_PUBLIC_URL: ${BOX_CREATOR_PUBLIC_URL:-http://127.0.0.1:3127}
+      BOX_PLAYER_SERVICE_INTERNAL_URL: ${BOX_PLAYER_SERVICE_INTERNAL_URL-http://player-service:3213}
+      BOX_PLAYER_SERVICE_PUBLIC_URL: ${BOX_PLAYER_SERVICE_PUBLIC_URL:-http://127.0.0.1:3124}
+      BOX_CREATOR_PUBLIC_URL: ${BOX_CREATOR_PUBLIC_URL:-http://127.0.0.1:3127}
+      BOX_RESOURCE_ALLOWED_ORIGINS: ${BOX_RESOURCE_ALLOWED_ORIGINS:-}
+      BOX_PLAYER_LOGIN_URL: ${BOX_PLAYER_LOGIN_URL:-}
+      BOX_TRUST_PROXY: ${BOX_CREATOR_TRUST_PROXY:-${BOX_TRUST_PROXY:-false}}
+      BOX_SESSION_TTL_MS: ${BOX_SESSION_TTL_MS:-60000}
+      BOX_RUNTIME_IDENTITY_TTL_MS: ${BOX_RUNTIME_IDENTITY_TTL_MS:-300000}
+      BOX_SCRIPT_HEAP_MB: ${BOX_SCRIPT_HEAP_MB:-512}
+      SCRIPT_MEMORY_LIMIT: ${BOX_SCRIPT_MEMORY_MB:-512}
+      BOX_PLAYER_REVOCATION_POLL_MS: ${BOX_PLAYER_REVOCATION_POLL_MS:-1000}
+      BOX_SESSION_RATE_LIMIT_PER_MINUTE: ${BOX_SESSION_RATE_LIMIT_PER_MINUTE:-60}
+      BOX_CREATE_SESSION_TIMEOUT_MS: ${BOX_CREATE_SESSION_TIMEOUT_MS:-120000}
+      BOX_CREATOR_EDIT_MAX_RUNTIMES: ${BOX_CREATOR_EDIT_MAX_RUNTIMES:-6}
+      BOX_CREATOR_PLAY_MAX_RUNTIMES: ${BOX_CREATOR_PLAY_MAX_RUNTIMES:-4}
+      BOX_CREATOR_EDIT_PREWARM_RUNTIMES: ${BOX_CREATOR_EDIT_PREWARM_RUNTIMES:-0}
+      BOX_RUNTIME_IDLE_TIMEOUT_MS: ${BOX_RUNTIME_IDLE_TIMEOUT_MS:-900000}
+      BOX_RUNTIME_START_TIMEOUT_MS: ${BOX_RUNTIME_START_TIMEOUT_MS:-1800000}
+      BOX_GROUP_STATE_LOCK_TIMEOUT_MS: ${BOX_GROUP_STATE_LOCK_TIMEOUT_MS:-30000}
+      BOX_GROUP_STATE_LOCK_STALE_MS: ${BOX_GROUP_STATE_LOCK_STALE_MS:-300000}
+      BOX_TELEPORT_MAX_ROOMS: ${BOX_TELEPORT_MAX_ROOMS:-64}
+      BOX_TELEPORT_ROOM_IDLE_TIMEOUT_MS: ${BOX_TELEPORT_ROOM_IDLE_TIMEOUT_MS:-900000}
+      # Creator's edit library also handles same-group map switches. It must
+      # share the private control credential with Play to authorize that path.
+      BOX_TELEPORT_INTERNAL_TOKEN: ${BOX_TELEPORT_INTERNAL_TOKEN:-}
+      BOX_RUNTIME_CACHE_PATH: /app/apps/local-engine/projects/.runtime-cache
+      BOX_AUTO_BACKUP_ENABLED: ${BOX_AUTO_BACKUP_ENABLED:-false}
+      BOX_AUTO_BACKUP_INTERVAL_MINUTES: ${BOX_AUTO_BACKUP_INTERVAL_MINUTES:-60}
+      BOX_AUTO_BACKUP_RETENTION_COUNT: ${BOX_AUTO_BACKUP_RETENTION_COUNT:-24}
+      BOX_AUTO_BACKUP_RETENTION_DAYS: ${BOX_AUTO_BACKUP_RETENTION_DAYS:-30}
+      BOX_PROJECT_BACKUP_PATH: ${BOX_PROJECT_BACKUP_PATH:-/app/apps/local-engine/backups}
+      BOX_CREATOR_ALLOWED_HOSTS: ${BOX_CREATOR_ALLOWED_HOSTS:-}
+      BOX_DATABASE_URL: ${BOX_DATABASE_URL:-}
+      BOX_DATABASE_SCHEMA: ${BOX_DATABASE_SCHEMA:-box_engine}
+      BOX_DATABASE_POOL_SIZE: ${BOX_DATABASE_POOL_SIZE:-4}
+      BOX_DATABASE_SSL: ${BOX_DATABASE_SSL:-false}
+      BOX_DATABASE_SSL_REJECT_UNAUTHORIZED: ${BOX_DATABASE_SSL_REJECT_UNAUTHORIZED:-true}
+      BOX_DATA_STORAGE_LOCK_TIMEOUT_MS: ${BOX_DATA_STORAGE_LOCK_TIMEOUT_MS:-10000}
+      BOX_DATA_STORAGE_NAMESPACE_PREFIX: ${BOX_DATA_STORAGE_NAMESPACE_PREFIX:-}
+      BOX_LOCAL_VOXA_DATA_PATH: /app/apps/voxa/data
+      REDIS_HOST: ${REDIS_HOST:-}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_DB: ${REDIS_DB:-0}
+      STORAGE_CACHE_REDIS_DB: ${STORAGE_CACHE_REDIS_DB:-1}
+      STORAGE_CACHE_REDIS_TTL: ${STORAGE_CACHE_REDIS_TTL:-240}
+    ports:
+      - "${BOX_CREATOR_BIND_IP:-127.0.0.1}:${BOX_CREATOR_PORT:-3127}:3000"
+      # Browser clients access runtimes through Creator's same-origin
+      # /runtime proxy. Never expose raw edit/preview sockets on LAN/public
+      # interfaces, even when the Creator web port is intentionally shared.
+      - "127.0.0.1:9966:9966"
+      - "127.0.0.1:9967:9967"
+    volumes:
+      - "${BOX_DATA_DIRECTORY:-.}/apps/local-engine/projects:/app/apps/local-engine/projects"
+      - "${BOX_DATA_DIRECTORY:-.}/apps/local-engine/dist:/app/apps/local-engine/dist"
+      # Creator edit runtimes persist local content blobs here.  This mount
+      # must remain writable; the runtime itself still runs as UID 1000.
+      - "${BOX_DATA_DIRECTORY:-.}/apps/local-engine/data:/app/apps/local-engine/data"
+      - "${BOX_DATA_DIRECTORY:-.}/apps/local-engine/backups:/app/apps/local-engine/backups"
+      - "${BOX_DATA_DIRECTORY:-.}/apps/voxa/data:/app/apps/voxa/data:ro"
+
+  # A host bind mount can belong to a different UID than the non-root runtime
+  # user, especially on Linux servers and Docker Desktop. Repair ownership
+  # once before Creator starts; the long-running service remains unprivileged.
+  creator-storage-init:
+    profiles: [creator]
+    image: box-local-engine-creator:${BOX_IMAGE_TAG:-2026.1.4}
+    user: "0:0"
+    entrypoint: []
+    command:
+      - sh
+      - -c
+      # A previous Creator can remove a temporary file while this init job is
+      # walking a bind mount.  Treat that race as harmless, then explicitly
+      # claim the mount roots so the non-root service can always create new
+      # projects, runtime files, and backups.
+      - >-
+        (chown -R 1000:1000 /app/apps/local-engine/projects 2>/dev/null || true)
+        && (chown -R 1000:1000 /app/apps/local-engine/dist 2>/dev/null || true)
+        && (chown -R 1000:1000 /app/apps/local-engine/backups 2>/dev/null || true)
+        && mkdir -p /app/apps/local-engine/data/blobs
+        && (chown -R 1000:1000 /app/apps/local-engine/data 2>/dev/null || true)
+        && chown 1000:1000 /app/apps/local-engine/projects /app/apps/local-engine/dist /app/apps/local-engine/backups /app/apps/local-engine/data
+    restart: "no"
+    network_mode: none
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+    volumes:
+      - "${BOX_DATA_DIRECTORY:-.}/apps/local-engine/projects:/app/apps/local-engine/projects"
+      - "${BOX_DATA_DIRECTORY:-.}/apps/local-engine/dist:/app/apps/local-engine/dist"
+      - "${BOX_DATA_DIRECTORY:-.}/apps/local-engine/data:/app/apps/local-engine/data"
+      - "${BOX_DATA_DIRECTORY:-.}/apps/local-engine/backups:/app/apps/local-engine/backups"
+
+  play-storage-init:
+    profiles: [play]
+    image: box-local-engine-play:${BOX_IMAGE_TAG:-2026.1.4}
+    user: "0:0"
+    entrypoint: []
+    command:
+      - sh
+      - -c
+      - >-
+        mkdir -p /app/play-runtime-cache /app/play-worlds
+        && mkdir -p /app/apps/local-engine/data/blobs
+        && chown -R 1000:1000 /app/play-runtime-cache /app/play-worlds /app/apps/local-engine/data
+    restart: "no"
+    network_mode: none
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+    volumes:
+      - box-play-runtime-cache:/app/play-runtime-cache
+      - "${BOX_DATA_DIRECTORY:-.}/apps/local-engine/data:/app/apps/local-engine/data"
+      - type: bind
+        source: "${BOX_DATA_DIRECTORY:-.}/apps/local-engine/play-worlds"
+        target: /app/play-worlds
+        bind:
+          create_host_path: true
+
+  play:
+    profiles: [play]
+    platform: ${BOX_PLAY_PLATFORM:-linux/amd64}
+    image: box-local-engine-play:${BOX_IMAGE_TAG:-2026.1.4}
+    build:
+      context: .
+      dockerfile: apps/local-engine/Dockerfile
+      target: play
+      args:
+        NODE_IMAGE: ${BOX_DOCKER_NODE_IMAGE:-docker.m.daocloud.io/library/node:22.17.0-bookworm-slim}
+        BOX_BUILD_VERSION: ${BOX_BUILD_VERSION:-2026.1.4}
+        BOX_BUILD_COMMIT: ${BOX_BUILD_COMMIT:-unknown}
+        BOX_BUILD_DATE: ${BOX_BUILD_DATE:-unknown}
+        BOX_BUILD_SOURCE: ${BOX_BUILD_SOURCE:-local}
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: ${BOX_PLAY_MEMORY_LIMIT:-4g}
+    cpus: ${BOX_PLAY_CPU_LIMIT:-2.0}
+    pids_limit: ${BOX_PLAY_PIDS_LIMIT:-1024}
+    depends_on:
+      server-manager:
+        condition: service_healthy
+      play-storage-init:
+        condition: service_completed_successfully
+    environment:
+      BOX_APP_BASE_PATH: ${BOX_PLAY_BASE_PATH:-}
+      BOX_PUBLIC_SERVICE_PREFIXES_BY_ORIGIN: ${BOX_PUBLIC_SERVICE_PREFIXES_BY_ORIGIN:-{}}
+      BOX_DEPLOYMENT_MODE: play
+      BOX_RUNTIME_MANAGER_URL: ${BOX_RUNTIME_MANAGER_URL:-http://server-manager:3130}
+      BOX_RUNTIME_MANAGER_TOKEN: ${BOX_RUNTIME_MANAGER_TOKEN:-}
+      BOX_PLAY_LIBRARY_PATH: /app/play-worlds
+      BOX_PLAY_ADMIN_TOKEN: ${BOX_PLAY_ADMIN_TOKEN:-}
+      BOX_LOCAL_PLAYER_LIMIT: ${BOX_LOCAL_PLAYER_LIMIT:-70}
+      PERMISSION_TOKEN_SECRET: ${PERMISSION_TOKEN_SECRET:-}
+      BOX_MODERATION_SIGNING_SECRET: ${BOX_MODERATION_SIGNING_SECRET:-}
+      BOX_SERVER_PUBLIC_URL: ${BOX_PLAY_PUBLIC_URL:-http://127.0.0.1:3121}
+      BOX_PLAYER_SERVICE_INTERNAL_URL: ${BOX_PLAYER_SERVICE_INTERNAL_URL-http://player-service:3213}
+      BOX_PLAYER_SERVICE_PUBLIC_URL: ${BOX_PLAYER_SERVICE_PUBLIC_URL:-http://127.0.0.1:3124}
+      BOX_PLAY_PUBLIC_URL: ${BOX_PLAY_PUBLIC_URL:-http://127.0.0.1:3121}
+      BOX_PLAYER_LOGIN_URL: ${BOX_PLAYER_LOGIN_URL:-}
+      BOX_TRUST_PROXY: ${BOX_PLAY_TRUST_PROXY:-${BOX_TRUST_PROXY:-false}}
+      BOX_SESSION_TTL_MS: ${BOX_SESSION_TTL_MS:-60000}
+      BOX_RUNTIME_IDENTITY_TTL_MS: ${BOX_RUNTIME_IDENTITY_TTL_MS:-300000}
+      BOX_SCRIPT_HEAP_MB: ${BOX_SCRIPT_HEAP_MB:-512}
+      SCRIPT_MEMORY_LIMIT: ${BOX_SCRIPT_MEMORY_MB:-512}
+      BOX_PLAYER_REVOCATION_POLL_MS: ${BOX_PLAYER_REVOCATION_POLL_MS:-1000}
+      BOX_SESSION_RATE_LIMIT_PER_MINUTE: ${BOX_SESSION_RATE_LIMIT_PER_MINUTE:-60}
+      BOX_CREATE_SESSION_TIMEOUT_MS: ${BOX_CREATE_SESSION_TIMEOUT_MS:-120000}
+      BOX_PLAY_MAX_RUNTIMES: ${BOX_PLAY_MAX_RUNTIMES:-8}
+      BOX_PLAY_PREWARM_RUNTIMES: ${BOX_PLAY_PREWARM_RUNTIMES:-0}
+      BOX_RUNTIME_IDLE_TIMEOUT_MS: ${BOX_RUNTIME_IDLE_TIMEOUT_MS:-900000}
+      BOX_RUNTIME_START_TIMEOUT_MS: ${BOX_RUNTIME_START_TIMEOUT_MS:-1800000}
+      BOX_TELEPORT_MAX_ROOMS: ${BOX_TELEPORT_MAX_ROOMS:-64}
+      BOX_TELEPORT_ROOM_IDLE_TIMEOUT_MS: ${BOX_TELEPORT_ROOM_IDLE_TIMEOUT_MS:-900000}
+      BOX_TELEPORT_INTERNAL_TOKEN: ${BOX_TELEPORT_INTERNAL_TOKEN:-}
+      BOX_RUNTIME_CACHE_PATH: /app/play-runtime-cache
+      BOX_DATABASE_URL: ${BOX_DATABASE_URL:-}
+      BOX_DATABASE_SCHEMA: ${BOX_DATABASE_SCHEMA:-box_engine}
+      BOX_DATABASE_POOL_SIZE: ${BOX_DATABASE_POOL_SIZE:-4}
+      BOX_DATABASE_SSL: ${BOX_DATABASE_SSL:-false}
+      BOX_DATABASE_SSL_REJECT_UNAUTHORIZED: ${BOX_DATABASE_SSL_REJECT_UNAUTHORIZED:-true}
+      BOX_DATA_STORAGE_LOCK_TIMEOUT_MS: ${BOX_DATA_STORAGE_LOCK_TIMEOUT_MS:-10000}
+      BOX_DATA_STORAGE_NAMESPACE_PREFIX: ${BOX_DATA_STORAGE_NAMESPACE_PREFIX:-}
+      REDIS_HOST: ${REDIS_HOST:-}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_DB: ${REDIS_DB:-0}
+      STORAGE_CACHE_REDIS_DB: ${STORAGE_CACHE_REDIS_DB:-1}
+      STORAGE_CACHE_REDIS_TTL: ${STORAGE_CACHE_REDIS_TTL:-240}
+    ports:
+      - "${BOX_BIND_IP:-127.0.0.1}:${BOX_PLAY_PORT:-3121}:3000"
+    volumes:
+      - type: bind
+        source: "${BOX_DATA_DIRECTORY:-.}/apps/local-engine/play-worlds"
+        target: /app/play-worlds
+        bind:
+          create_host_path: true
+      # Per-map play policies are managed by the Desktop launcher and must be
+      # visible to the Play launcher before it starts each game-server child.
+      # Play consumes the owner-managed profiles and persists local content
+      # blobs while loading a map, so this directory must remain writable.
+      - "${BOX_DATA_DIRECTORY:-.}/apps/local-engine/data:/app/apps/local-engine/data"
+      - box-play-runtime-cache:/app/play-runtime-cache
+
+  voxa:
+    profiles: [voxa]
+    platform: ${BOX_PLAY_PLATFORM:-linux/amd64}
+    image: box-local-engine-voxa:${BOX_IMAGE_TAG:-2026.1.4}
+    build:
+      context: .
+      dockerfile: apps/local-engine/Dockerfile
+      target: voxa
+      args:
+        NODE_IMAGE: ${BOX_DOCKER_NODE_IMAGE:-docker.m.daocloud.io/library/node:22.17.0-bookworm-slim}
+        BOX_BUILD_VERSION: ${BOX_BUILD_VERSION:-2026.1.4}
+        BOX_BUILD_COMMIT: ${BOX_BUILD_COMMIT:-unknown}
+        BOX_BUILD_DATE: ${BOX_BUILD_DATE:-unknown}
+        BOX_BUILD_SOURCE: ${BOX_BUILD_SOURCE:-local}
+    restart: unless-stopped
+    mem_limit: ${BOX_VOXA_MEMORY_LIMIT:-1g}
+    cpus: ${BOX_VOXA_CPU_LIMIT:-1.0}
+    pids_limit: ${BOX_VOXA_PIDS_LIMIT:-256}
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    depends_on:
+      voxa-storage-init:
+        condition: service_completed_successfully
+    environment:
+      BOX_APP_BASE_PATH: ${BOX_VOXA_BASE_PATH:-}
+      BOX_PUBLIC_SERVICE_PREFIXES_BY_ORIGIN: ${BOX_PUBLIC_SERVICE_PREFIXES_BY_ORIGIN:-{}}
+      VOXA_DATA_PATH: /app/apps/voxa/data
+      VOXA_MAX_BLOB_BYTES: ${VOXA_MAX_BLOB_BYTES:-268435456}
+      # Used by VOXA's same-origin API guard. The browser URL must be passed
+      # into the container so LAN saves are accepted without opening the API
+      # to arbitrary origins.
+      BOX_VOXA_PUBLIC_URL: ${BOX_VOXA_PUBLIC_URL:-http://127.0.0.1:3123}
+      BOX_VOXA_ALLOWED_ORIGINS: ${BOX_VOXA_ALLOWED_ORIGINS:-}
+      BOX_CREATOR_PUBLIC_URL: ${BOX_CREATOR_PUBLIC_URL:-http://127.0.0.1:3127}
+      PERMISSION_TOKEN_SECRET: ${PERMISSION_TOKEN_SECRET:-}
+      BOX_PLAYER_SERVICE_INTERNAL_URL: ${BOX_PLAYER_SERVICE_INTERNAL_URL-http://player-service:3213}
+    ports:
+      - "${BOX_VOXA_BIND_IP:-127.0.0.1}:${BOX_VOXA_PORT:-3123}:3001"
+    volumes:
+      - "${BOX_DATA_DIRECTORY:-.}/apps/voxa/data:/app/apps/voxa/data"
+
+  # Keep the model editor itself on the non-root image user while ensuring its
+  # host-backed library stays writable on every supported Docker host.
+  voxa-storage-init:
+    profiles: [voxa]
+    image: box-local-engine-voxa:${BOX_IMAGE_TAG:-2026.1.4}
+    user: "0:0"
+    entrypoint: []
+    command:
+      - sh
+      - -c
+      - chown -R 1000:1000 /app/apps/voxa/data
+    restart: "no"
+    network_mode: none
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+    volumes:
+      - "${BOX_DATA_DIRECTORY:-.}/apps/voxa/data:/app/apps/voxa/data"
+
+
+volumes:
+  box-managed-redis-data:
+  box-managed-postgres-data:
+  box-postgres-data:
+  box-redis-data:
+  box-play-runtime-cache:

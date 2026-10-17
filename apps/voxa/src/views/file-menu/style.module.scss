@@ -1,0 +1,220 @@
+@use '../colors.module.scss' as color;
+@use '../texts.module.scss' as text;
+
+.fileMenu {
+  width: 440px;
+  height: 100%;
+  background: color.$background2;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  z-index: 11;
+}
+
+.menuTitle {
+  width: 100%;
+  height: 52px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0px 8px;
+
+  .textBtn {
+    width: 133px;
+    height: 32px;
+    @include text.b14;
+  }
+}
+
+.menuContent {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+
+  width: 100%;
+  height: 100%;
+
+  .mainMenu {
+    width: 212px;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+
+    .menuItemContainer {
+      width: 196px;
+      margin-top: 10px;
+
+      background: none;
+      box-shadow: none;
+
+      .menuItem {
+        svg use {
+          fill: color.$textWhitePrimary;
+        }
+      }
+    }
+  }
+
+  .divider {
+    width: 1px;
+    height: 100%;
+    background: color.$background1;
+  }
+
+  .subMenu {
+    width: 227px;
+    height: 100%;
+
+    .subMenuText {
+      color: color.$textWhiteTertiary;
+      @include text.b12;
+    }
+  }
+
+  .import {
+    display: flex;
+    flex-direction: column;
+    padding-left: 12px;
+
+    .importListMenu {
+      position: static;
+      padding-left: 0;
+
+      background-color: transparent;
+      border: none;
+      box-shadow: none;
+    }
+  }
+}
+
+.cardList {
+  width: 100%;
+  height: 100%;
+
+  padding-top: 10px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+
+  overflow-x: hidden;
+
+  // TODO: customize scrollbar
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.emptyList {
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  > svg {
+    width: 70px;
+    height: 65px;
+  }
+
+  > span {
+    margin-top: 7px;
+    color: color.$textWhiteSecondary;
+    @include text.b12;
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 14px;
+
+  .cardImgBorder {
+    height: 164px;
+    width: 164px;
+    border-radius: 10px;
+
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 2px solid transparent;
+
+    &:hover {
+      border-color: color.$opacityWhite30;
+    }
+
+    &:active {
+      border-color: color.$secondary80;
+    }
+  }
+
+  .cardImg {
+    height: 160px;
+    width: 160px;
+
+    background: color.$opacityWhite6;
+    box-sizing: border-box;
+    border-radius: 8px;
+    border: 1px solid color.$opacityWhite21;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    object-fit: cover;
+
+    .blank {
+      position: relative;
+      height: 4px;
+      width: 32px;
+      background: #d9d9d9;
+      border-radius: 4px;
+
+      &::after {
+        position: absolute;
+        content: ' ';
+        height: 32px;
+        width: 4px;
+        background: #d9d9d9;
+        border-radius: 4px;
+        top: -14px;
+        left: 14px;
+      }
+    }
+  }
+
+  .cardDesc {
+    margin-top: 6px;
+    width: 160px;
+    height: 18px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+
+    .time {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    span {
+      text-align: center;
+      @include text.b12;
+    }
+  }
+}

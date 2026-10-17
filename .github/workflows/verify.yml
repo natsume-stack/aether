@@ -1,0 +1,155 @@
+name: Verify
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches:
+      - dev
+      - 'dev-*'
+      - 'dev/**'
+      - 'player-dev/**'
+      - 'player-release/**'
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  verify:
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.base_ref != 'main' && github.base_ref != 'staging' &&
+       !startsWith(github.base_ref, 'release/v'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: node common/scripts/install-run-rush.js install
+
+      - name: Check formatting, syntax and code style
+        run: node common/scripts/install-run-rush.js verify
+
+  # 体积回归门。上游只会加不会减（v0.3.0 -> v2026.1.4 六个镜像 content 全部变大，
+  # 合计 +120,139,437 B），所以这道门必须在“没有 rush install 也能跑”的路径上：
+  # common/config/rush/pnpm-lock.yaml 与 package.json 目前不一致，任何
+  # `rush install` 都会红，把门挂到上面那个 job 里等于把门焊死在坏掉的依赖上。
+  # 因此这里只用裸 `node` 调用 scripts/check-image-budget.mjs，零第三方依赖。
+  image-size-gate:
+    name: Image size budget gate
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.base_ref != 'main' && github.base_ref != 'staging' &&
+       !startsWith(github.base_ref, 'release/v'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+
+      - name: Size gate unit tests (bare node, no package manager)
+        run: node --test scripts/check-image-budget.test.js
+
+      - name: Prove the gate bites on +1 MiB of junk
+        run: node scripts/check-image-budget.mjs --self-test
+
+      - name: Locate image catalog (present only when images were built)
+        id: catalog
+        run: |
+          set -Eeuo pipefail
+          candidate="${BOX3_IMAGE_CATALOG:-}"
+          if [ -z "$candidate" ] && [ -f release/BOX3-IMAGE-CATALOG.json ]; then
+            candidate=release/BOX3-IMAGE-CATALOG.json
+          fi
+          if [ -n "$candidate" ] && [ ! -f "$candidate" ]; then
+            echo "BOX3_IMAGE_CATALOG 指向不存在的文件：$candidate" >&2
+            exit 1
+          fi
+          echo "found=$([ -n "$candidate" ] && echo yes || echo no)" >> "$GITHUB_OUTPUT"
+          echo "file=$candidate" >> "$GITHUB_OUTPUT"
+
+      # 棘轮档：数值 == v2026.1.4 出厂实测，出厂态必绿；任何字节增长（含上游升级
+      # 把删掉的字节涨回来）必红。--require size 保证“没测到”不会被当成通过。
+      - name: Byte ratchet gate (blocks any image growth)
+        if: steps.catalog.outputs.found == 'yes'
+        env:
+          BOX3_CATALOG: ${{ steps.catalog.outputs.file }}
+        run: >-
+          node scripts/check-image-budget.mjs
+          --catalog "$BOX3_CATALOG"
+          --tier ratchet
+          --require size
+          --out "$RUNNER_TEMP/image-budget-ratchet.json"
+
+      # 过渡档（-40%）是 W1/W3 的落地目标，在 prune 进 Dockerfile 之前对出厂字节
+      # 必然为红，所以这里只做进度指示、不阻断；W1/W3 落地后把它升级为硬门并把
+      # --tier ratchet 一起切成 --tier transition。
+      - name: P0 transition tier report (non-blocking until W1/W3 land)
+        if: steps.catalog.outputs.found == 'yes'
+        continue-on-error: true
+        env:
+          BOX3_CATALOG: ${{ steps.catalog.outputs.file }}
+        run: >-
+          node scripts/check-image-budget.mjs
+          --catalog "$BOX3_CATALOG"
+          --tier transition
+          --require size
+          --out "$RUNNER_TEMP/image-budget-transition.json"
+
+      - name: Locate extracted image trees (present only when /app was unpacked)
+        id: trees
+        run: |
+          set -Eeuo pipefail
+          candidate="${BOX3_IMAGE_TREES_DIR:-}"
+          if [ -z "$candidate" ] && [ -d release/image-trees ]; then
+            candidate=release/image-trees
+          fi
+          if [ -n "$candidate" ] && [ ! -d "$candidate" ]; then
+            echo "BOX3_IMAGE_TREES_DIR 指向不存在的目录：$candidate" >&2
+            exit 1
+          fi
+          echo "found=$([ -n "$candidate" ] && echo yes || echo no)" >> "$GITHUB_OUTPUT"
+          echo "dir=$candidate" >> "$GITHUB_OUTPUT"
+
+      # 构建工具黑名单（@swc/core/typescript/esbuild/sass/@babel/sql.js 调试变体/
+      # 字体双拷贝）。树目录缺席时这一步不跑，所以 --require 只声明 blacklist，
+      # 缺目录不等于通过——由下一个 step 兜底。
+      - name: Build-tool blacklist gate
+        if: steps.trees.outputs.found == 'yes'
+        env:
+          BOX3_TREES: ${{ steps.trees.outputs.dir }}
+        run: >-
+          node scripts/check-image-budget.mjs
+          --trees-dir "$BOX3_TREES"
+          --require blacklist
+          --out "$RUNNER_TEMP/image-blacklist.json"
+
+      # 本 workflow 不构建镜像，所以 PR/push 只有结构检查会跑到真实字节。这里把
+      # “今天只跑了自测”这件事显式打出来，避免误以为体积门已经在管真字节；真正
+      # 按字节阻断的那一步必须挂在 release.yml 的 images job 之后（W2 无该文件所有权）。
+      - name: Report which image inputs were available
+        if: always()
+        run: |
+          if [ "${{ steps.catalog.outputs.found }}" = "yes" ] || [ "${{ steps.trees.outputs.found }}" = "yes" ]; then
+            echo "::notice::体积门已对真实产物求值（catalog/trees 在场）。"
+          else
+            echo "::notice::本次只跑了体积门自检（无 BOX3-IMAGE-CATALOG.json、无镜像树）。"
+          fi

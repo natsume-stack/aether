@@ -1,0 +1,123 @@
+{
+  "$comment": [
+    "Single source of truth for W3 font slimming decisions.",
+    "Statuses:",
+    "  live               - referenced by shipped browser CSS/JS on normal code paths, keep",
+    "  unreferenced       - no import/url anywhere in source or shipped bundles, safe to delete now",
+    "  rusty-branch-only  - only reachable when process.env.RUSTY is truthy (native client build),",
+    "                       dead-code string in web bundles; deleting requires touching",
+    "                       apps/game/src/engine/game-ui/nodes/defs.ts (owned by another lane),",
+    "                       so this script never auto-deletes these",
+    "  css-fallback       - second src() format of a multi-format @font-face (e.g. woff behind woff2);",
+    "                       droppable only after the CSS is regenerated, listed in the plan output",
+    "Byte sizes are the measured shipped copies under",
+    "/var/tmp/re-arch/creator-next/standalone/apps/game/.next/static/media (2026-10)."
+  ],
+  "sourceDir": "apps/game/assets/fonts",
+  "emittedMediaDirs": [
+    "apps/game/.next/static/media",
+    "apps/game/.next/standalone/apps/game/.next/static/media"
+  ],
+  "serverTraceDupDir": "apps/game/.next/standalone/apps/game/.next/server/chunks/static",
+  "formatPriority": ["woff2", "woff", "otf", "ttf"],
+  "evidence": {
+    "rustyBranchSource": "apps/game/src/engine/game-ui/nodes/defs.ts:101,118,132",
+    "cssFontFaces": [
+      "apps/game/app/common.css:140-249",
+      "apps/game/pages/common.css:302-402"
+    ]
+  },
+  "families": [
+    {
+      "family": "ChillRoundGothic-Bold",
+      "usage": "game-ui Bold-Round (中文粗圆体), loaded via JS FontFace in defs.ts",
+      "formats": {
+        "ttf": { "status": "rusty-branch-only", "shippedBytes": 12364772 },
+        "woff": { "status": "live", "shippedBytes": 7925528 }
+      },
+      "subsetCandidate": true,
+      "subsetNote": "12 MB CJK family served whole; unicode-range subsetting is the real fix (UNVERIFIED until pyftsubset run)"
+    },
+    {
+      "family": "MiSans-Regular",
+      "usage": "CSS @font-face MiSans (body text, CJK)",
+      "formats": {
+        "ttf": { "status": "unreferenced", "shippedBytes": 0 },
+        "woff": { "status": "live", "shippedBytes": 5369488 }
+      },
+      "subsetCandidate": true
+    },
+    {
+      "family": "MiSans-Bold",
+      "usage": "CSS @font-face MiSans-Bold",
+      "formats": {
+        "woff": { "status": "live", "shippedBytes": 5396884 }
+      },
+      "subsetCandidate": true
+    },
+    {
+      "family": "Rubik-Regular",
+      "usage": "game-ui default font (defs.ts) + Rubik CSS faces",
+      "formats": {
+        "ttf": { "status": "rusty-branch-only", "shippedBytes": 207632 },
+        "woff2": { "status": "live", "file": "rubik-v20-latin-regular.woff2", "shippedBytes": 17188 },
+        "woff": { "status": "css-fallback", "file": "rubik-v20-latin-regular.woff", "shippedBytes": 21816 }
+      }
+    },
+    {
+      "family": "Code-New-Roman-Bold",
+      "usage": "game-ui Code-New-Roman-Bold",
+      "formats": {
+        "otf": { "status": "rusty-branch-only", "shippedBytes": 356308 },
+        "woff": { "status": "live", "shippedBytes": 356433 }
+      }
+    },
+    {
+      "family": "DoulosSILR",
+      "usage": "game-ui EN-Serif, unconditionally referenced (defs.ts:8,146)",
+      "formats": {
+        "ttf": { "status": "live", "shippedBytes": 1721928 }
+      }
+    },
+    {
+      "family": "noto-sans-sc-700",
+      "usage": "CSS @font-face",
+      "formats": {
+        "woff2": { "status": "live", "shippedBytes": 3148 },
+        "woff": { "status": "css-fallback", "shippedBytes": 5164 }
+      }
+    },
+    {
+      "family": "noto-sans-sc-regular",
+      "usage": "CSS @font-face",
+      "formats": {
+        "woff2": { "status": "live", "shippedBytes": 3176 },
+        "woff": { "status": "css-fallback", "shippedBytes": 5104 }
+      }
+    },
+    {
+      "family": "NotoSans-Regular",
+      "formats": { "woff": { "status": "live", "shippedBytes": 193528 } }
+    },
+    {
+      "family": "NotoSans-Bold",
+      "formats": { "woff": { "status": "live", "shippedBytes": 194312 } }
+    },
+    {
+      "family": "Montserrat",
+      "formats": {
+        "woff": { "status": "live", "note": "Regular/Medium/Bold all CSS-referenced" }
+      }
+    },
+    {
+      "family": "KaTeX-*",
+      "usage": "katex stylesheet @font-face; all three formats (woff2/woff/ttf) appear in shipped CSS",
+      "formats": {
+        "woff2": { "status": "live" },
+        "woff": { "status": "css-fallback" },
+        "ttf": { "status": "css-fallback" }
+      },
+      "ownedBy": "node_modules/katex, regenerates with dependency updates - do not hand-delete"
+    }
+  ]
+}

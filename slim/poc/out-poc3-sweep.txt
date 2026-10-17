@@ -1,0 +1,64 @@
+### N_ISO=16 HANG_COUNT=1 MODE=async
+ "victim_summary": {
+  "n": 15,
+  "worst_before_p50": 4.88,
+  "worst_during_p99": 127.28
+ "victim_summary": {
+  "n": 15,
+  "worst_before_p50": 4.88,
+  "worst_during_p99": 127.28
+ },
+ "hanger_summary": {
+ "mainEventLoopDelay_ms": {
+  "p50": 20.61,
+  "p99": 96.21,
+  "max": 224.79
+ },
+### N_ISO=16 HANG_COUNT=4 MODE=async
+ "victim_summary": {
+  "n": 12,
+  "worst_before_p50": 1.94,
+  "worst_during_p99": 57.8
+ "victim_summary": {
+  "n": 12,
+  "worst_before_p50": 1.94,
+  "worst_during_p99": 57.8
+ },
+ "hanger_summary": {
+ "mainEventLoopDelay_ms": {
+  "p50": 20.37,
+  "p99": 46.2,
+  "max": 110.89
+ },
+### N_ISO=32 HANG_COUNT=8 MODE=async
+ "victim_summary": {
+  "n": 24,
+  "worst_before_p50": 1.81,
+  "worst_during_p99": 152.8
+ "victim_summary": {
+  "n": 24,
+  "worst_before_p50": 1.81,
+  "worst_during_p99": 152.8
+ },
+ "hanger_summary": {
+ "mainEventLoopDelay_ms": {
+  "p50": 20.32,
+  "p99": 86.84,
+  "max": 108.27
+ },
+### N_ISO=16 HANG_COUNT=0 MODE=async
+ "victim_summary": {
+  "n": 16,
+  "worst_before_p50": 1.73,
+  "worst_during_p99": 6.25
+ "victim_summary": {
+  "n": 16,
+  "worst_before_p50": 1.73,
+  "worst_during_p99": 6.25
+ },
+ "hanger_summary": {
+ "mainEventLoopDelay_ms": {
+  "p50": 20.19,
+  "p99": 22.48,
+  "max": 25.56
+ },

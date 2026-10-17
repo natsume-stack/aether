@@ -1,0 +1,66 @@
+.git
+.local-data/
+.gitignore
+.DS_Store
+**/.DS_Store
+**/node_modules
+**/.rush
+**/.next
+**/.next-*
+/dist/
+apps/player-auth-portal/dist/
+apps/game/dist/
+**/coverage
+**/.turbo
+**/*.tsbuildinfo
+*.log
+.env
+.env.*
+!.env.docker.example
+docker-data
+license/
+
+# Desktop-manager Rust build output is only for the host launcher and can be
+# several gigabytes. It is unrelated to Creator/Play/VOXA container images.
+apps/deployment-manager/src-tauri/target
+**/target
+
+# Player desktop installers are unrelated to engine containers. Keep local
+# Electron bundles out of COPY . . without deleting the user's packages.
+apps/player-launcher/release-electron/
+apps/player-launcher/dist-electron/
+apps/player-launcher/dist/
+
+# Creator workspaces and editable exports never belong in an image build
+# context. They are transferred only through the explicit project import/export
+# workflow or mounted as runtime data.
+apps/local-engine/projects/
+apps/local-engine/dist/
+apps/local-engine/.build-lock/
+apps/local-engine/play-worlds/
+
+# VOXA models and uploaded blobs are creator-owned runtime data. They are
+# mounted into the VOXA container and must never be copied into an image.
+apps/voxa/data/
+# Legacy local license data must never enter a build context.
+apps/license-server/
+
+# Include the complete blob store as build input. Other local engine data stays excluded.
+apps/local-engine/data/*
+!apps/local-engine/data/blobs/
+!apps/local-engine/data/blobs/**
+apps/local-engine/runtime-cache/
+apps/local-engine/backups/
+apps/player-launcher/private/
+internals/dev-certs/
+apps/migrator/cache
+apps/migrator/cache/
+
+apps/manager-core/target/
+common/temp/
+
+# Do not include accidentally restored internal tools in any engine image.
+apps/migrator/
+.internal/
+.private/
+box-local-engine-internal/

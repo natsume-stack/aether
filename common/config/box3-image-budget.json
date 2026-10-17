@@ -1,0 +1,78 @@
+{
+  "schema": "box3.image-budget.v1",
+  "description": "每个服务镜像的体积预算。上游只会加不会减，这张表是唯一能守住 W1/W3 成果的 CI 门。",
+  "defaultTier": "transition",
+  "tiers": {
+    "transition": "P0 过渡阈值：现役 v2026.1.4 实测值下调 40%，W1/W3 落地后必须满足。",
+    "target": "私有化目标阈值：占位值，按实测值下调 55%；待 W1 报告校准后才可作为硬门。",
+    "ratchet": "回归棘轮档：数值 = basis.observed 原值（v2026.1.4 出厂实测），不改任何既有阈值。出厂态必绿，任何字节增长必红 —— 这是今天就能接进 CI 拦「上游升级把字节涨回来」的那一档。"
+  },
+  "tierRules": {
+    "transitionRule": "floor(observed * 0.60)",
+    "targetRule": "floor(observed * 0.45)，UNVERIFIED：W1 报告尚未产出，此档不作为默认门",
+    "ratchetRule": "ratchet = observed 原值（未做任何折扣），aggregate = 六服务 observed 之和"
+  },
+  "basis": {
+    "release": "v2026.1.4",
+    "previousRelease": "v0.3.0",
+    "measuredAt": "2026-10-17",
+    "measuredOn": "WSL2 Ubuntu-24.04, docker 29.1.3, linux/amd64, 现役 7 容器栈",
+    "method": "contentBytes = `docker image inspect -f '{{.Size}}'`；archiveBytes = 官方 BOX3-IMAGE-CATALOG.json 的 per-service `size`（tar.gz 实际字节）",
+    "observed": {
+      "creator": { "contentBytes": 678713391, "archiveBytes": 263029978 },
+      "voxa": { "contentBytes": 483753236, "archiveBytes": 182383424 },
+      "play": { "contentBytes": 615942850, "archiveBytes": 240669370 },
+      "player-service": { "contentBytes": 512534379, "archiveBytes": 203712541 },
+      "player-auth-portal": { "contentBytes": 230350033, "archiveBytes": 86925875 },
+      "server-manager": { "contentBytes": 214916557, "archiveBytes": 83924951 }
+    },
+    "previousReleaseObserved": {
+      "creator": { "contentBytes": 657655304 },
+      "voxa": { "contentBytes": 444734714 },
+      "play": { "contentBytes": 594902659 },
+      "player-service": { "contentBytes": 492466010 },
+      "player-auth-portal": { "contentBytes": 230253264 },
+      "server-manager": { "contentBytes": 196059058 }
+    },
+    "measuredRemovableBytes": {
+      "comment": "W2 在现役镜像内实测到的黑名单命中字节（见 box3-image-blacklist.json 的运行报告），用于说明 transition 档中有多少是可证明回收的。",
+      "creator": 138393952,
+      "voxa": 128358637,
+      "play": 138393952,
+      "player-service": 88497820,
+      "player-auth-portal": 0,
+      "server-manager": 0
+    }
+  },
+  "growthToleranceBytes": 0,
+  "services": {
+    "creator": {
+      "contentBytes": { "ratchet": 678713391, "transition": 407228034, "target": 305421025 },
+      "archiveBytes": { "ratchet": 263029978, "transition": 157817986, "target": 118363490 }
+    },
+    "voxa": {
+      "contentBytes": { "ratchet": 483753236, "transition": 290251941, "target": 217688956 },
+      "archiveBytes": { "ratchet": 182383424, "transition": 109430054, "target": 82072540 }
+    },
+    "play": {
+      "contentBytes": { "ratchet": 615942850, "transition": 369565710, "target": 277174282 },
+      "archiveBytes": { "ratchet": 240669370, "transition": 144401622, "target": 108301216 }
+    },
+    "player-service": {
+      "contentBytes": { "ratchet": 512534379, "transition": 307520627, "target": 230640470 },
+      "archiveBytes": { "ratchet": 203712541, "transition": 122227524, "target": 91670643 }
+    },
+    "player-auth-portal": {
+      "contentBytes": { "ratchet": 230350033, "transition": 138210019, "target": 103657514 },
+      "archiveBytes": { "ratchet": 86925875, "transition": 52155525, "target": 39116643 }
+    },
+    "server-manager": {
+      "contentBytes": { "ratchet": 214916557, "transition": 128949934, "target": 96712450 },
+      "archiveBytes": { "ratchet": 83924951, "transition": 50354970, "target": 37766227 }
+    }
+  },
+  "aggregate": {
+    "contentBytes": { "ratchet": 2736210446, "transition": 1641726267, "target": 1231294700 },
+    "archiveBytes": { "ratchet": 1060646139, "transition": 636387683, "target": 477290762 }
+  }
+}

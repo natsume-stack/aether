@@ -1,0 +1,69 @@
+.manager-login-page {
+    min-height: 100%;
+    display: grid;
+    place-items: center;
+    padding: 24px 0;
+}
+
+.manager-login-card {
+    width: min(100%, 460px);
+    padding: 32px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-panel);
+    background: var(--panel);
+}
+
+.manager-login-heading {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 28px;
+}
+
+.manager-login-kicker {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+}
+
+.manager-login-heading h1 {
+    font-size: 25px;
+    line-height: 1.3;
+}
+
+.manager-login-form {
+    display: grid;
+    gap: 20px;
+}
+
+.manager-login-form .field {
+    grid-template-rows: auto 42px auto;
+    gap: 10px;
+}
+
+.manager-login-form .field input {
+    height: 42px;
+    font-size: 13px;
+}
+
+.manager-login-form .field small {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.6;
+}
+
+.manager-login-form .button {
+    width: 100%;
+    height: 40px;
+}
+
+.manager-login-form #web-login-error {
+    margin: 0;
+    line-height: 1.5;
+}
+
+@media (max-height: 640px) {
+    .manager-login-page {
+        place-items: start center;
+    }
+}

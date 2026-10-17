@@ -1,0 +1,7 @@
+.next/
+data/
+node_modules/
+public/
+
+# Vendored MagicaVoxel parser. Keep changes synchronized with its source.
+src/models/parse-magica-voxel/

@@ -1,0 +1,90 @@
+.player-admin-login {
+    display: grid;
+    min-height: 100vh;
+    place-items: center;
+    padding: 32px;
+    background: #f6f7f9;
+}
+.player-admin-login-card {
+    width: 440px;
+    border: 1px solid #dfe3ea;
+    border-radius: 4px;
+    box-shadow: none;
+}
+.player-admin-login-card .ant-card-body {
+    padding: 28px 34px 34px;
+}
+.player-admin-login-brand {
+    height: auto;
+    gap: 8px;
+    padding: 0;
+    color: #4f5c70;
+}
+.player-admin-login-brand .player-admin-brand-mark {
+    width: 22px;
+    height: 22px;
+    border-radius: 0;
+}
+.player-admin-login-brand::after {
+    font-size: 14px;
+    font-weight: 600;
+}
+.player-admin-login-title {
+    margin: 20px 0 22px;
+    color: #182033;
+    font-size: 22px;
+    font-weight: 650;
+    letter-spacing: -0.2px;
+}
+.player-admin-login-copy {
+    display: none;
+}
+.player-admin-login-tabs {
+    display: flex;
+    margin: 0 0 28px;
+    border-bottom: 1px solid #dfe4eb;
+}
+.player-admin-login-tabs button {
+    flex: 1;
+    padding: 11px 0;
+    color: #687387;
+    background: transparent;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition:
+        color 160ms ease,
+        border-color 160ms ease;
+}
+.player-admin-login-tabs button.active {
+    color: #2474e8;
+    border-bottom-color: #2474e8;
+    font-weight: 600;
+}
+.player-admin-login-tabs button:active,
+.ant-btn:active {
+    transform: scale(0.98);
+}
+.player-admin-login .ant-form-item {
+    margin-bottom: 22px;
+}
+.player-admin-login .ant-form-item-label {
+    padding-bottom: 7px;
+}
+.player-admin-login .ant-input,
+.player-admin-login .ant-input-affix-wrapper,
+.player-admin-login .ant-btn-primary {
+    min-height: 42px;
+    border-radius: 3px;
+    box-shadow: none;
+}
+.player-admin-login .ant-btn-primary {
+    margin-top: 4px;
+    background: #2474e8;
+    border-color: #2474e8;
+    font-weight: 600;
+}
+.player-admin-login .ant-btn-primary:hover {
+    background: #1768d8;
+    border-color: #1768d8;
+}

@@ -1,0 +1,127 @@
+import {
+  MuArray,
+  MuASCII,
+  MuBoolean,
+  MuDictionary,
+  MuFloat32,
+  MuFloat64,
+  MuQuantizedFloat,
+  MuRelativeVarint,
+  MuSchema,
+  MuStruct,
+  MuUint16,
+  MuUint32,
+  MuUTF8,
+  MuVarint,
+} from '@box/mudb/schema';
+import { RelativeArray } from '../../utils/relative-array';
+export const HashSchema = new MuASCII();
+export const BlockInfoSchema = new MuStruct({
+  // voxel info
+  ids: new RelativeArray(new MuRelativeVarint(), Infinity, [0]),
+  names: new MuArray(new MuUTF8(), Infinity, ['air']),
+
+  // run length encode these arrays
+  emissive: new RelativeArray(new MuVarint(), Infinity, [0]),
+  texture: new RelativeArray(
+    new MuRelativeVarint(),
+    Infinity,
+    [0, 0, 0, 0, 0, 0],
+  ),
+  animLength: new RelativeArray(new MuVarint(1), Infinity, [1, 1, 1, 1, 1, 1]),
+  friction: new RelativeArray(new MuQuantizedFloat(1 / 256, 1), Infinity, [0]),
+  restitution: new RelativeArray(new MuQuantizedFloat(1 / 256, 0), Infinity, [
+    0,
+  ]),
+  velocity: new RelativeArray(new MuFloat32(0), Infinity, [0, 0, 0]),
+
+  // fluids
+  fluids: new MuArray(
+    new MuStruct({
+      id: new MuVarint(),
+      info: new MuUint32(),
+      mass: new MuFloat64(1),
+    }),
+    Infinity,
+    [
+      {
+        id: 0,
+        info: 0,
+        mass: 0,
+      },
+    ],
+  ),
+
+  // category list
+  category: new MuDictionary(
+    new RelativeArray(new MuRelativeVarint(), Infinity),
+    Infinity,
+    {
+      default: [0],
+    },
+  ),
+
+  // texture info
+  atlasRadius: new MuVarint(16),
+  blockBumpShift: new MuVarint(6),
+  blockColorShift: new MuVarint(4),
+
+  // texture atlases
+  colorAtlas: new MuArray(HashSchema, Infinity),
+  materialAtlas: new MuArray(HashSchema, Infinity),
+  bumpAtlas: new MuArray(HashSchema, Infinity),
+});
+
+export type BlockInfo = typeof BlockInfoSchema.identity;
+
+// non-serializable object reference helper type for muschema
+
+const _noSerialize = () => {
+  throw new Error('cannot serialize references');
+};
+
+export class MuRefSchema<T> implements MuSchema<T | null> {
+  public identity: T | null = null;
+  public muType = 'ref';
+  public muData = { type: 'ref' };
+  public json = { type: 'ref' };
+
+  constructor() {}
+
+  public diff = _noSerialize;
+  public patch = _noSerialize;
+  public toJSON = _noSerialize;
+  public fromJSON = _noSerialize;
+
+  public alloc(): T | null {
+    return null;
+  }
+  public free() {}
+  public assign(dst: T | null, src: T | null) {
+    return src;
+  }
+  public clone(x) {
+    return x;
+  }
+  public equal(a, b) {
+    return a === b;
+  }
+}
+
+export const BlockIndexSchema = new MuStruct({
+  id: new MuDictionary(new MuVarint(), Infinity, { air: 0 }),
+  valid: new MuArray(new MuBoolean(false), Infinity),
+  name: new MuArray(new MuUTF8(), Infinity, ['air']),
+  emissive: new MuArray(new MuUint16(), Infinity, [0]),
+  texture: new MuArray(new MuUint32(), Infinity, [0, 0, 0, 0, 0, 0]),
+  mass: new MuArray(new MuFloat64(), Infinity, [0]),
+  restitution: new MuArray(new MuFloat64(), Infinity, [0]),
+  friction: new MuArray(new MuFloat64(), Infinity, [0]),
+  fluid: new MuArray(new MuVarint(), Infinity, [1]),
+  fluidInfo: new MuArray(new MuUint32(), Infinity, [0, 0]),
+  velocity: new MuArray(new MuFloat32(0), Infinity, [0, 0, 0]),
+
+  isFluid: new MuRefSchema<Uint8Array>(),
+});
+
+export type BlockIndex = typeof BlockIndexSchema.identity;

@@ -1,0 +1,83 @@
+@use '../colors.module.scss' as colors;
+@use '../texts.module.scss' as texts;
+
+.paramPanel {
+  height: 136px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8px 8px 8px 4px;
+  &.hitBox {
+    height: 72px;
+  }
+
+  .paramIcon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    svg {
+      fill: colors.$textWhiteTertiary;
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  :global(.boxButton.boxButtonIcon svg) {
+    fill: colors.$textWhiteTertiary;
+    width: 16px;
+    height: 16px;
+  }
+
+  .inputLine {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .opacity {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .sliderWrapper {
+      width: 208px;
+
+      .slider {
+        width: 136px;
+      }
+    }
+  }
+
+  .input {
+    width: 64px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding-right: 0;
+
+    span {
+      @include texts.b12;
+      padding-right: 3px;
+      color: colors.$textWhiteDisabled;
+    }
+  }
+
+  .resetScale:global(.boxButton):global(.boxButtonBackground) {
+    background-color: transparent;
+  }
+}
+
+.extra {
+  padding-right: 3px;
+
+  .tabs {
+    height: 26px;
+    background: colors.$background3;
+    border: 1px solid colors.$opacityWhite9;
+    border-radius: 5px;
+  }
+}

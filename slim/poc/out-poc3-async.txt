@@ -1,0 +1,89 @@
+{
+ "config": {
+  "HANG_MODE": "async",
+  "N_ISO": 3,
+  "TICK_MS": 50,
+  "DURATION_MS": 6000,
+  "TIMEOUT": 10000,
+  "HANG_FROM": 1500,
+  "HANG_MS": 3000,
+  "memMB": 512,
+  "cores": 8
+ },
+ "hangEvents": [
+  {
+   "atMs": 1500.2,
+   "msg": "isolate#0 starts while(true); host call form = async"
+  },
+  {
+   "atMs": 3003.4,
+   "msg": "timeout FIRED",
+   "err": "Script execution timed out.",
+   "isolate0Alive": true,
+   "othersAlive": true
+  }
+ ],
+ "perIsolate": [
+  {
+   "idx": 0,
+   "ticksBefore": 52,
+   "ticksDuring": 6,
+   "jitter_before_ms": {
+    "p50": 1,
+    "p99": 36.52,
+    "max": 36.52
+   },
+   "jitter_during_ms": {
+    "p50": 0.46,
+    "p99": 2980,
+    "max": 2980
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 1,
+   "ticksBefore": 52,
+   "ticksDuring": 64,
+   "jitter_before_ms": {
+    "p50": 1.09,
+    "p99": 18.62,
+    "max": 18.62
+   },
+   "jitter_during_ms": {
+    "p50": 1.22,
+    "p99": 8.41,
+    "max": 8.41
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 2,
+   "ticksBefore": 52,
+   "ticksDuring": 64,
+   "jitter_before_ms": {
+    "p50": 1.03,
+    "p99": 24.01,
+    "max": 24.01
+   },
+   "jitter_during_ms": {
+    "p50": 1.07,
+    "p99": 3.07,
+    "max": 3.07
+   },
+   "callErrors": 0,
+   "firstError": null
+  }
+ ],
+ "mainEventLoopDelay_ms": {
+  "p50": 20.17,
+  "p99": 21.84,
+  "max": 50.69
+ },
+ "post_hang_health": [
+  "0:OK tick=352",
+  "1:OK tick=700",
+  "2:OK tick=700"
+ ]
+}

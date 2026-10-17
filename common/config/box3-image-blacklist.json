@@ -1,0 +1,106 @@
+{
+  "schema": "box3.image-blacklist.v1",
+  "description": "成品镜像里不该出现的构建期工具与重复资产。W1/W3 删掉的东西由这张表负责守住不回潮。",
+  "root": "/app",
+  "imageRepositoryPrefix": "box-local-engine-",
+  "services": ["creator", "voxa", "play", "player-service", "player-auth-portal", "server-manager"],
+  "rules": [
+    {
+      "id": "swc-core",
+      "label": "@swc/core 原生二进制（编译期工具，运行期用不到）",
+      "owner": "W1",
+      "glob": "**/node_modules/.pnpm/@swc+core*",
+      "find": { "type": "d", "name": "@swc+core*" },
+      "maxEntries": 0,
+      "measured": { "creator": 50398488, "voxa": 113335179, "play": 50398488, "player-service": 50398488 }
+    },
+    {
+      "id": "typescript",
+      "label": "typescript 编译器（.d.ts 之外不需要 tsc 本体）",
+      "owner": "W1",
+      "glob": "**/node_modules/.pnpm/typescript@*",
+      "find": { "type": "d", "name": "typescript@*" },
+      "maxEntries": 0,
+      "measured": { "creator": 28522317, "voxa": 8947551, "play": 28522317, "player-service": 8947551 }
+    },
+    {
+      "id": "esbuild",
+      "label": "esbuild 打包器二进制",
+      "owner": "W1",
+      "glob": "**/node_modules/.pnpm/esbuild@*",
+      "find": { "type": "d", "name": "esbuild@*" },
+      "maxEntries": 0,
+      "measured": { "creator": 121989, "play": 121989, "player-service": 121989 }
+    },
+    {
+      "id": "sass",
+      "label": "sass 编译器（样式已在构建期产出）",
+      "owner": "W1",
+      "glob": "**/node_modules/.pnpm/sass@*",
+      "find": { "type": "d", "name": "sass@*" },
+      "maxEntries": 0,
+      "measured": { "creator": 5445892, "voxa": 5445892, "play": 5445892, "player-service": 5445892 }
+    },
+    {
+      "id": "babel",
+      "label": "@babel/* 编译期包",
+      "owner": "W1",
+      "glob": "**/node_modules/.pnpm/@babel+*",
+      "find": { "type": "d", "name": "@babel+*" },
+      "maxEntries": 0,
+      "measured": { "creator": 630015, "voxa": 630015, "play": 630015, "player-service": 630015 }
+    },
+    {
+      "id": "sqljs-debug",
+      "label": "sql.js 的 *-debug.js / *-debug.wasm 调试变体",
+      "owner": "W3",
+      "glob": "**/node_modules/sql.js/dist/*-debug.*",
+      "find": { "type": "f", "name": "*-debug.*", "path": "*/sql.js/dist/*" },
+      "maxEntries": 0,
+      "measured": { "creator": 12870658, "play": 12870658 }
+    },
+    {
+      "id": "sqljs-asm-variants",
+      "label": "sql.js 主线程 asm 变体（sql-asm.js 与 sql-asm-memory-growth.js 只能留 1 个）",
+      "owner": "W3",
+      "glob": "**/node_modules/sql.js/dist/sql-asm*.js",
+      "find": { "type": "f", "name": "sql-asm*.js", "path": "*/sql.js/dist/*" },
+      "maxEntries": 1,
+      "measured": { "creator": 4951009, "play": 4951009 }
+    },
+    {
+      "id": "sqljs-zips",
+      "label": "sql.js dist 内的发行用 zip 归档",
+      "owner": "W3",
+      "glob": "**/node_modules/sql.js/dist/*.zip",
+      "find": { "type": "f", "name": "*.zip", "path": "*/sql.js/dist/*" },
+      "maxEntries": 0,
+      "measured": { "creator": 6382934, "play": 6382934 }
+    },
+    {
+      "id": "next-font-double-copy",
+      "label": ".next/server/chunks/static/media 字体双拷贝（与 static/media 重复）",
+      "owner": "W3",
+      "glob": "**/.next/server/chunks/static/media/*",
+      "find": { "type": "f", "path": "*/.next/server/chunks/static/media/*" },
+      "maxEntries": 0,
+      "measured": { "creator": 22953885, "play": 22953885, "player-service": 22953885 }
+    },
+    {
+      "id": "monaco-vs",
+      "label": "Monaco 编辑器 static/vs 目录",
+      "owner": "W1",
+      "glob": "**/.next/static/vs",
+      "find": { "type": "d", "name": "vs", "path": "*/.next/static/vs" },
+      "maxEntries": null,
+      "byService": {
+        "play": { "maxEntries": 0 },
+        "voxa": { "maxEntries": 0 },
+        "player-auth-portal": { "maxEntries": 0 },
+        "server-manager": { "maxEntries": 0 }
+      },
+      "note": "实测：play 在 v2026.1.4 已经没有 static/vs，所以 play 可以立即上 0；creator 与 player-service 仍各有一份 12,953,811 B，是否清零取决于 W1 报告的 play-lite 结论，这里先只报告。",
+      "measured": { "creator": 12953811, "play": 0, "player-service": 12953811 }
+    }
+  ]
+}

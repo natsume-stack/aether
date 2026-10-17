@@ -1,0 +1,28 @@
+@use '../../../colors.module.scss/' as colors;
+
+.channel {
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+
+  height: 100%;
+
+  position: absolute;
+  top: 0;
+
+  background-color: colors.$success70;
+
+  &.selected {
+    background-color: colors.$success90;
+  }
+
+  :global(.boxIcon) {
+    min-width: 24px;
+
+    use {
+      fill: none;
+      stroke: black;
+    }
+  }
+}

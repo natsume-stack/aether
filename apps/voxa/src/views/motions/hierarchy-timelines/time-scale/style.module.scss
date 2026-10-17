@@ -1,0 +1,57 @@
+@use '../../../texts.module.scss' as texts;
+@use '../../../colors.module.scss' as colors;
+
+.timeScale {
+  grid-area: timeScale;
+
+  position: sticky;
+  top: 0;
+
+  display: flex;
+
+  justify-content: space-between;
+
+  padding: 0 8px 0 8px;
+
+  background-color: colors.$background2;
+
+  .second {
+    display: flex;
+
+    justify-content: space-between;
+
+    .mark {
+      display: flex;
+
+      flex-direction: column;
+
+      justify-content: flex-end;
+      align-items: center;
+
+      width: 1px;
+
+      .pole {
+        width: 1px;
+        height: 6px;
+
+        background-color: colors.$opacityWhite15;
+      }
+
+      &.highlight .pole {
+        background-color: colors.$opacityWhite50;
+      }
+
+      .value {
+        @include texts.b10;
+
+        color: colors.$textWhiteTertiary;
+      }
+
+      &.scaleValue .pole {
+        height: 10px;
+
+        background-color: colors.$opacityWhite50;
+      }
+    }
+  }
+}

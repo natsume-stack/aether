@@ -1,0 +1,351 @@
+{
+ "config": {
+  "HANG_MODE": "async",
+  "HANG_COUNT": 1,
+  "N_ISO": 16,
+  "TICK_MS": 50,
+  "DURATION_MS": 6000,
+  "TIMEOUT": 10000,
+  "HANG_FROM": 1200,
+  "HANG_MS": 2500,
+  "memMB": 512,
+  "cores": 8
+ },
+ "hangEvents": [
+  {
+   "atMs": 1199.7,
+   "msg": "isolate#0..#0 start while(true); form=async budget=2500ms"
+  },
+  {
+   "iso": 0,
+   "atMs": 2501.2,
+   "msg": "timeout FIRED",
+   "err": "Script execution timed out.",
+   "thisIsolateAlive": true,
+   "othersAlive": true
+  }
+ ],
+ "victim_summary": {
+  "n": 15,
+  "worst_before_p50": 1.27,
+  "worst_during_p99": 19.85
+ },
+ "hanger_summary": {
+  "n": 1,
+  "worst_before_p50": 0.95,
+  "worst_during_p99": 2472.93
+ },
+ "perIsolate": [
+  {
+   "idx": 0,
+   "role": "HANGER",
+   "ticksBefore": 59,
+   "ticksDuring": 8,
+   "jitter_before_ms": {
+    "p50": 0.95,
+    "p99": 43.95,
+    "max": 43.95
+   },
+   "jitter_during_ms": {
+    "p50": 1.2,
+    "p99": 2472.93,
+    "max": 2472.93
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 1,
+   "role": "victim",
+   "ticksBefore": 59,
+   "ticksDuring": 56,
+   "jitter_before_ms": {
+    "p50": 1.21,
+    "p99": 20.53,
+    "max": 20.53
+   },
+   "jitter_during_ms": {
+    "p50": 1.45,
+    "p99": 15.16,
+    "max": 15.16
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 2,
+   "role": "victim",
+   "ticksBefore": 60,
+   "ticksDuring": 56,
+   "jitter_before_ms": {
+    "p50": 1.03,
+    "p99": 12.78,
+    "max": 12.78
+   },
+   "jitter_during_ms": {
+    "p50": 1.21,
+    "p99": 10.32,
+    "max": 10.32
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 3,
+   "role": "victim",
+   "ticksBefore": 60,
+   "ticksDuring": 56,
+   "jitter_before_ms": {
+    "p50": 1.04,
+    "p99": 10.94,
+    "max": 10.94
+   },
+   "jitter_during_ms": {
+    "p50": 1.19,
+    "p99": 10.39,
+    "max": 10.39
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 4,
+   "role": "victim",
+   "ticksBefore": 60,
+   "ticksDuring": 56,
+   "jitter_before_ms": {
+    "p50": 1.07,
+    "p99": 14.16,
+    "max": 14.16
+   },
+   "jitter_during_ms": {
+    "p50": 1.16,
+    "p99": 10.76,
+    "max": 10.76
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 5,
+   "role": "victim",
+   "ticksBefore": 60,
+   "ticksDuring": 56,
+   "jitter_before_ms": {
+    "p50": 1.18,
+    "p99": 14.58,
+    "max": 14.58
+   },
+   "jitter_during_ms": {
+    "p50": 1.07,
+    "p99": 14.91,
+    "max": 14.91
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 6,
+   "role": "victim",
+   "ticksBefore": 59,
+   "ticksDuring": 56,
+   "jitter_before_ms": {
+    "p50": 1.1,
+    "p99": 14.14,
+    "max": 14.14
+   },
+   "jitter_during_ms": {
+    "p50": 1.36,
+    "p99": 14.96,
+    "max": 14.96
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 7,
+   "role": "victim",
+   "ticksBefore": 59,
+   "ticksDuring": 56,
+   "jitter_before_ms": {
+    "p50": 1.03,
+    "p99": 21.27,
+    "max": 21.27
+   },
+   "jitter_during_ms": {
+    "p50": 0.99,
+    "p99": 15.13,
+    "max": 15.13
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 8,
+   "role": "victim",
+   "ticksBefore": 59,
+   "ticksDuring": 56,
+   "jitter_before_ms": {
+    "p50": 1.01,
+    "p99": 22.8,
+    "max": 22.8
+   },
+   "jitter_during_ms": {
+    "p50": 0.96,
+    "p99": 19.85,
+    "max": 19.85
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 9,
+   "role": "victim",
+   "ticksBefore": 59,
+   "ticksDuring": 56,
+   "jitter_before_ms": {
+    "p50": 1.26,
+    "p99": 20.67,
+    "max": 20.67
+   },
+   "jitter_during_ms": {
+    "p50": 1.21,
+    "p99": 14.83,
+    "max": 14.83
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 10,
+   "role": "victim",
+   "ticksBefore": 59,
+   "ticksDuring": 56,
+   "jitter_before_ms": {
+    "p50": 1.27,
+    "p99": 20.48,
+    "max": 20.48
+   },
+   "jitter_during_ms": {
+    "p50": 1.13,
+    "p99": 15.14,
+    "max": 15.14
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 11,
+   "role": "victim",
+   "ticksBefore": 59,
+   "ticksDuring": 56,
+   "jitter_before_ms": {
+    "p50": 1.05,
+    "p99": 12.41,
+    "max": 12.41
+   },
+   "jitter_during_ms": {
+    "p50": 1.48,
+    "p99": 15.42,
+    "max": 15.42
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 12,
+   "role": "victim",
+   "ticksBefore": 59,
+   "ticksDuring": 56,
+   "jitter_before_ms": {
+    "p50": 1.15,
+    "p99": 39.45,
+    "max": 39.45
+   },
+   "jitter_during_ms": {
+    "p50": 0.95,
+    "p99": 8.94,
+    "max": 8.94
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 13,
+   "role": "victim",
+   "ticksBefore": 57,
+   "ticksDuring": 56,
+   "jitter_before_ms": {
+    "p50": 1.11,
+    "p99": 20.7,
+    "max": 20.7
+   },
+   "jitter_during_ms": {
+    "p50": 1.4,
+    "p99": 14.96,
+    "max": 14.96
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 14,
+   "role": "victim",
+   "ticksBefore": 58,
+   "ticksDuring": 56,
+   "jitter_before_ms": {
+    "p50": 1.05,
+    "p99": 23.09,
+    "max": 23.09
+   },
+   "jitter_during_ms": {
+    "p50": 1.09,
+    "p99": 10.08,
+    "max": 10.08
+   },
+   "callErrors": 0,
+   "firstError": null
+  },
+  {
+   "idx": 15,
+   "role": "victim",
+   "ticksBefore": 60,
+   "ticksDuring": 56,
+   "jitter_before_ms": {
+    "p50": 0.92,
+    "p99": 8.42,
+    "max": 8.42
+   },
+   "jitter_during_ms": {
+    "p50": 1.22,
+    "p99": 10.21,
+    "max": 10.21
+   },
+   "callErrors": 0,
+   "firstError": null
+  }
+ ],
+ "mainEventLoopDelay_ms": {
+  "p50": 20.19,
+  "p99": 30.92,
+  "max": 42.43
+ },
+ "post_hang_health": [
+  "0:OK tick=406",
+  "1:OK tick=694",
+  "2:OK tick=700",
+  "3:OK tick=700",
+  "4:OK tick=700",
+  "5:OK tick=700",
+  "6:OK tick=694",
+  "7:OK tick=694",
+  "8:OK tick=694",
+  "9:OK tick=694",
+  "10:OK tick=694",
+  "11:OK tick=694",
+  "12:OK tick=694",
+  "13:OK tick=682",
+  "14:OK tick=688",
+  "15:OK tick=700"
+ ]
+}
