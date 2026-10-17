@@ -1,0 +1,523 @@
+{
+  "tools": [
+    {
+      "name": "engine_health",
+      "description": "引擎健康检查。唯一不需要鉴权的 creator/v1 路由，用来确认基地址、镜像版本与部署模式。副作用：无。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "Creator 引擎健康检查",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "（无需 token）"
+      }
+    },
+    {
+      "name": "map_list",
+      "description": "列出本地引擎全部工程（地图）。返回 permanentMapId / name / status / mapRole / updatedAt。副作用：无。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "地图清单",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "projects.list"
+      }
+    },
+    {
+      "name": "map_resources",
+      "description": "读一张图的资源清单（模型/图片/音频/UI 树索引）。对应 getProjectResources（project-manager.js:2342-2389），它内部会走 permissionHash → versionControl → branch.headHash 全链，所以这个工具同时是版本链可用性的探针。副作用：无。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "description": "地图标识：永久地图 ID（20 位十六进制）或本地工程目录名，两者引擎都认（project-manager.js:974-988）",
+            "minLength": 1,
+            "maxLength": 63
+          }
+        },
+        "required": [
+          "mapId"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "地图资源清单",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "resources.list"
+      }
+    },
+    {
+      "name": "script_list",
+      "description": "列脚本。HTTP 面只返回地图组共享脚本（listProjectSharedScripts, project-manager.js:2239-2269）；配了 BOX_MAP_PROJECTS_ROOT 时额外返回 map-local 入口脚本（index.js / clientIndex.js），那两类在 HTTP 面上是读不到的。副作用：无（盘侧只读）。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "description": "地图标识：永久地图 ID（20 位十六进制）或本地工程目录名，两者引擎都认（project-manager.js:974-988）",
+            "minLength": 1,
+            "maxLength": 63
+          }
+        },
+        "required": [
+          "mapId"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "脚本清单",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "scripts.read"
+      }
+    },
+    {
+      "name": "script_read",
+      "description": "读一份脚本正文 + 内容哈希。shared 脚本走 GET .../scripts/{side}/{entry}；map-local 入口脚本 HTTP 必定 404，会自动退回盘上 headHash 链读取。盘读会带回 nameForm/contentVerified：blob 名可能是 CIDv0，也可能是 URL-safe SHA-256（云端导入的图两种混在同一个 blobs 目录里），两种都按字节复算校验；legacy UUID 形式无法复算，只会报 unverified。副作用：无。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "description": "地图标识：永久地图 ID（20 位十六进制）或本地工程目录名，两者引擎都认（project-manager.js:974-988）",
+            "minLength": 1,
+            "maxLength": 63
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "client",
+              "server"
+            ],
+            "description": "脚本侧：server 走服务端 isolate，client 走客户端；类型位 1/7（project-manager.js:2170）"
+          },
+          "entry": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._-]{1,160}$",
+            "description": "脚本文件名。index.js / clientIndex.js 是 map-local，其余默认进地图组共享表"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "http",
+              "local"
+            ],
+            "description": "auto：先 HTTP，map-local 时退盘；http/local：只走一种，便于对照两条路径"
+          }
+        },
+        "required": [
+          "mapId",
+          "side",
+          "entry"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "读取脚本正文",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "scripts.read"
+      }
+    },
+    {
+      "name": "data_read",
+      "description": "读作者数据空间（world.storage 的盘侧对应物）。带 key 返回单值，不带 key 返回分页键列表。上限：space 名 [A-Za-z0-9_]{1,50}，key ≤1 KiB，limit 1-100。副作用：无。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "description": "地图标识：永久地图 ID（20 位十六进制）或本地工程目录名，两者引擎都认（project-manager.js:974-988）",
+            "minLength": 1,
+            "maxLength": 63
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "project",
+              "group"
+            ]
+          },
+          "space": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_]{1,50}$"
+          },
+          "key": {
+            "type": "string",
+            "maxLength": 1024
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "mapId",
+          "scope",
+          "space"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "读数据空间",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "storage.read"
+      }
+    },
+    {
+      "name": "runtime_status",
+      "description": "预览运行时状态。编辑库不会为未打开的工程分配运行时，所以 idle 是正常态而非故障。副作用：无。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "description": "地图标识：永久地图 ID（20 位十六进制）或本地工程目录名，两者引擎都认（project-manager.js:974-988）",
+            "minLength": 1,
+            "maxLength": 63
+          }
+        },
+        "required": [
+          "mapId"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "预览运行时状态",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "runtime.view"
+      }
+    },
+    {
+      "name": "runtime_events_tail",
+      "description": "取预览运行期事件尾部（log / exception / clear / status，缓冲上限 500 条、单条 16 KiB）。本工具读完自己断流，不会把 SSE 挂住。传 sinceEventId 可利用 Last-Event-ID 重放（服务端只重放 id > N 的，所以最早只能从 id=2 起，id=1 与 id=0 的初始 status 帧取不回）。副作用：无。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "description": "地图标识：永久地图 ID（20 位十六进制）或本地工程目录名，两者引擎都认（project-manager.js:974-988）",
+            "minLength": 1,
+            "maxLength": 63
+          },
+          "sinceEventId": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "maxEvents": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 500,
+            "default": 50
+          },
+          "idleMs": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 10000,
+            "default": 1500
+          },
+          "timeoutMs": {
+            "type": "integer",
+            "minimum": 500,
+            "maximum": 30000,
+            "default": 15000
+          },
+          "judge": {
+            "type": "boolean",
+            "default": true,
+            "description": "是否顺带跑 V2 判定（无 exception / 无 MODULE_NOT_FOUND）"
+          }
+        },
+        "required": [
+          "mapId"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "运行期事件尾部与验收判定",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "runtime.view"
+      }
+    },
+    {
+      "name": "script_typecheck",
+      "description": "落盘前的类型/语法门（V0），纯本地，不碰引擎。mode=language-service 时等价于 apps/game/scripts/check-editor-types.ts:12-54 的 ts.createLanguageService；typescript 不可解析时自动降级到 syntax（node:vm 解析 + 声明文件未声明成员提示），并在 mode 里如实报告。副作用：无。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "side": {
+            "type": "string",
+            "enum": [
+              "client",
+              "server"
+            ],
+            "description": "脚本侧：server 走服务端 isolate，client 走客户端；类型位 1/7（project-manager.js:2170）"
+          },
+          "content": {
+            "type": "string",
+            "description": "待校验正文"
+          },
+          "dialect": {
+            "type": "string",
+            "enum": [
+              "cjs",
+              "esm"
+            ],
+            "description": "脚本方言；不传时按 side 取默认：server=cjs、client=esm（客户端脚本实测就是 ESM，require/module.exports 在那个沙箱里不存在）。显式传值会覆盖默认，并在返回的 dialect/dialectSource 里如实标注。"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "language-service",
+              "syntax",
+              "off"
+            ]
+          }
+        },
+        "required": [
+          "side",
+          "content"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "脚本类型门",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "（纯本地，无 HTTP）"
+      }
+    },
+    {
+      "name": "contract_describe",
+      "description": "从出厂声明文件里读出 API 全局与成员名单，供 AI 按签名写脚本而不是凭记忆猜 API。纯本地、只读；结论只是提示（真实地图会在 API 对象上挂未声明自定义属性）。副作用：无。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "side": {
+            "type": "string",
+            "enum": [
+              "client",
+              "server"
+            ],
+            "description": "脚本侧：server 走服务端 isolate，client 走客户端；类型位 1/7（project-manager.js:2170）"
+          },
+          "filter": {
+            "type": "string",
+            "description": "只看某个全局名，或只看含该成员的全局"
+          }
+        },
+        "required": [
+          "side"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "API 契约面查询",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "（纯本地，无 HTTP）"
+      }
+    },
+    {
+      "name": "map_revision",
+      "description": "读引擎的 revision 令牌：project-state.json → permissionHash → versionControl → branch.headHash（盘侧只读）。这是 scripts.update 唯一可信的乐观锁凭据（引擎自己不做 CAS）。未配 BOX_MAP_PROJECTS_ROOT 时明确报不可用。副作用：无。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "description": "地图标识：永久地图 ID（20 位十六进制）或本地工程目录名，两者引擎都认（project-manager.js:974-988）",
+            "minLength": 1,
+            "maxLength": 63
+          }
+        },
+        "required": [
+          "mapId"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "地图版本头",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "（纯本地盘读，无 HTTP）"
+      }
+    },
+    {
+      "name": "script_write",
+      "description": "唯一的写工具：走 scripts.update 写一份作者脚本（PUT .../scripts/{side}/{entry}）。默认 confirm:false = dry-run，只返回计划（当前 revision、预测 CIDv0、类型门结论），不写任何东西。真写必须带 expectedRevision，与引擎当前 revision 不一致就 REVISION_CONFLICT 拒绝；落盘前必过类型门；写后逐字节读回校验，失败自动把原内容写回。副作用：产生新 blob 并推进版本链（引擎侧只增不改）。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "description": "地图标识：永久地图 ID（20 位十六进制）或本地工程目录名，两者引擎都认（project-manager.js:974-988）",
+            "minLength": 1,
+            "maxLength": 63
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "client",
+              "server"
+            ],
+            "description": "脚本侧：server 走服务端 isolate，client 走客户端；类型位 1/7（project-manager.js:2170）"
+          },
+          "entry": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._-]{1,160}$",
+            "description": "脚本文件名。index.js / clientIndex.js 是 map-local，其余默认进地图组共享表"
+          },
+          "content": {
+            "type": "string",
+            "description": "完整正文（整体覆盖，不是补丁）"
+          },
+          "expectedRevision": {
+            "type": "string",
+            "description": "乐观锁令牌：branch.headHash（有盘读时）或 script_read 的 hash（降级模式）"
+          },
+          "confirm": {
+            "type": "boolean",
+            "default": false,
+            "description": "false=dry-run；true 才落盘"
+          },
+          "dialect": {
+            "type": "string",
+            "enum": [
+              "cjs",
+              "esm"
+            ],
+            "description": "脚本方言；不传时按 side 取默认：server=cjs、client=esm（客户端脚本实测就是 ESM，require/module.exports 在那个沙箱里不存在）。显式传值会覆盖默认，并在返回的 dialect/dialectSource 里如实标注。"
+          },
+          "typeGateMode": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "language-service",
+              "syntax",
+              "off"
+            ]
+          },
+          "verify": {
+            "type": "boolean",
+            "default": false,
+            "description": "写后跑 V2 运行期验收（需要预览运行时在跑）"
+          },
+          "sinceEventId": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "验收窗口起点：Last-Event-ID 重放只覆盖 id > 此值的事件，用它跳过写入前已有的异常"
+          },
+          "maxEvents": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 500,
+            "default": 200
+          },
+          "verifyIdleMs": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 10000,
+            "default": 1500
+          },
+          "verifyWaitMs": {
+            "type": "integer",
+            "minimum": 500,
+            "maximum": 30000,
+            "default": 8000
+          },
+          "allowUnhedged": {
+            "type": "boolean",
+            "default": false,
+            "description": "明知无 CAS 也要写（默认禁止）"
+          },
+          "allowBlindWrite": {
+            "type": "boolean",
+            "default": false,
+            "description": "明知无回滚原内容也要写（默认禁止）"
+          }
+        },
+        "required": [
+          "mapId",
+          "side",
+          "entry",
+          "content"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "写入作者脚本（带乐观锁与类型门）",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "scripts.update"
+      }
+    }
+  ]
+}

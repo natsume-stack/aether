@@ -1,29 +1,24 @@
 /**
- * BOX3 镜像体积回归门（两道子门，一个入口）。
+ * BOX3 镜像体积回归门：两道子门、一个入口，纯 Node 实现（无第三方依赖，离线机可直接 `node` 跑）。
+ * 存在理由：v0.3.0 → v2026.1.4 六个镜像的 content 全部变大，而 CI 里只有 `size > 0` 这一种断言
+ * （`scripts/verify-headless-server-package.js:33`）。
  *
- * 上游从 v0.3.0 到 v2026.1.4 六个镜像的 content 全部变大，而 CI 里没有任何
- * 字节级断言（`scripts/verify-headless-server-package.js:33` 只断言 `size > 0`）。
+ *   size      —— 按 `common/config/box3-image-budget.json` 逐服务比 contentBytes/archiveBytes，
+ *                超预算 exit 1；`--tier ratchet` 用 `basis.observed` 原值做"只准减不准加"的棘轮。
+ *   blacklist —— 按 `common/config/box3-image-blacklist.json` 扫已解包的镜像树（`--tree`/`--trees-dir`），
+ *                命中 @swc/core、typescript、esbuild、sass、@babel、sql.js 调试变体、字体双拷贝即 exit 1。
  *
- *  1. 体积档（size gate）：按 `common/config/box3-image-budget.json` 声明的预算
- *     逐服务比较 contentBytes/archiveBytes，超过即 exit 1；同时按 `basis.observed`
- *     做“只准减不准加”的棘轮比较（growthToleranceBytes）。
- *  2. 黑名单档（blacklist gate）：按 `common/config/box3-image-blacklist.json`
- *     扫描已解包的镜像目录树（`--tree` / `--trees-dir`），命中 @swc/core、
- *     typescript、esbuild、sass、@babel、sql.js 调试变体、字体双拷贝等构建期
- *     工具即 exit 1。这张表原本是孤立配置、没有任何消费者，这里补上。
- *
- * 两道子门都要求“输入缺失必须显式失败”：没有任何输入源 -> exit 3；配置缺失或
- * 字段非法 -> exit 2；被 `--require` 声明为必须的子门没有跑 -> exit 1。
- *
- * 纯 Node 实现，无第三方依赖，可在离线/自托管机器上直接 `node` 运行。
+ * 输入缺失必须显式失败：没有任何输入源 exit 3；配置缺失或字段非法 exit 2；
+ * 被 `--require` 声明为必须的子门没有跑 exit 1。
  *
  * 用法：
- *   node scripts/check-image-budget.mjs --docker --catalog <BOX3-IMAGE-CATALOG.json>
- *   node scripts/check-image-budget.mjs --images-dir <dir>        # tar.gz 目录
- *   node scripts/check-image-budget.mjs --measurements <w1-dryrun.json>
+ *   node scripts/check-image-budget.mjs --catalog <BOX3-IMAGE-CATALOG.json> --tier ratchet --require size
+ *   node scripts/check-image-budget.mjs --docker --catalog <BOX3-IMAGE-CATALOG.json>   # 需本机 docker inspect
+ *   node scripts/check-image-budget.mjs --images-dir <dir>          # 直接量 tar.gz 目录
+ *   node scripts/check-image-budget.mjs --measurements <file.json>  # 吃外部测得的字节
  *   node scripts/check-image-budget.mjs --tree <extracted-app-dir> --service play
  *   node scripts/check-image-budget.mjs --trees-dir <dir> --require size,blacklist
- *   node scripts/check-image-budget.mjs --self-test               # +1MiB 必须变红
+ *   node scripts/check-image-budget.mjs --self-test                 # 造 +1 MiB 垃圾，必须变红
  */
 
 import fs from 'node:fs';

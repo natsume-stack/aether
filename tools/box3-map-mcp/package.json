@@ -1,0 +1,19 @@
+{
+  "name": "box3-map-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Model Context Protocol server that lets an AI agent read a BOX3 Creator map and author its scripts through the existing creator/v1 HTTP surface.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "bin": {
+    "box3-map-mcp": "src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test test/*.test.js",
+    "probe": "node scripts/live-probe.js"
+  }
+}

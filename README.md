@@ -1,151 +1,153 @@
-<div align="center">
+# BOX3 本地引擎（轻量改造 fork）
 
-<img src="apps/deployment-manager/src-tauri/icons/icon.png" alt="BOX3 本地引擎图标" width="128" />
+当前源码版本：`2026.1.4` ｜ 许可证：[MIT](LICENSE.md) ｜ 分支：`slim/local-deploy`
+基线：`box3lab/box3-local-engine` v2026.1.4（上游提交 `a35455d814`）。本仓是 **fork-and-slim 改造版**，不是独立实现，改动全部基于官方开源源码白盒进行，不含逆向产物。
 
-# BOX3 本地引擎
+## 这是什么
 
-**在自己的电脑或服务器上创作、发布和运行网页多人 3D 游戏。**
+引擎能力与上游一致：浏览器创作（Creator / ARENA）、模型与皮肤（VOXA）、发布与多人游玩（Play）、玩家账号与登录门户（player-auth-portal）、PostgreSQL 持久化，服务以 Docker 运行。
 
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE.md)
-[![Node.js](https://img.shields.io/badge/Node.js-22.17-339933.svg)](https://nodejs.org/)
-[![Rust](https://img.shields.io/badge/Rust-1.93.0-000000.svg)](https://www.rust-lang.org/)
-[![Docker](https://img.shields.io/badge/Docker-Compose_v2-2496ED.svg)](https://www.docker.com/)
+本 fork 只改三类东西：
 
-[下载安装](https://github.com/box3lab/box3-local-engine/releases) · [使用指南](https://docs.box3lab.com/local-engine/getting-started/first-start.html) · [开发文档](docs/README.md) · [问题反馈](https://github.com/box3lab/box3-local-engine/issues)
+1. **交付形态**——出厂是「7 常驻容器 / 9 宿主端口 / 1 个挂 `docker.sock` 的常驻 root 进程 / 1011.5 MiB 分发」；本仓提供 4 容器、4 端口全回环、零特权的轻量开服包 `distribution/play-lite/`。
+2. **打包纪律**——构建期裁剪器、CI 体积回归门、字体清单，用来拦住"上游每次升级只会加字节"这件事（v0.3.0 → v2026.1.4 六个镜像 content 合计 +120 MB）。
+3. **离线与自建镜像**——发布通道改成可显式 opt-in 的内网基址（`apps/manager-core/src/release_channel.rs`、`distribution/{linux-amd64,server}/install.sh`、`scripts/build-image-downloads.js`、`scripts/tag-images-from-catalog.mjs`）。**该链路端到端断网演练 0 次**，见下。
 
-</div>
+一条硬前置贯穿全部改动：**优化之后现有地图必须照常运行、功能不得异常**。判据是可执行回归闸（见「兼容性闸」），不是口头承诺。
 
-BOX3 本地引擎提供地图编辑、模型制作、地图脚本、多人游玩和服务管理。创作者通过浏览器制作作品，服主将作品部署到自己的服务器，玩家通过浏览器或玩家启动器进入游戏。
+## 与原版差异（实测）
 
-<table align="center" cellspacing="12" cellpadding="0">
-  <tr>
-    <td><img src="assets/readme/riverside-street.png" alt="BOX3 作品：水岸街区" width="560" /></td>
-    <td><img src="assets/readme/arena.png" alt="BOX3 作品：竞技场" width="560" /></td>
-  </tr>
-  <tr>
-    <td><img src="assets/readme/ancient-town.png" alt="BOX3 作品：古镇与楼塔" width="560" /></td>
-    <td><img src="assets/readme/voxel-city.png" alt="BOX3 作品：体素城市" width="560" /></td>
-  </tr>
-</table>
+测量条件：2026-10-18 00:44–01:21，同一台 WSL（Ubuntu-24.04 + Docker 29.1.3，`.wslconfig memory=8GB processors=8`），出厂 7 容器与轻量 4 容器**同时在跑**、连续 3 轮 12×10 s 采样（容器已连续运行 80–90 分钟的熟态空闲，非预热值）。原文与逐条复跑命令见改造资产工作副本的串行独占测量轮报告（`scan/O6-benchmark-comparison.md`，正在同步进 `slim/`；门状态汇总在 [slim/impl/GATES.md](slim/impl/GATES.md)）。
 
-## 项目能力
+| 维度 | 出厂 | 轻量 play-lite | 差 | 口径 |
+| --- | --- | --- | --- | --- |
+| 常驻容器 | 7 | 4 | −43% | `docker ps`；另有 3 / 1 个一次性 `*-storage-init` |
+| 宿主端口 | 9（含 `0.0.0.0:3130`） | 4，全部 `127.0.0.1` | −56%，0 条对外网卡 | `ss -ltnp` |
+| 挂 `/var/run/docker.sock` | 1 个容器 | 0 | 归零 | `docker inspect` |
+| 常驻 root 进程 | 2 | 0 | 归零 | 进程 uid |
+| 分发 | 1,060,646,139 B（6 归档） | 531,307,786 B（3 归档） | **−49.9%** | gz；`slim/_manifest/BOX3-IMAGE-CATALOG.json` 的 `size` 字段 |
+| `docker load` 后 content | 2,736,210,446 B | 1,358,827,262 B | **−50.3%** | `docker image inspect .Size` |
+| `du -sb /app` 合计 | 1,835,711,422 B | 665,615,084 B | **−63.7%** | 容器内实测；轻量列含 2 张图 |
+| 空闲 RSS | 376.14 MiB | 258.74 MiB | **−31.2%** | `docker stats`（memory.current − inactive_file），36 样本均值 |
+| 空闲 RSS（anon） | 284.14 MiB | 166.38 MiB | **−41.4%** | cgroup `anon`（去掉可回收 page cache 的真常驻） |
+| 接口 TTFB 中位 | play 3.2 ms | play 3.1 ms | **基本持平** | `/api/health-check`，20 样本；瘦身没有让接口变快，也不宣称变快 |
+| 每开 1 张图 | — | 进程 **+2**、anon **+146.4 MiB**（Pss +152.6） | 负向/成本项 | 轻量栈 idle 3 进程 → 起图 5 进程 |
 
-| 功能     | 说明                                                                   |
-| -------- | ---------------------------------------------------------------------- |
-| 地图创作 | 使用创作端 Creator（ARENA 编辑器）编辑场景、体素与脚本，预览并发布作品 |
-| 模型制作 | 使用 VOXA 编辑模型、皮肤和动画，并将资源用于地图                       |
-| 多人游玩 | 使用游玩端 Play 运行已发布地图，支持地图组与地图间传送                 |
-| 玩家管理 | 通过 Player Service 和玩家管理后台管理账号、权限及游玩地图             |
-| 自主部署 | 通过桌面部署管理器或 Linux Web 管理器配置、启动和维护服务              |
-| 作品迁移 | 导出可编辑工程 `.boxproject`，或交付游玩包 `.boxplay`                  |
+三条必须一起读的结论，否则上表会被误读：
 
-部署管理器负责安装和管理服务器；**玩家启动器只负责连接已有服务器并游玩**。两者用途不同，创作和开服请选择部署管理器。
+- **收益几乎全部来自"少跑 3 个服务"（creator / voxa / server-manager），不是"同一个服务变轻"**。逐容器对比时轻量侧的 play/ps/portal/postgres 与出厂同名服务几乎相等，个别 `docker stats` 口径下甚至更高（可回收 page cache，其内存限额也更宽）。
+- **单个容器的 `/app` 没有变小**：轻量 play 402,098,657 B > 出厂 play 373,668,042 B（含 2 张图）。`−63.7%` 是"合计"口径。
+- **表中所有"轻量"数字都是镜像未重建的现网归档形态**（复用的是官方 3 个归档），本仓的构建期裁剪与依赖改动**尚未进任何运行态镜像**。
 
-服务使用 Docker 运行，玩家身份与地图脚本持久数据使用 PostgreSQL，Redis 为可选组件。首次安装和镜像下载需要联网；完全离线的地图应选择“仅本地资源”，引用对象存储的地图仍需访问相应资源地址。
+## 怎么起
 
-## 选择使用方式
+### A. 轻量开服包（只要玩家能进图开玩）
 
-| 你的目标                  | 推荐入口                                         | 需要准备                   |
-| ------------------------- | ------------------------------------------------ | -------------------------- |
-| 在自己的电脑上创作或开服  | [桌面安装](#桌面安装)                            | Docker 和桌面部署管理器    |
-| 在 Linux 服务器上长期运行 | [服务器安装](#服务器安装)                        | Linux AMD64 / ARM64 服务器 |
-| 修改引擎、编辑器或管理器  | [源码开发](#源码开发)                            | Git、Node.js 和开发环境    |
-| 连接已有服务器游玩        | [玩家启动器说明](apps/player-launcher/README.md) | 服主提供的服务器地址与账号 |
-
-### 桌面安装
-
-1. 安装并启动 Docker：Windows、macOS 使用 [Docker Desktop](https://www.docker.com/products/docker-desktop/)；Linux 使用 Docker Engine 和 Compose v2。Windows 还需启用硬件虚拟化并安装 WSL 2。
-2. 前往 [GitHub Releases](https://github.com/box3lab/box3-local-engine/releases)，选择桌面部署管理器对应的 ZIP，完整解压后打开 **BOX3 Engine Launcher**。
-3. 按界面提示配置数据库和服务，等待所需镜像下载并启动，再按[首次启动指南](https://docs.box3lab.com/local-engine/getting-started/first-start.html)创建账号和配置创作权限。
-
-桌面包支持 Windows x64 / ARM64、macOS Apple 芯片（ARM64）、Linux x64 / ARM64，具体文件以 Releases 为准。小规模游玩建议至少 4 核 CPU、8 GB 内存和 30 GB 可用磁盘；同时运行创作、模型和游玩服务，建议 8 核、16 GB 内存及 50 GB 可用磁盘起。
-
-### 服务器安装
-
-适用于无桌面的 Linux AMD64 / ARM64 服务器。推荐使用 Ubuntu、Debian 或 Alibaba Cloud Linux 3 / 4。联网安装器会准备 Docker Engine 和 Compose v2，下载并校验发行包，然后启动 Web 管理器。
+4 容器：Play + Player Service + 登录门户 + PostgreSQL。不需要源码、不需要 Node.js，加地图不重建镜像。完整说明与变量表见 [distribution/play-lite/README.md](distribution/play-lite/README.md)。
 
 ```sh
-curl -fsSL https://assets.box3.fun/local-engine/install.sh | sudo bash
+cd distribution/play-lite
+cp .env.example .env                    # 必填三个秘密，用 openssl rand -hex 32 生成
+# 官方逐服务归档命名：box-local-engine-image-<service>-<arch>-<sha>.tar.gz
+docker load -i box-local-engine-image-play-*.tar.gz
+docker load -i box-local-engine-image-player-service-*.tar.gz
+docker load -i box-local-engine-image-player-auth-portal-*.tar.gz
+node ../../scripts/tag-images-from-catalog.mjs --catalog ../../slim/_manifest/BOX3-IMAGE-CATALOG.json
+# 数据库镜像不在这三个归档里：postgres:16-alpine 需另行准备（compose 默认走 daocloud mirror 拉取）
+docker compose up -d
 ```
 
-安装后保存终端显示的管理地址和密钥：`BOX_SERVER_MANAGER_TOKEN` 用于 Web 管理器，`BOX_PLAY_ADMIN_TOKEN` 用于玩家后台。安装器默认开放 TCP `3130`；仅本机访问、SSH 隧道、数据库与防火墙配置见 [Linux 服务器指南](distribution/server/README.md)。
+`tag-images-from-catalog.mjs` 是离线部署的第一个坑的补丁：官方归档 `docker load` 后只有 `launcher-content-<imageId>` tag，而 compose 引用 `v<版本>-linux-<架构>`，缺 tag 时 Docker 会去 docker.io 拉一个不存在的镜像并超时。
 
-## 从创作到游玩
+起来后：Play `http://127.0.0.1:4121/`、门户 `:4125`（自助注册/登录）、玩家后台 `:4124/players`、PostgreSQL `127.0.0.1:4132`。全栈到 4 个 healthy 实测 **12.79 s**。
 
-1. **准备账号**：服主配置玩家登录门户，创建玩家账号并授予创作权限。普通注册账号不会自动获得管理或创作权限。
-2. **制作作品**：在 Creator 创建地图，通过 ARENA 编辑场景和脚本，使用 VOXA 制作模型，再进入预览。
-3. **备份工程**：导出 `.boxproject`，用于继续编辑、迁移和协作。
-4. **发布游玩**：发布并导出 `.boxplay`，由服主在玩家管理后台导入 Play；玩家登录后即可进入。
+### B. 出厂全栈（需要创作 / 模型 / 容器隔离）
 
-Play 展示已导入的发布地图，Creator 中正在编辑的工程不会自动出现在游玩列表。源码环境的完整操作示例见[首个作品教程](docs/first-project.md)。
-
-玩家登录门户提供登录、注册、退出和账号设置页面，需要连接 Player Service。可以使用仓库中的[参考实现](apps/player-auth-portal/README.md)，或基于 [BOX3 玩家登录门户模板](https://github.com/box3lab/box3-engine-player-auth-template)定制，并在部署管理器中配置。
-
-## 源码开发
-
-使用 Node.js `22.17.x`，并提前启动 Docker。工作区由 Rush 管理，仓库脚本会准备锁定版本的 Rush 和 pnpm。原生管理器开发与 Rust 专项测试还需要 Rust stable 及平台工具链，详见[开发入门](docs/developer-guide.md)。
-
-在终端执行：
+根 `docker-compose.yml` 里**每个服务都挂在 profile 后面**（`creator`、`play`、`voxa`、`player-service`、`auth-portal`、`desktop-postgres`、`desktop-redis`、`infra`），而 `.env.docker.example` **不含 `COMPOSE_PROFILES`** → 直接 `up -d` 一个服务都不会起。
 
 ```sh
-git clone https://github.com/box3lab/box3-local-engine.git
-cd box3-local-engine
+cp .env.docker.example .env
+# .env 里至少补：
+#   COMPOSE_PROFILES=creator,play,voxa,player-service,auth-portal,desktop-postgres
+#   BOX_IMAGE_TAG=<已 load 的镜像 tag>
+docker compose --env-file .env up -d
+```
+
+`server-manager` 故意不设 profile（creator 的每图运行时调度依赖它），所以只要起 creator 就会带出这个**挂 `docker.sock`、常驻 root、默认发布到 `0.0.0.0:3130`** 的边车——同一局域网任何设备都能打管理面，并可经 socket 提权到宿主。自用请改回环绑定，或直接用形态 A。
+
+镜像来源：官方逐服务归档 `docker load` 后只有 `launcher-content-<imageId>` tag，需要 `scripts/tag-images-from-catalog.mjs` 补版本 tag（同形态 A）。
+
+### C. 源码开发
+
+Node.js `22.17.x`，提前启动 Docker；工作区由 Rush 管理。
+
+```sh
 npm run install:all
 cp .env.docker.example .env
 npm run check:workspace
 npm run dev:infra
 ```
 
-Windows PowerShell 使用 `Copy-Item .env.docker.example .env`；已有 `.env` 时跳过复制。`dev:infra` 会启动开发用 PostgreSQL、Redis 和源码服务，首次启动需要构建依赖。已有 PostgreSQL 时可配置 `BOX_DATABASE_URL`，改用 `npm run dev`。
+常用入口：Creator `127.0.0.1:3127`、Play `127.0.0.1:3121`、VOXA `:3123`、门户 `:3125`、玩家后台 `:8000`。开发数据统一落在仓库根 `.local-data/`（Git 与镜像构建均忽略）。提交前跑 `npm run verify`（格式 + 语法 + 风格；注意 `verify` 目前因 `pnpm-lock.yaml` 与 `package.json` 不同步而红，见下）。详见 [docs/developer-guide.md](docs/developer-guide.md)。
 
-服务就绪后，常用开发入口为：
+## 当前状态与已知缺口（诚实）
 
-| 入口            | 默认地址                 |
-| --------------- | ------------------------ |
-| 玩家登录门户    | `http://127.0.0.1:3125/` |
-| 创作端 Creator  | `http://127.0.0.1:3127/` |
-| 模型编辑器 VOXA | `http://127.0.0.1:3123/` |
-| 游玩端 Play     | `http://127.0.0.1:3121/` |
-| 玩家管理后台    | `http://127.0.0.1:8000/` |
+**G1–G9 九个验收门没有任何一门完全通过**，逐门状态与原文数字见 [slim/impl/GATES.md](slim/impl/GATES.md)。已知缺口按严重度：
 
-源码开发产生的地图、模型、导入包、备份、导出和缓存统一放在仓库根目录 `.local-data/`，Git 与镜像构建均忽略该目录。可通过 `BOX_DEV_DATA_DIRECTORY` 更换开发数据根目录。账号和脚本持久数据仍在 PostgreSQL 中，备份作品目录不能代替数据库备份。
+| 缺口 | 事实 | 影响 |
+| --- | --- | --- |
+| **轻量形态无法自助导入可编辑地图** | `.boxproject` 的导入端点 `POST /api/local-projects/import` 第一行要求 `BOX_DEPLOYMENT_MODE=creator`（`apps/game/server/creator-api-security.ts:42`），play/lite 侧直接 **404**（实测） | 想进轻量栈必须先导入**出厂 creator**，再走 `publish → .boxplay → POST /api/play-admin/import`（该路由走 `Bearer BOX_PLAY_ADMIN_TOKEN`，lite 实测 201）。这是产品级缺口，不是配置问题 |
+| **一次镜像都没重建** | `pnpm-lock.yaml` 与 `package.json` 不一致 → `rush install` 红 → 构建阶段进不去 | 裁剪 88,176,940 B、typescript 出 prod、字体第二副本 −22,949,789 B 等**全部是源码态/树态数字**，镜像端收益 UNVERIFIED |
+| **进程模型改动未部署** | 部署镜像内 `/app/apps/local-engine/src/launcher.js` 仍是 34,542 B / 3 行的压缩产物，含 6 处 `--runtime-only` 再入 spawn；`runtime-memory` 模块在镜像里不存在，三个容器全量日志 grep `budget` = **0 条** | "删递归监督进程"与"实测内存预算"**现网收益 0**；旧文档「省 56 MB/图」已被证伪：同类进程 VmRSS 61.9 MiB 但 **Pss 仅 16.4 MiB**，去重口径约 17 MiB/图，高估约 3.4× |
+| **兼容闸样本只有 1 张真实图** | 4 个 creator 工程里 3 个 `releases: []` 进不了 play；`map.playWorlds.count = 1`（本轮新增 demo 后为 2） | 单张图压不起"各功能都正常"这句话；L3 层的 `onPlayerJoin` 事件本身仍 **UNVERIFIED**（需一次真实浏览器入局） |
+| **离线链端到端 0 次** | 静态核验全绿，但 `bootstrap.sh` 与 `server/install.sh` 的内网镜像 opt-in 口径不一致；`server-manager-rust` 的 `release_base()` 恒返回硬编码 CDN | 断网安装→开服→进图从未一次跑通；SBOM/签名/attestation 全仓 **0 命中** |
+| **一条已知构建校验红项** | `scripts/check-standalone.js:1501` 的正则锚定被删的 spawn 参数行 | 处置方案未定；改 launcher argv 形态前必须先改锚 |
+| **冷启动大头是同步 tar** | 模块顶层 `spawnSync tar -czf` 全工程快照实测 **0.9–2776 ms**（warm 0.6–1.4 ms），落在请求线程上 | 单图冷启动首见 10.77 s（含迁移与预烘焙）、二次 7.19 s（缓存命中）；引擎自报纯服务端启动 1.40 s / 1.25 s |
 
-常用命令均在仓库根目录执行：
+已被数据关掉、不再提议的路线：**Node 单进程 isolate 池**（1 个挂死 isolate 把同伴 tick p99 从 6.25 ms 打到 127.28 ms，门 20 ms；4 isolate 并发 OOM 后 RSS 2173.6 MB 不回落）；`isolated-vm@5.0.4` 非 N-API → **单二进制 / Bun 永久关闭**。数据在 `slim/poc/`。
 
-| 命令                                  | 用途                                   |
-| ------------------------------------- | -------------------------------------- |
-| `npm run dev:creator:infra`           | 启动创作栈与开发基础服务，缩小调试范围 |
-| `npm run dev:manager`                 | 调试部署管理器网页界面                 |
-| `npm run verify`                      | 检查格式、语法和代码风格               |
-| `node scripts/check-documentation.js` | 检查本地文档链接与基础入口             |
+一条不能碰的实测红线：真实地图在 API 对象上挂了 **86 个未声明自定义属性**，另有 55 个声明面被实际调用 → **任何 `freeze`/`seal`/收窄注入都会直接打死老地图**。
 
-目录职责见[架构指南](docs/architecture.md)，局部验证、数据库测试和平台验收见[测试指南](docs/testing.md)。镜像与安装包构建见[发布与版本说明](docs/release-and-version.md)。
+## 兼容性闸怎么跑
 
-## 文档
+`slim/tools/compat-check.sh`（56 个基线 key，纯 bash + awk，零依赖）是"优化不得破坏现有地图"的可执行判据，基线在 `slim/baseline/g3-baseline.tsv`。**只支持在 WSL/Linux 内运行**：同一份源码在 Git Bash 的 gawk 5.4.0 与 WSL 的 gawk 5.2.1 下会算出不同的契约指纹，一个换 shell 就换红绿的闸不可信，所以它直接拒绝出结论。
 
-| 文档                                                                                   | 内容                               |
-| -------------------------------------------------------------------------------------- | ---------------------------------- |
-| [首次启动指南](https://docs.box3lab.com/local-engine/getting-started/first-start.html) | 安装后的配置、服务启动与使用       |
-| [Linux 服务器指南](distribution/server/README.md)                                      | 无桌面服务器的安装、运维与备份     |
-| [首个作品教程](docs/first-project.md)                                                  | 从账号准备到编辑、预览、导出和游玩 |
-| [开发入门](docs/developer-guide.md)                                                    | 开发环境、数据目录、常用命令与排障 |
-| [架构指南](docs/architecture.md)                                                       | 应用职责、服务连接与作品数据流     |
-| [测试指南](docs/testing.md)                                                            | 自动检查范围和实际运行验收         |
-| [全部文档](docs/README.md)                                                             | 模块说明、代码规范与发布流程       |
+```bash
+wsl -d Ubuntu-24.04 -- bash -lc 'bash "/mnt/d/desktop/神奇代码岛/box3-local-engine/slim/tools/compat-check.sh" --quiet'
+# 退出码 0=PASS 1=FAIL（真回归 / 检查项被删 / 无基线） 2=PARTIAL（有 N 项因环境未测，不算通过）
+```
 
-## 贡献与交流
+最近两轮实测：改动合入前 **52 PASS / 0 FAIL**；C6 串行轮导入 demo 图后 **54 PASS / 2 FAIL**——两条红是 `drift.map.projects.count`（3→4）与 `drift.map.scriptBlobs.total`（36→58），即"合法新增一张图"造成的计数漂移，原图逐字节仍 PASS。**这是闸自身的语义缺陷（分不清"新增"与"被改"），已记录未修。**
 
-欢迎提交问题反馈、文档修正、测试和代码改进。开始前请阅读[贡献指南](CONTRIBUTING.md)与[代码规范](docs/code-style.md)；社区贡献统一向 `dev` 分支提交 Pull Request。
+体积门（阻断上游字节回归）：
 
-- 问题与功能建议：[GitHub Issues](https://github.com/box3lab/box3-local-engine/issues)。报告时附上系统、版本、复现步骤和脱敏日志。
-- 社区交流：QQ群「Box3Local秘密基地」，群号 [1107448537](https://qm.qq.com/q/yV2NR8skec)。
+```sh
+node scripts/check-image-budget.mjs --catalog slim/_manifest/BOX3-IMAGE-CATALOG.json --tier ratchet --require size   # exit 0
+node scripts/check-image-budget.mjs --self-test                                                                        # 4 场景必须全 PASS
+node --test scripts/check-image-budget.test.js                                                                         # 19 tests
+```
 
-## 许可证
+`--docker` 档需要本机 `docker image inspect` 才跑得动（CI 里没有镜像，该半边恒 SKIP）。
 
-本项目基于 BOX3 UGC 平台的引擎研发基础拆分整理。平台（内部称为 `boxs`）不是本仓库的开源依赖，也不属于本仓库的发行内容；本项目聚焦本地创作、游玩、部署和服务管理。
+## 目录导航
 
-本仓库采用 [MIT License](LICENSE.md)。第三方组件、字体、图片、模型和其他资源可能受各自许可约束，不会仅因存放在本仓库中就自动获得 MIT 授权。BOX3 名称、品牌、图标及相关商标也不包含在 MIT 授权内。
+| 位置 | 内容 |
+| --- | --- |
+| [distribution/play-lite/](distribution/play-lite/README.md) | 轻量开服包：compose + env 模板 + 用户向说明 |
+| [slim/README.md](slim/README.md) | 改造资产总入口（分析、取证、记分板、工具、基线） |
+| [slim/ROADMAP.md](slim/ROADMAP.md) | 总排期与轻量化 / 页面自定义 / AI 接管三条需求的落地路线 |
+| [slim/impl/GATES.md](slim/impl/GATES.md) | G1–G9 记分板：每条改动 × 每个门的 实/部/待/未 |
+| [slim/tools/](slim/tools/compat-check.sh) ＋ [slim/baseline/](slim/baseline/g3-baseline.tsv) | 兼容性回归闸与基线 |
+| [scripts/prune-standalone.mjs](scripts/prune-standalone.mjs) | 构建期 standalone 树裁剪器（默认 dry-run） |
+| [scripts/check-image-budget.mjs](scripts/check-image-budget.mjs) ＋ [scripts/lib/budget.mjs](scripts/lib/budget.mjs) | 体积/黑名单两道子门；配置在 `common/config/box3-image-{budget,blacklist}.json` |
+| [scripts/subset-fonts.mjs](scripts/subset-fonts.mjs) ＋ [scripts/font-manifest.json](scripts/font-manifest.json) | 字体引用证据链与子集化待办 |
+| [scripts/tag-images-from-catalog.mjs](scripts/tag-images-from-catalog.mjs) | 离线部署补打版本 tag（只读 + 追加） |
+| [apps/local-engine/src/runtime-memory.mjs](apps/local-engine/src/runtime-memory.mjs) | 实测内存预算（cgroup v2 → v1 → totalmem），替换"按体素数猜上限" |
+| [docs/README.md](docs/README.md) | 上游文档索引：[架构](docs/architecture.md)、[测试](docs/testing.md)、[发布与版本](docs/release-and-version.md)、[首个作品](docs/first-project.md) |
+| [distribution/server/README.md](distribution/server/README.md) | 上游 Linux 服务器安装与运维 |
 
-## 致谢
+## 许可证与来源
 
-感谢曾经在深圳奇梦岛科技有限公司参与 BOX3 引擎研发、设计、测试、运营和基础设施建设的每一位伙伴，让今天这个 BOX3 本地引擎成为可能。
+本仓沿用上游 [MIT License](LICENSE.md)（Copyright (c) 2026 深圳奇梦岛科技有限公司）。第三方组件、字体、图片、模型和其他资源可能受各自许可约束，不会仅因存放在本仓库中就自动获得 MIT 授权；BOX3 名称、品牌、图标及相关商标不包含在 MIT 授权内。
+
+引擎本体、上游文档与贡献流程遵循 [CONTRIBUTING.md](CONTRIBUTING.md) 与 [docs/code-style.md](docs/code-style.md)；社区贡献统一向上游 `dev` 分支提交 Pull Request。改造侧的全部主张都在 `slim/` 里带原文与复跑命令，未证的显式标注 `UNVERIFIED`。

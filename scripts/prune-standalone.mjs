@@ -1,66 +1,43 @@
 #!/usr/bin/env node
 
 /**
- * Prune build-time toolchains out of a Next.js standalone output and out of a
- * `rushx deploy --legacy` runtime tree.
+ * 从 Next.js standalone 产物（以及 `rushx deploy --legacy` 运行态树）里删掉构建期工具链。
  *
- * Why this exists
- * ---------------
- * `outputFileTracingRoot` in apps/game/next.config.js is the repository root,
- * so `next build` materialises the whole pnpm virtual store
- * (`common/temp/node_modules/.pnpm`) inside `.next/standalone`. That store
- * carries the compiler stack (SWC, TypeScript, esbuild, Sass, Babel, webpack,
- * terser) which is only ever executed by `next build`. Creator/Play/Player
- * Service/VOXA then COPY that tree wholesale.
+ * 为什么存在：`apps/game/next.config.js` 的 `outputFileTracingRoot` 指向仓库根，于是 `next build`
+ * 把整个 pnpm 虚拟 store（`common/temp/node_modules/.pnpm`）搬进 `.next/standalone`；其中
+ * SWC / TypeScript / esbuild / Sass / Babel / webpack / terser 只在 `next build` 里被执行过，
+ * 而四个 JS 镜像的 Dockerfile 整块 COPY 这棵树。
  *
- * The prune therefore runs in the *build* stages, not in the runtime stages.
- * A `RUN` in the final stage would only record overlay whiteouts while the
- * bytes stay in the earlier COPY layer, saving nothing in the published gzip.
+ * 所以裁剪必须发生在 build 阶段：在终态 stage 里 `RUN rm` 只留下 overlay whiteout，字节仍卡在
+ * 上一层 COPY 里，发布 gz 一分不省。
  *
- * Safety model — a package directory is removed only when every one of these
- * holds:
- *   1. its pnpm directory name starts with one explicit rule below (no
- *      wildcard-everything sweep, and nothing outside the rules is touched);
- *   2. no JavaScript outside `node_modules` in the traced tree names it as a
- *      real module specifier (`require("x")`, `import "x"`, `from "x"`,
- *      `require.resolve("x")`). Bare string keys such as the `"typescript"`
- *      entry inside the serialised nextConfig embedded in server.js, or Monaco
- *      language ids in `.next/static` browser chunks, are deliberately not
- *      treated as requires because browser chunks can never load node_modules;
- *   3. no *surviving* store package depends on it through `dependencies`,
- *      `optionalDependencies`, or a `peerDependencies` entry the declaring
- *      package does not mark optional in `peerDependenciesMeta`. Declarations
- *      coming from packages that are themselves removed do not count, so a
- *      self-contained tool cluster (webpack + terser-webpack-plugin + terser +
- *      jest-worker) can leave together;
- *   4. it is not protected by `--keep`.
+ * 安全模型——一个包目录被删，必须同时满足四条：
+ *   1. 目录名命中本文件下方的某条显式规则（无通配清扫，规则之外一律不碰）；
+ *   2. 追踪树中 `node_modules` 之外的 JS 没有把它当真模块说明符引用（`require(...)`、`import ...`、
+ *      `from ...`、`require.resolve(...)`）。server.js 内嵌 nextConfig 里的 `"typescript"` 字符串键、
+ *      `.next/static` 浏览器 chunk 里的 Monaco language id 都不算引用——浏览器 chunk 加载不了 node_modules；
+ *   3. 没有存活的 store 包通过 `dependencies`、`optionalDependencies`，或未在 `peerDependenciesMeta`
+ *      标可选的 `peerDependencies` 依赖它。自身也被删的包其声明不计入，所以自成一体的工具簇
+ *      （webpack + terser-webpack-plugin + terser + jest-worker）可以整簇离开；
+ *   4. 未被 `--keep` 保护。
  *
- * Workspace manifests traced into the standalone (internals/, packages/,
- * services/, apps/) often still list these tools under `dependencies` even
- * though their traced sources never require them. Those declarations are
- * reported as `manifestDeclarations` warnings instead of blocking the removal,
- * because the package contents are the real evidence; pass `--strict-manifests`
- * to promote them into hard skips.
+ * 追踪进 standalone 的工作区 manifest（internals/、packages/、services/、apps/）常把这些工具仍列在
+ * `dependencies` 里，而它们的追踪源码并不 require。这类声明只记作 `manifestDeclarations` 告警、
+ * 不阻断删除（包内容才是证据）；`--strict-manifests` 把它们升级为硬跳过。
  *
- * Default is dry-run: nothing is deleted until `--apply` is passed.
+ * 默认 dry-run：只有传 `--apply` 才真删。
  *
- * Usage
- * -----
- *   node scripts/prune-standalone.mjs <root> [<root> ...] [options]
- *
- * Options
- *   --apply                    delete instead of reporting
- *   --tier <core|all>          rule tiers to use, default: all
- *   --json <file>              write the machine readable CI summary
- *   --keep <substring>         never remove paths containing this (repeatable)
- *   --strict-manifests         also keep anything listed in a traced workspace
- *                              manifest
- *   --drop-embedded-static     remove the `.next/static` tree already inside the
- *                              standalone output, for targets whose Dockerfile
- *                              COPYs its own fresh copy over that same path
- *   --verify-boot <entry>      start `node <entry>` and require it to bind PORT
- *   --boot-timeout <ms>        verify-boot budget, default 60000
- *   --quiet                    print only the summary
+ * 用法：node scripts/prune-standalone.mjs <root> [<root> ...] [options]
+ *   --apply                 真删，否则只报告
+ *   --tier <core|all>       规则档，默认 all
+ *   --json <file>           写机器可读的 CI 汇总
+ *   --keep <substring>      路径含该子串的一律不删（可重复）
+ *   --strict-manifests      manifest 里声明过的一律保留
+ *   --drop-embedded-static  删掉 standalone 内已有的 `.next/static`，给「Dockerfile 会再 COPY
+ *                           一份到同路径」的目标用
+ *   --verify-boot <entry>   起 `node <entry>`，要求它绑定 PORT
+ *   --boot-timeout <ms>     verify-boot 预算，默认 60000
+ *   --quiet                 只打汇总
  */
 
 import fs from 'node:fs';

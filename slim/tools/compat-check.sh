@@ -477,6 +477,28 @@ check_topology() {
 }
 
 # ================================================================ 基线比对
+# 回归的语义是「原有东西不见了或变了」，不是「什么都没新增」。
+# 计数/集合类此前用严格相等，实测把「合法导入一张新图」判成回归
+# （C6 轮：map.projects.count 3→4、map.scriptBlobs.total 36→58 两条假红）。
+# 方向必须区分：**新增允许，缩水/丢失必红**。字节与指纹类仍走严格相等（内容变了就该红）。
+additive_verdict() { # $1 key $2 cur $3 base → echo allow|regress|strict
+  local k="$1" cur="$2" base="$3" it cn bn
+  case "$k" in
+    map.projects.count|map.scriptBlobs.total|http.playWorlds.playEnabledTrue|l0.moduleResolution.entries)
+      cn=$(printf '%s' "$cur"  | tr -dc '0-9'); bn=$(printf '%s' "$base" | tr -dc '0-9')
+      [ -z "$cn" ] || [ -z "$bn" ] && { echo regress; return; }
+      if [ "$cn" -ge "$bn" ]; then echo allow; else echo regress; fi ;;
+    http.playWorlds.publicIds|http.playWorlds.fields)
+      local IFS=,
+      for it in $base; do
+        [ -z "$it" ] && continue
+        case ",$cur," in *",$it,"*) : ;; *) echo regress; return ;; esac
+      done
+      echo allow ;;
+    *) echo strict ;;
+  esac
+}
+
 compare_baseline() {
   if [ ! -f "$BASELINE" ]; then
     # 没有基线就无从判回归。以前的 skip + 末尾照样打 PASS —— 那是最危险的一种假绿：
@@ -517,8 +539,16 @@ compare_baseline() {
         topo.*|http.health.play.*)
           record "drift.$k" "now=$cur base=$v" warn "拓扑/健康检查项：随 A3、A4 泳道启停变化，不作回归判据" ;;
         *)
-          # 注意：http.playWorlds.* 是 L2 硬判据（地图元数据字节校验和），故意不豁免
-          record "drift.$k" "now=$cur base=$v" fail "回归：与基线不一致"; drift=$((drift+1)) ;;
+          local av; av=$(additive_verdict "$k" "$cur" "$v")
+          case "$av" in
+            allow)
+              record "drift.$k" "now=$cur base=$v" warn "合法新增（只允许增长/超集，缩水才会红）—— 不判回归" ;;
+            regress)
+              record "drift.$k" "now=$cur base=$v" fail "回归：该项相对基线缩水或丢失（原有素材没了就是坏了）"; drift=$((drift+1)) ;;
+            *)
+              # 字节与指纹类严格相等：http.playWorlds.body.sha256 是 L2 硬判据，故意不豁免
+              record "drift.$k" "now=$cur base=$v" fail "回归：与基线不一致"; drift=$((drift+1)) ;;
+          esac ;;
       esac
     fi
   done < <(cut -f1,2 "$BASELINE")

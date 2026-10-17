@@ -1,30 +1,21 @@
 #!/usr/bin/env node
 /**
- * W3 font maintenance tool.
+ * 字体审计与子集化待办清单（W3）。读 `scripts/font-manifest.json`，四个子命令：
  *
- * Reads scripts/font-manifest.json and, depending on the subcommand:
+ *   analyze  扫源资产目录，可选再扫产物 media 目录与已发布 js/css bundle，逐个字体文件归类：
+ *              keep            正常浏览器路径上有活引用
+ *              deleteNow       任何位置都确认无引用，可删
+ *              rustyBranchOnly 只在 process.env.RUSTY 分支可达——在 web bundle 里是死字符串，
+ *                              要先改 defs.ts；本工具永不自动删这一类
+ *              cssFallback     多格式 @font-face 的第二条 src()，只有重生成 CSS 后才能丢
+ *   plan     analyze 加 --out <file.json>；另出 @font-face 重生成清单（每族按 manifest 优先级
+ *            保留哪种格式）与待做的 unicode-range 子集化 backlog（附可直接跑的 pyftsubset 命令）
+ *   tools    探测 fc-scan / pyftsubset / fontTools 是否存在，据此回答「本机能否真子集化」；
+ *            测不出来就报 UNVERIFIED，不猜
+ *   apply    只删 deleteNow 类，必须带 --yes，否则 dry-run
  *
- *   analyze  Scan the source asset dir and (optionally) an emitted media dir
- *            plus the shipped js/css bundles. Classify every font file:
- *              - keep           : live reference on a normal browser path
- *              - deleteNow      : confirmed unreferenced anywhere (safe to rm)
- *              - rustyBranchOnly: only reachable under process.env.RUSTY
- *                                 (dead string in web bundles, needs a defs.ts
- *                                 change first - NEVER auto-deleted here)
- *              - cssFallback    : 2nd src() of a multi-format @font-face,
- *                                 droppable only after CSS regeneration
- *   plan     Same as analyze plus --out <file.json>; includes the @font-face
- *            regeneration list (per family the format to keep, by manifest
- *            priority) and the pending unicode-range subsetting backlog with
- *            ready-to-run pyftsubset commands.
- *   tools    Probe for fc-scan / pyftsubset / fontTools and report whether
- *            real subsetting can run locally. What cannot be verified is
- *            reported as UNVERIFIED, never guessed.
- *   apply    Actually delete `deleteNow` files. Requires --yes, otherwise dry.
- *
- * Usage:
- *   node scripts/subset-fonts.mjs analyze
- *   node scripts/subset-fonts.mjs analyze --media <mediaDir> --bundles <rootDir>
+ * 用法：
+ *   node scripts/subset-fonts.mjs analyze [--media <mediaDir> --bundles <rootDir>]
  *   node scripts/subset-fonts.mjs plan --out font-plan.json
  *   node scripts/subset-fonts.mjs tools
  *   node scripts/subset-fonts.mjs apply --yes

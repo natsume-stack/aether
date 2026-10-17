@@ -1,26 +1,22 @@
 /**
- * Measured memory budget for the local-engine runtime pool.
+ * 本地引擎运行时池的「实测」内存预算。
  *
- * The launcher historically sized every script isolate from one number that it
- * could not actually observe: the map's voxel count. `voxels > 64M -> 2048 MB`,
- * `> 16M -> 1024 MB`, otherwise `512 MB`. That ladder is a proxy for "how much a
- * map needs", but it says nothing about "how much this host can afford", and it
- * is inert on the Play Library path because a published world never reaches
- * `--project`/`--release` launch-target resolution.
+ * 历史做法：launcher 给每个脚本 isolate 定上限时，用的是它观察不到的一列数字——地图体素数
+ * （`> 64M -> 2048 MB`、`> 16M -> 1024 MB`、否则 `512 MB`）。那是「这张图大概要多少」的代理，
+ * 完全不回答「这台机器给得起多少」；而且在 Play Library 路径上恒不生效——已发布的世界走不到
+ * `--project` / `--release` 的 launch-target 解析。
  *
- * This module measures the limit the process really lives under (cgroup v2,
- * cgroup v1, then `os.totalmem()`), derives the share each concurrent runtime
- * can afford, and keeps the historical voxel ladder as a floor: a 1024-wide
- * terrain genuinely needs the script-side voxel mirror headroom.
+ * 本模块改为测进程真正所在的限额（cgroup v2 → cgroup v1 → `os.totalmem()`），推出每个并发运行时
+ * 给得起的份额，并把上面那条体素阶梯留作下限：1024 宽的地形确实要脚本侧体素镜像的余量。
  *
- * Invariants that make this safe to drop into the launcher:
- *   - an explicitly configured isolate limit always wins and is never lowered;
- *   - the measured value may only raise the default, and never above the
- *     historical top tier (2048 MB), so it stays inside the shipped envelope;
- *   - when nothing can be measured it returns the historical ladder unchanged.
+ * 三条不变量，保证可以直接塞进 launcher：
+ *   - 显式配置过的 isolate 上限永远优先，且绝不被下调；
+ *   - 测得的值只能抬高默认值，且不超过历史最高档 2048 MB → 仍在出厂包络内；
+ *   - 什么都测不到时，原样返回历史阶梯。
  *
- * Run `node runtime-memory.mjs --print` to see what a given host/container
- * resolves to without starting an engine.
+ * `node runtime-memory.mjs --print` 不起引擎就能看当前主机/容器解析出的预算。
+ * 验证状态 UNVERIFIED：还没有一条运行日志证明它算出的数与 `mem_limit`、`--max-old-space-size`
+ * 这两层旧上限对齐——串行测量轮在部署镜像里 grep 本模块 0 命中（镜像一次都没重建）。
  */
 
 import fs from 'node:fs';

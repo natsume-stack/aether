@@ -17,6 +17,7 @@ import { CodeEditorServerController } from '../code-editor/code-editor-server-co
 import { EditServerState } from '../edit-server-schema';
 import { EditReplicaServer } from '../replica/replica-server';
 import { createEntityTools, createScriptTools } from './entity-tools';
+import { createMapAuthoringTools } from './map-authoring-tools';
 
 /**
  * LLM 生成选项
@@ -39,7 +40,8 @@ export class AiServer {
   private state: EditServerState;
   private replica: EditReplicaServer;
   private tools: ReturnType<typeof createEntityTools> &
-    ReturnType<typeof createScriptTools>;
+    ReturnType<typeof createScriptTools> &
+    ReturnType<typeof createMapAuthoringTools>;
   private abortControllers = new Map<string, AbortController>();
   private openRouter: ReturnType<typeof createOpenRouter>;
   /**
@@ -288,10 +290,17 @@ When writing scripts, strictly follow these API definitions.
       spec.codeEditorController,
       this.logger,
     );
+    const mapAuthoringTools = createMapAuthoringTools(
+      this.replica,
+      this.state,
+      spec.gameId,
+      this.logger,
+    );
 
     this.tools = {
       ...entityTools,
       ...scriptTools,
+      ...mapAuthoringTools,
     };
 
     // 配置协议消息处理器

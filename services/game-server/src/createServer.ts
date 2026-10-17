@@ -632,6 +632,27 @@ export async function createGameServer(spec: {
       }
     };
 
+    // Headless AI map authoring (C4b, closes O4-engine-ai-adaptation.md §3.4 /
+    // decision D-b): expose the SAME engine-side AI authoring tools the editor
+    // AI panel runs (terrain/UI from createMapAuthoringTools, entities from
+    // createEntityTools) over a loopback-only HTTP route so an external
+    // orchestrator (BOX3 map MCP / AI agent) can drive them without mudb.
+    // The handler reuses C4's tools verbatim — optimistic locking
+    // (expectedRevision), undoToken rollback, and the PREVIEW_RUNNING refusal
+    // while a live preview runs (replica-server.ts:1602) all stay inside the
+    // tools; nothing here auto-modifies the running state and persistence
+    // still goes through the existing /internal/save-local-project route.
+    // Strictly additive: no existing route, handler or auth semantics change.
+    // Imported lazily (like ./edit/edit-server above) so the play-mode module
+    // graph is untouched.
+    const { createAiToolRouteHandler } = await import('./edit/ai/ai-tool-route');
+    spec.httpRoutes['/internal/ai-tool'] = createAiToolRouteHandler({
+      replica: editServer.replica,
+      state: editServer.state,
+      gameId: serverConfig.contentId,
+      logger: spec.logger.child({ caller: 'ai-tool-route' }),
+    });
+
     // Boxes treats extraProject as the map group's shared project library. The
     // local adapter keeps the same membership semantics by registering each
     // map's referenced meshes when its runtime becomes ready; the group view

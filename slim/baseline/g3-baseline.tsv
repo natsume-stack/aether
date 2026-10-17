@@ -34,12 +34,14 @@ map.world.cloud-4e84ee7ef626058f-imported.scriptBlobs	2
 map.playWorlds.count	1
 map.project.cloud-3a043df55e5057a5-imported.files	658
 map.project.cloud-3a043df55e5057a5-imported.digest	662de8047a4a4b1c413b97c7d330c010d340d2db32a7dd8c699aa85934ad5e23
+map.project.cloud-4e84ee7ef626058f-imported-2.files	3846
+map.project.cloud-4e84ee7ef626058f-imported-2.digest	51a9be8dceefb452f37ac1c06b52a226aa14f5effce53e8f9d607e0e6ecc4814
 map.project.cloud-4e84ee7ef626058f-imported.files	2969
 map.project.cloud-4e84ee7ef626058f-imported.digest	8fde20c0fa87f5dac1136ef007c7596cf153dbd50abe5a75550a85dcebeace87
 map.project.yunhai-xiantu.files	446
 map.project.yunhai-xiantu.digest	f44740e998315780b3e38a89e9553e90c983e3a452bf825976f87cc440abed9d
-map.projects.count	3
-map.scriptBlobs.total	36
+map.projects.count	4
+map.scriptBlobs.total	62
 http.health.play.code	200
 http.health.play.body.sha256	36bf1f1ed27dbfecab3bf2321f6779cfa30eb5c2160a7cacd978a3275bc81140
 http.playWorlds.code	200
@@ -54,3 +56,5 @@ topo.dockerSockMounts	1
 topo.userZeroZero	1
 topo.mountList.digest	d347e120534b93cd963b71c46f8a7600d5b2c216eb80ef1d04b51a68a579ad21
 baseline.exists	present
+drift.map.projects.count	now=4 base=3
+drift.map.scriptBlobs.total	now=62 base=36

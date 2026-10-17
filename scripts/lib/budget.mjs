@@ -1,12 +1,13 @@
 /**
- * Shared primitives for the BOX3 image size gates. `check-image-budget.mjs`
- * owns both the byte budget (`common/config/box3-image-budget.json`) and the
- * build-tool blacklist (`common/config/box3-image-blacklist.json`).
+ * 体积门的共享原语：参数解析、JSON 读取、字节格式化、表格渲染、退出码、glob 与树遍历。
+ * 唯一消费者是 `check-image-budget.mjs`，它同时管着字节预算
+ * （`common/config/box3-image-budget.json`）与构建工具黑名单（`box3-image-blacklist.json`）。
  *
- * The gates must run on a bare Node runtime with no package manager and no
- * third-party dependency, because the private/self-hosted deployments this
- * repository targets cannot assume a populated Rush install. Everything here
- * therefore uses only `node:fs`, `node:path` and `node:child_process`.
+ * 只准用裸 Node：本仓目标是个人 / 自托管部署，不能假设有装好的 Rush 或任何第三方包，
+ * 所以这里只 import `node:fs`、`node:path`、`node:child_process`。
+ *
+ * 坑（2026-10-17 实测咬过一次）：本文件的块注释里写 glob 时，连续星号紧跟斜杠的形态会提前
+ * 闭合注释，让整条体积门链在加载期就 SyntaxError。注释里描述这类模式请用文字，别贴原文。
  */
 
 import fs from 'node:fs';

@@ -1,21 +1,15 @@
 /**
- * 按 BOX3-IMAGE-CATALOG.json 给已导入的镜像补打 compose 需要的版本 tag。
+ * 按 BOX3-IMAGE-CATALOG.json 给已 load 进来的镜像补打 compose 引用的版本 tag。
  *
- * 官方 per-service 归档（`box-local-engine-image-<service>-<arch>-<sha>.tar.gz`）
- * 在构建期剥掉了 RepoTags，`docker image load` 之后只有
- * `box-local-engine-<service>:launcher-content-<imageId>` 这一个内容 tag。
- * compose 引用的是 `box-local-engine-<service>:v<版本>-linux-<架构>`，缺 tag 时
- * Docker 会去 docker.io 拉一个根本不存在的镜像并超时——这正是内网离线部署
- * 第一个踩到的坑。distribution/server/install.sh 只对 server-manager 做这步
- * 补偿，其余五个服务需要本脚本。
+ * 官方逐服务归档（`box-local-engine-image-<service>-<arch>-<sha>.tar.gz`）在构建期剥掉了 RepoTags，
+ * `docker image load` 后只剩 `box-local-engine-<service>:launcher-content-<imageId>`；compose 要的却是
+ * `:v<版本>-linux-<架构>`，缺 tag 时 Docker 会去 docker.io 拉一个不存在的镜像并超时——内网离线部署
+ * 第一个踩的坑。`distribution/server/install.sh` 只给 server-manager 补了这一步，其余五个服务靠本脚本。
  *
- * 只读 + 追加：不删任何镜像、不动任何容器、不改任何 tag 已有的指向。
- * 纯 Node 实现，只依赖 docker CLI，可在断网机器上直接 `node` 运行。
+ * 只读 + 追加：不删镜像、不动容器、不改已有 tag 的指向。纯 Node，只依赖 docker CLI，断网机可直跑。
  *
  * 用法：
- *   node scripts/tag-images-from-catalog.mjs --catalog <BOX3-IMAGE-CATALOG.json>
- *   node scripts/tag-images-from-catalog.mjs --catalog <catalog> --dry-run
- *   node scripts/tag-images-from-catalog.mjs --catalog <catalog> --json
+ *   node scripts/tag-images-from-catalog.mjs --catalog <BOX3-IMAGE-CATALOG.json> [--dry-run|--json]
  *
  * 退出码：0 全部一致 / 1 存在缺失或冲突 / 2 用法或环境错误
  */
