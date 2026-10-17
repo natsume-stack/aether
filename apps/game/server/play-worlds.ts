@@ -15,9 +15,30 @@ export type PlayWorld = {
   mapRole: 'main' | 'submap';
   mainProjectId: string;
   playEnabled: boolean;
+  /** 可选附加字段（additive）：地图内容最后更新时间，ISO 字符串或 ''。 */
+  updatedAt?: string;
+  /**
+   * 引擎当前没有浏览计数的存储来源，本轮不提供该字段（保持 undefined，
+   * 不造假数据、不新增存储写放大）。前端按缺省隐藏。
+   */
+  browseCount?: number;
 };
 
 const idPattern = /^[a-z0-9][a-z0-9-]{0,62}$/;
+const isoDatePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})$/;
+
+// updatedAt 取值优先级：manifest.createdAt（发布/更新时由创作者端写入的 ISO 时间，
+// 是“地图内容”真正的最后更新时间，且随游玩包携带、不受容器/挂载 mtime 误差影响）
+// → manifest.json 文件 mtime（兼容没有 createdAt 的旧包）→ ''。
+function resolveUpdatedAt(manifest: Record<string, unknown>, manifestPath: string): string {
+  const createdAt = typeof manifest.createdAt === 'string' ? manifest.createdAt.trim() : '';
+  if (createdAt && isoDatePattern.test(createdAt)) return createdAt;
+  try {
+    return fs.statSync(manifestPath).mtime.toISOString();
+  } catch {
+    return '';
+  }
+}
 
 export function getPlayWorlds(): PlayWorld[] {
   const root = process.env.BOX_PLAY_LIBRARY_PATH;
@@ -61,6 +82,7 @@ export function getPlayWorlds(): PlayWorld[] {
             mapRole: manifest.mapRole,
             mainProjectId: manifest.mainProjectId,
             playEnabled: manifest.playEnabled !== false,
+            updatedAt: resolveUpdatedAt(manifest, path.join(root, entry.name, 'manifest.json')),
           }];
         } catch {
           return [];

@@ -27,6 +27,16 @@ import {
 import type { PlayWorld } from '../server/play-worlds'
 import { getPlayWorlds } from '../server/play-worlds'
 import { getPlayPresenceCounts } from '../server/play-presence'
+import { getPublicPlaySiteConfig } from '../server/play-site-config'
+import {
+  filterGroupsByPlaySiteTab,
+  hasPlaySiteHero,
+  loadPlaySiteConfig,
+  normalizePlaySiteConfig,
+  type PlaySiteConfig,
+} from '../components/play-home/site-config'
+import { readPlayWorldMeta } from '../components/play-home/map-card-meta'
+import { PlayBannerCarousel } from '../components/play-home/banner-carousel'
 import {
   importResponseError,
   type DetailedImportError,
@@ -79,6 +89,25 @@ const previewResourceStatuses: Record<string, MapResourceStatus> = {
   'preview-explore': { bytes: 22 * 1024 * 1024, importedAt: '2026-08-25T11:00:00.000Z' },
   'preview-build': { bytes: 31 * 1024 * 1024, importedAt: '2026-08-24T06:45:00.000Z' },
   'preview-chase': { bytes: 27 * 1024 * 1024, importedAt: '2026-08-23T02:20:00.000Z' },
+}
+
+// 仅供 BOX_UI_PREVIEW 开发服务预览改版后的首页壳层；生产路径只会用接口返回的配置。
+const previewSiteConfig: PlaySiteConfig = {
+  schema: 1,
+  banner: {
+    images: [
+      { src: '/map-templates/arena-template.png', href: '/p/preview-arena', title: '竞技场：破晓行动 重磅来袭', subtitle: '在立体竞技场中完成一场快速对战' },
+      { src: '/map-templates/raceway-template.png', href: '/p/preview-race', title: '极速赛道 现已开放', subtitle: '穿过弯道与加速带，第一个冲过终点' },
+    ],
+    heightPx: 320,
+    autoplayMs: 6000,
+  },
+  announcement: { text: '本地部署演示站：地图由服主自行上传与维护', href: '' },
+  tabs: [
+    { key: 'all', label: '地图展厅', match: {} },
+    { key: 'race', label: '潜力新作', match: { publicId: 'preview-race' } },
+  ],
+  footer: { text: 'BOX3 Engine 本地部署演示' },
 }
 
 type ImportProgress = {
@@ -157,10 +186,22 @@ function formatImportedAt(value: string) {
   }).format(date)
 }
 
+// 站级配置只影响 banner/公告/tab：SSR 读失败时给 null，首页照常出地图列表，
+// 客户端还会再试一次 GET /api/play-site-config（见 components/play-home/site-config.ts）。
+function readSiteConfigSafely(): unknown {
+  try {
+    return getPublicPlaySiteConfig()
+  } catch {
+    return null
+  }
+}
+
 type HomePageProps = {
   worlds: PlayWorld[]
   uiPreview: boolean
   mapStats: Record<string, MapDiscoveryStats>
+  /** 服务端读到的站级配置原始响应体；一律经 normalizePlaySiteConfig 过滤后才使用。 */
+  siteConfig: unknown
 }
 
 export default function HomePage(props: HomePageProps) {
@@ -175,6 +216,7 @@ function HomePageContent({
   worlds,
   uiPreview,
   mapStats,
+  siteConfig: rawSiteConfig,
 }: HomePageProps) {
   const intl = useIntl()
   const t = (id: string, values?: Record<string, string | number>) =>
@@ -204,6 +246,14 @@ function HomePageContent({
   const [editPublicId, setEditPublicId] = useState('')
   const [busy, setBusy] = useState('')
   const [notice, setNotice] = useState('')
+  // 站级展示配置（banner / 公告 / 分区 tab）。null = 没有配置或读取失败，
+  // 此时整页退回「无 banner、无 tab」的纯地图列表。
+  // 首屏值来自 SSR（避免 banner 迟到把地图区往下顶），再过一次归一化。
+  const [siteConfig, setSiteConfig] = useState<PlaySiteConfig | null>(() =>
+    normalizePlaySiteConfig(rawSiteConfig),
+  )
+  const [activeTabKey, setActiveTabKey] = useState('')
+  const [headerSolid, setHeaderSolid] = useState(false)
   const [importProgress, setImportProgress] = useState<ImportProgress | null>(null)
   const [bundleReview, setBundleReview] = useState<PlayBundleReview | null>(null)
   const [reviewFilename, setReviewFilename] = useState('')
@@ -327,6 +377,33 @@ function HomePageContent({
     }
   }, [adminToken, uiPreview, verified])
 
+  // 站级配置是纯装饰数据：SSR 没给到（老构建 / 服务端异常 / 非 play 模式）时，
+  // 客户端再兜底一次 GET /api/play-site-config。404 / 非 JSON 一律保持 null，
+  // 地图列表与进图链路完全不依赖它，也不允许因为它而变空。
+  useEffect(() => {
+    if (uiPreview || siteConfig) return
+    const controller = new AbortController()
+    let settled = false
+    loadPlaySiteConfig(controller.signal)
+      .then((config) => {
+        if (!settled && config) setSiteConfig(config)
+      })
+      .catch(() => undefined)
+    return () => {
+      settled = true
+      controller.abort()
+    }
+  }, [siteConfig, uiPreview])
+
+  // hero 形态下顶栏是 sticky 浮层，压在 banner 之上；滚过 banner 后才填充实底色。
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined
+    const sync = () => setHeaderSolid(window.scrollY > 8)
+    sync()
+    window.addEventListener('scroll', sync, { passive: true })
+    return () => window.removeEventListener('scroll', sync)
+  }, [])
+
   async function verifyToken(token: string, quiet = false) {
     try {
       await apiClient.postApiPlayAdminVerify({ headers: { Authorization: `Bearer ${token}` } })
@@ -395,6 +472,15 @@ function HomePageContent({
             .filter(({ main }) => recentIds.includes(main.publicId))
         : playableWorldGroups
   const libraryGroups = playerGroups
+  // 分区 tab 只来自站级配置；没有配置时 activeTab 为 null，
+  // filterGroupsByPlaySiteTab 原样返回集合 —— 列表与改版前逐张一致。
+  const siteTabs: PlaySiteConfig['tabs'] = siteConfig?.tabs?.length ? siteConfig.tabs : []
+  const activeTab = siteTabs.find((tab) => tab.key === activeTabKey) || siteTabs[0] || null
+  const visibleGroups = filterGroupsByPlaySiteTab(libraryGroups, activeTab)
+  const heroEnabled = hasPlaySiteHero(siteConfig)
+  const bannerImages = siteConfig?.banner?.images ?? []
+  const bannerHeightPx = siteConfig?.banner?.heightPx ?? 320
+  const bannerAutoplayMs = siteConfig?.banner?.autoplayMs ?? 6000
   const deleteTargets = deleteWorld
     ? deleteWorld.mapRole === 'main'
       ? worldList.filter(
@@ -840,7 +926,11 @@ function HomePageContent({
       <Head>
         <title>游玩作品中心</title>
       </Head>
-      <main className="page boxWorkCenter playWorkCenter">
+      <main
+        className={`page boxWorkCenter playWorkCenter${heroEnabled ? ' playHomeHero' : ''}${
+          heroEnabled && headerSolid ? ' isHeaderSolid' : ''
+        }`}
+      >
         <header className="siteHeader">
           <Link
             className="siteBrand"
@@ -890,12 +980,60 @@ function HomePageContent({
           )}
         </header>
 
+        {siteConfig?.announcement?.text ? (
+          !siteConfig.announcement.href ? (
+            <div className="announceBar" role="status">
+              <span className="announceText">{siteConfig.announcement.text}</span>
+            </div>
+          ) : /^https:/i.test(siteConfig.announcement.href) ? (
+            <a
+              className="announceBar announceLink"
+              href={siteConfig.announcement.href}
+              rel="noreferrer"
+              aria-label="站点公告"
+            >
+              <span className="announceText">{siteConfig.announcement.text}</span>
+            </a>
+          ) : (
+            <Link
+              className="announceBar announceLink"
+              href={siteConfig.announcement.href}
+              aria-label="站点公告"
+            >
+              <span className="announceText">{siteConfig.announcement.text}</span>
+            </Link>
+          )
+        ) : null}
+
+        {bannerImages.length ? (
+          <PlayBannerCarousel
+            images={bannerImages}
+            heightPx={bannerHeightPx}
+            autoplayMs={bannerAutoplayMs}
+          />
+        ) : null}
+
         <div className="header">
           <div className="title">
             <h1>{t('playHome.maps')}</h1>
             <span>{`${worldGroups.length} 个地图`}</span>
           </div>
         </div>
+
+        {siteTabs.length ? (
+          <nav className="sectionNav" aria-label="地图分区">
+            {siteTabs.map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                className={activeTab?.key === tab.key ? 'active' : ''}
+                onClick={() => setActiveTabKey(tab.key)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </nav>
+        ) : null}
 
         {libraryEnabled && worldList.length ? (
           <nav className="collectionNav">
@@ -928,9 +1066,11 @@ function HomePageContent({
         ) : null}
 
         {worldList.length ? (
-          playerGroups.length ? (
+          visibleGroups.length ? (
             <div className="playerGrid" aria-label={t('playHome.mapList')}>
-              {libraryGroups.map(({ groupId, main }) => (
+              {visibleGroups.map(({ groupId, main }) => {
+                const worldMeta = readPlayWorldMeta(main)
+                return (
                 <article className="card" key={groupId}>
                   {libraryEnabled ? <button className="favoriteButton" aria-label={t('playHome.favoriteMap')} onClick={() => toggleFavorite(main.publicId)}>{favoriteIds.has(main.publicId) ? '★' : '☆'}</button> : null}
                   {!isPlayEnabled(main) ? <span className="mapClosed">{t('playHome.temporarilyClosed')}</span> : null}
@@ -942,10 +1082,11 @@ function HomePageContent({
                     recordRecent(main.publicId)
                   }}>
                     <div className="cover"><img src={main.cover || DEFAULT_MAP_COVER} alt="" />{liveMapStats[main.publicId] ? <span className="mapOnline">{t('playHome.onlineCount', { count: liveMapStats[main.publicId].onlineCount })}</span> : null}</div>
-                    <div className="info"><strong>{main.name}</strong><small>{main.author || t('playHome.unnamed')} · {main.version}</small>{main.description ? <p>{main.description}</p> : null}<span className="playCta">{t('playHome.playNow')} <ArrowUpRight size={15} aria-hidden="true" /></span></div>
+                    <div className="info"><strong>{main.name}</strong><small>{main.author || t('playHome.unnamed')} · {main.version}</small>{worldMeta.parts.length ? <span className="cardMeta">{worldMeta.parts.join(' · ')}</span> : null}{main.description ? <p>{main.description}</p> : null}<span className="playCta">{t('playHome.playNow')} <ArrowUpRight size={15} aria-hidden="true" /></span></div>
                   </Link>
                 </article>
-              ))}
+                )
+              })}
             </div>
           ) : (
             <div className="empty"><strong>{t('playHome.noMatchingMaps')}</strong><small>{t('playHome.noMatchingMapsHint')}</small></div>
@@ -1098,6 +1239,7 @@ function HomePageContent({
         <footer className="playFooter">
           <span>{t('playHome.engineDeveloper')} <strong>{t('playHome.engineDeveloperName')}</strong></span>
           <span>{t('playHome.disclaimer')}</span>
+          {siteConfig?.footer?.text ? <span className="footerSiteText">{siteConfig.footer.text}</span> : null}
         </footer>
       </main>
 
@@ -2545,10 +2687,10 @@ function HomePageContent({
           transform: none;
         }
         .playWorkCenter .guestActions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
-        .playWorkCenter .guestActions :global(.guestLogin) { display: inline-flex; height: 36px; align-items: center; justify-content: center; padding: 0 15px; border-radius: 7px; font-size: 13px; font-weight: 700; line-height: 1; text-decoration: none; transition: background-color 140ms ease, border-color 140ms ease, transform 140ms cubic-bezier(0.23, 1, 0.32, 1); }
-        .playWorkCenter .guestActions :global(.guestLogin) { color: #262626 !important; background: #ffdb00 !important; box-shadow: 0 0 0 1px rgba(255, 219, 0, 0.3); }
+        .playWorkCenter .guestActions :global(.guestLogin) { display: inline-flex; height: 32px; align-items: center; justify-content: center; padding: 0 14px; border-radius: 9999px; font-size: 12px; font-weight: 700; line-height: 1; text-decoration: none; transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, transform 140ms cubic-bezier(0.23, 1, 0.32, 1); }
+        .playWorkCenter .guestActions :global(.guestLogin) { color: rgba(0, 0, 0, 0.95) !important; background: #fff !important; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.22); }
         .playWorkCenter .guestActions button:global(.guestLogin) { border: 0; cursor: pointer; }
-        .playWorkCenter .guestActions :global(.guestLogin):hover { background: #ffe44d !important; }
+        .playWorkCenter .guestActions :global(.guestLogin):hover { background: #ffdb00 !important; color: #262626 !important; }
         .playWorkCenter .guestActions :global(.guestLogin):active { transform: scale(0.97); }
         .playWorkCenter .header { margin-bottom: 16px; }
         .playWorkCenter .title { gap: 10px; }
@@ -2910,6 +3052,306 @@ function HomePageContent({
             grid-template-columns: 1fr;
           }
         }
+        /* 卡片元信息行（「7月25日 更新」 · 「9.72K 浏览」）：
+           字段缺失时整行不渲染，因此不受 hero 条件限制，两种形态都用同一套样式。 */
+        .playWorkCenter .cardMeta {
+          display: block;
+          margin-top: 5px;
+          color: rgba(255, 255, 255, 0.42);
+          font-size: 11px;
+          letter-spacing: 0.01em;
+        }
+        /* ---------- play 首页改版：hero 壳层（换皮自 dao3.fun 的实测骨架） ----------           整段都以 .playHomeHero 为前缀，该类只在「拿到站级配置且配置里真有
+           banner/公告/tab」时才加到 <main> 上。配置缺失时这段一条都不匹配，
+           页面回到改版前的形态：普通流 64px 头部 + 1150px 内容列 + 悬浮页脚。
+           Tailwind 语义值 -> 等价 CSS 的换算：
+             bg-gray-900 -> #262626   bg-gray-800 -> #1f1f1f   bg-gray-700 -> #333
+             rounded-lg -> 8px        pb-[100%] -> 本仓既有 aspect-ratio: 1 比例盒
+             hover:scale-110 -> transform: scale(1.1) + transition
+             border-radius 9999px -> 胶囊            screens 断点 -> 960 / 1200 三档
+        */
+        .playHomeHero.page {
+          width: 100%;
+          padding: 0;
+        }
+        .playHomeHero .siteHeader {
+          position: sticky;
+          top: 0;
+          z-index: 20;
+          height: 64px;
+          min-height: 64px;
+          box-sizing: border-box;
+          margin: 0;
+          padding: 0 max(16px, calc((100% - 1024px) / 2));
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+          background: rgba(38, 38, 38, 0.96);
+          backdrop-filter: blur(12px);
+          transition: box-shadow 160ms ease, border-color 160ms ease;
+        }
+        .playHomeHero.isHeaderSolid .siteHeader {
+          border-bottom-color: rgba(255, 255, 255, 0.14);
+          box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+        }
+        /* 内容列：1024px 居中（对应 w-full lg:max-w-screen-lg px-4 lg:px-5），
+           banner / 公告条 / 页脚保持通栏。 */
+        .playHomeHero.page > .header,
+        .playHomeHero.page > .sectionNav,
+        .playHomeHero.page > .collectionNav,
+        .playHomeHero.page > .notice,
+        .playHomeHero.page > .playerGrid,
+        .playHomeHero.page > .groups,
+        .playHomeHero.page > .empty {
+          width: min(1024px, calc(100% - 32px));
+          margin-left: auto;
+          margin-right: auto;
+        }
+        .playHomeHero .header {
+          margin-top: 22px;
+        }
+        .playHomeHero .announceBar {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          box-sizing: border-box;
+          width: 100%;
+          min-height: 34px;
+          padding: 7px max(16px, calc((100% - 1024px) / 2));
+          background: #ffdb00;
+          color: #262626;
+          font-size: 12px;
+          font-weight: 700;
+          line-height: 1.5;
+          text-align: center;
+          text-decoration: none;
+        }
+        .playHomeHero .announceBar.announceLink {
+          cursor: pointer;
+          transition: background-color 140ms ease;
+        }
+        .playHomeHero .announceBar.announceLink:hover {
+          background: #ffe44d;
+        }
+        .playHomeHero .announceText {
+          overflow: hidden;
+          max-width: 100%;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .playHomeHero .sectionNav {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+          margin: 0 0 14px;
+          padding-bottom: 10px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .playHomeHero .sectionNav button {
+          height: 32px;
+          padding: 0 14px;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: 9999px;
+          background: #333;
+          color: rgba(255, 255, 255, 0.72);
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease;
+        }
+        .playHomeHero .sectionNav button:hover { color: #fff; background: #404040; }
+        .playHomeHero .sectionNav button.active { border-color: #ffdb00; color: #262626; background: #ffdb00; }
+        .playHomeHero .playerGrid {
+          grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+          gap: 16px;
+        }
+        .playHomeHero .playerGrid .card { border-radius: 8px; }
+        .playHomeHero .playerGrid .cover { overflow: hidden; }
+        .playHomeHero .playerGrid .cover img {
+          transition: transform 320ms cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .playHomeHero .playerGrid .card:hover .cover img { transform: scale(1.1); }
+        .playHomeHero .playFooter {
+          position: static;
+          margin-top: 44px;
+          padding: 16px max(16px, calc((100% - 1024px) / 2));
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+          background: #1f1f1f;
+          box-shadow: none;
+          backdrop-filter: none;
+        }
+        .playHomeHero .footerSiteText { color: rgba(255, 255, 255, 0.5); }
+        /* banner 轮播：结构与交互在 components/play-home/banner-carousel.tsx，
+           本仓 components/ 无 styled-jsx 先例，故样式由这里以 :global 前缀接管。 */
+        .playHomeHero :global(.playBanner) {
+          position: relative;
+          display: block;
+          overflow: hidden;
+          width: 100%;
+          background: #333;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .playHomeHero :global(.playBannerTrack) {
+          display: flex;
+          height: 100%;
+          transition: transform 420ms cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .playHomeHero :global(.playBannerSlide),
+        .playHomeHero :global(.playBannerLink) {
+          display: block;
+          height: 100%;
+          color: inherit;
+          text-decoration: none;
+        }
+        .playHomeHero :global(.playBannerSlide) {
+          position: relative;
+          flex: 0 0 auto;
+          overflow: hidden;
+          background: #333;
+        }
+        .playHomeHero :global(.playBannerLink)[aria-hidden='true'] { pointer-events: none; }
+        .playHomeHero :global(.playBannerImage) {
+          display: block;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        .playHomeHero :global(.playBannerScrim) {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          background: linear-gradient(
+            90deg,
+            rgba(0, 0, 0, 0.74) 0%,
+            rgba(0, 0, 0, 0.38) 44%,
+            rgba(0, 0, 0, 0) 74%
+          );
+        }
+        .playHomeHero :global(.playBannerCaption) {
+          position: absolute;
+          z-index: 2;
+          bottom: 46px;
+          left: max(16px, calc((100% - 1024px) / 2));
+          display: grid;
+          gap: 8px;
+          max-width: min(520px, 68%);
+        }
+        .playHomeHero :global(.playBannerTitle) {
+          color: #fff;
+          font-size: 26px;
+          font-weight: 800;
+          letter-spacing: -0.025em;
+          line-height: 1.2;
+          text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);
+        }
+        .playHomeHero :global(.playBannerSubtitle) {
+          overflow: hidden;
+          color: rgba(255, 255, 255, 0.8);
+          font-size: 13px;
+          line-height: 1.5;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+        }
+        .playHomeHero :global(.playBannerCta) {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          justify-self: start;
+          height: 32px;
+          padding: 0 14px;
+          border-radius: 9999px;
+          background: #ffdb00;
+          color: #262626;
+          font-size: 12px;
+          font-weight: 800;
+        }
+        .playHomeHero :global(.playBannerArrow) {
+          position: absolute;
+          z-index: 3;
+          top: 50%;
+          display: grid;
+          place-items: center;
+          width: 34px;
+          height: 34px;
+          margin-top: -17px;
+          border: 1px solid rgba(255, 255, 255, 0.16);
+          border-radius: 9999px;
+          color: #fff;
+          background: rgba(38, 38, 38, 0.72);
+          cursor: pointer;
+          opacity: 0.82;
+          transition: opacity 140ms ease, background-color 140ms ease, color 140ms ease;
+        }
+        .playHomeHero :global(.playBannerPrev) { left: max(12px, calc((100% - 1024px) / 2)); }
+        .playHomeHero :global(.playBannerNext) { right: max(12px, calc((100% - 1024px) / 2)); }
+        .playHomeHero :global(.playBannerArrow:hover),
+        .playHomeHero :global(.playBannerArrow:focus-visible) {
+          opacity: 1;
+          background: #ffdb00;
+          color: #262626;
+        }
+        .playHomeHero :global(.playBannerDots) {
+          position: absolute;
+          z-index: 3;
+          bottom: 14px;
+          left: 50%;
+          display: flex;
+          gap: 6px;
+          transform: translateX(-50%);
+        }
+        .playHomeHero :global(.playBannerDot) {
+          width: 8px;
+          height: 8px;
+          padding: 0;
+          border: 0;
+          border-radius: 9999px;
+          background: rgba(255, 255, 255, 0.42);
+          cursor: pointer;
+          transition: width 160ms ease, background-color 160ms ease;
+        }
+        .playHomeHero :global(.playBannerDot.isActive) { width: 22px; background: #ffdb00; }
+        /* 顶栏加载进度条（fixed z-9999 + absolute bg-base-500）的不依赖
+           @keyframes 版本：styled-jsx 的 keyframes 作用域无法本地验证，改为静态细条。 */
+        .playHomeHero :global(.playBannerProgress) {
+          position: fixed;
+          z-index: 9999;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 2px;
+          background: #3a3a3a;
+        }
+        .playHomeHero :global(.playBannerProgress) > i {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 46%;
+          height: 100%;
+          background: #ffdb00;
+        }
+        @media (min-width: 961px) {
+          .playHomeHero .playerGrid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+          }
+          .playHomeHero :global(.playBannerCaption) { bottom: 54px; }
+          .playHomeHero :global(.playBannerTitle) { font-size: 30px; }
+        }
+        @media (min-width: 1201px) {
+          .playHomeHero .playerGrid { gap: 20px; }
+          .playHomeHero .header { margin-top: 26px; }
+        }
+        @media (max-width: 960px) {
+          .playHomeHero :global(.playBannerCaption) { bottom: 40px; max-width: 78%; }
+          .playHomeHero :global(.playBannerTitle) { font-size: 21px; }
+          .playHomeHero :global(.playBannerSubtitle) { font-size: 12px; }
+          .playHomeHero :global(.playBannerArrow) { display: none; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .playHomeHero .playerGrid .cover img,
+          .playHomeHero :global(.playBannerTrack) { transition: none; }
+          .playHomeHero .playerGrid .card:hover .cover img { transform: none; }
+        }
       `}</style>
     </>
   )
@@ -2931,6 +3373,7 @@ export const getServerSideProps: GetServerSideProps = async () => {
         worlds: worlds.length ? worlds : previewWorlds,
         uiPreview: true,
         mapStats: previewMapStats,
+        siteConfig: previewSiteConfig,
       },
     }
   }
@@ -2951,6 +3394,7 @@ export const getServerSideProps: GetServerSideProps = async () => {
       worlds,
       uiPreview: false,
       mapStats: getPlayPresenceCounts(worlds.map((world) => world.publicId), groupByMap),
+      siteConfig: readSiteConfigSafely(),
     },
   }
 }
