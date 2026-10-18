@@ -210,7 +210,27 @@ export async function allowAuthenticatedCreatorCliApi(
   res: NextApiResponse,
   capability: CreatorCliCapability,
 ) {
-  if (!allowCreatorApi(req, res)) return false;
+  return Boolean(await authorizeCreatorCliApi(req, res, capability));
+}
+
+/**
+ * Same door as `allowAuthenticatedCreatorCliApi` — Creator Access plus exactly
+ * one CLI scope — but it hands the verified identity back to the route.
+ *
+ * AI authoring writes need it: an operation that mutates a map must be recorded
+ * against the *token holder* (`identity.subjectId`), which is only available
+ * before the response is sent. The serialization of every failure path is
+ * deliberately identical to the boolean gate, so existing CLI routes can be
+ * re-pointed at it without changing a single status code or error code.
+ *
+ * Returns `undefined` only after a response has been written.
+ */
+export async function authorizeCreatorCliApi(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  capability: CreatorCliCapability,
+): Promise<RuntimePlayerIdentity | undefined> {
+  if (!allowCreatorApi(req, res)) return undefined;
   try {
     const { identity } = await resolvePlayerServiceIdentity(
       req,
@@ -219,19 +239,19 @@ export async function allowAuthenticatedCreatorCliApi(
     );
     if (!identity.creatorAccess) {
       res.status(403).json({ code: 'CREATOR_ACCESS_REQUIRED', message: '当前账号未获准进入创作端，CLI 不可用' });
-      return false;
+      return undefined;
     }
     if (!identity.creatorCliPermissions?.includes(capability)) {
       res.status(403).json({ code: 'CREATOR_CLI_PERMISSION_DENIED', message: '当前 CLI Token 没有执行此操作的权限' });
-      return false;
+      return undefined;
     }
+    return identity;
   } catch (error) {
     if (error instanceof PlayerAuthenticationRequiredError) {
       res.status(401).json({ code: 'AUTH_REQUIRED', message: 'CLI Token 无效或已撤销' });
-      return false;
+      return undefined;
     }
     res.status(503).json({ code: 'PLAYER_SERVICE_UNAVAILABLE', message: '无法验证 CLI Token' });
-    return false;
+    return undefined;
   }
-  return true;
 }

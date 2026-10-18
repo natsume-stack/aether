@@ -12,6 +12,7 @@ export const CREATOR_CLI_CAPABILITIES = [
   'runtime.view',
   'runtime.control',
   'scene.capture',
+  'authoring.apply',
 ] as const;
 export type CreatorCliCapability = typeof CREATOR_CLI_CAPABILITIES[number];
 
@@ -31,6 +32,7 @@ export const CREATOR_CLI_CAPABILITY_META: Readonly<Record<CreatorCliCapability, 
   'runtime.view': { label: '查看预览日志', description: '查看地图预览运行状态，并订阅客户端与服务端控制台', group: '预览运行' },
   'runtime.control': { label: '控制预览运行', description: '启动或停止地图预览运行', group: '预览运行' },
   'scene.capture': { label: '截取编辑场景', description: '请求当前已授权编辑会话返回场景截图', group: '编辑场景' },
+  'authoring.apply': { label: '执行 AI 地图创作', description: '对已打开的编辑运行时调用体素/UI/实体创作工具，并按“停预览→写→保存”顺序落盘；含该工程预览启停，每次写操作按 Token 落审计行', group: 'AI 创作' },
 });
 export const FULL_CREATOR_CLI_CAPABILITIES = [...CREATOR_CLI_CAPABILITIES] as CreatorCliCapability[];
 

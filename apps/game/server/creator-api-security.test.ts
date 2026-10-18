@@ -268,6 +268,66 @@ function buildCases(loadModule: () => Promise<Module>): Array<[string, () => voi
       assert.equal((res.body as { code: string }).code, 'CREATOR_CLI_PERMISSION_DENIED');
     }],
 
+    ['身份可归因门：authorizeCreatorCliApi 返回 subjectId，失败序列化与布尔门逐字一致', async () => {
+      const mod = await loadModule();
+      prepareServiceEnv();
+      // 命中 authoring.apply：路由需要的是身份，而不是一个布尔。
+      resetStub(baseIdentity({ creatorCliPermissions: ['authoring.apply'] }));
+      let res = fakeResponse();
+      const identity = await mod.authorizeCreatorCliApi(
+        fakeRequest({ url: '/api/creator/v1/authoring/demo-map/tools', method: 'POST', authorization: CLI_TOKEN }),
+        res as never, 'authoring.apply',
+      );
+      assert.equal(identity?.subjectId, 'subject-creator-1', 'AI 写面必须拿到 token 归属人做审计');
+      assert.equal(res.statusCode, 0, '放行不得写响应');
+      // 未命中：与 allowAuthenticatedCreatorCliApi 的 403/错误码/文案逐字相同。
+      resetStub();
+      res = fakeResponse();
+      assert.equal(await mod.authorizeCreatorCliApi(
+        fakeRequest({ url: '/api/creator/v1/authoring/demo-map/save', method: 'POST', authorization: CLI_TOKEN }),
+        res as never, 'authoring.apply',
+      ), undefined);
+      const denied = fakeResponse();
+      assert.equal(await mod.allowAuthenticatedCreatorCliApi(
+        fakeRequest({ url: '/api/creator/v1/authoring/demo-map/save', method: 'POST', authorization: CLI_TOKEN }),
+        denied as never, 'authoring.apply',
+      ), false);
+      assert.deepEqual([res.statusCode, res.body], [denied.statusCode, denied.body]);
+      assert.equal((res.body as { code: string }).code, 'CREATOR_CLI_PERMISSION_DENIED');
+      // 撤销（token 查不到）→ 401，与布尔门同形。
+      resetStub(null);
+      stub.status = 401;
+      stub.message = 'AUTH_REQUIRED';
+      res = fakeResponse();
+      assert.equal(await mod.authorizeCreatorCliApi(
+        fakeRequest({ url: '/api/creator/v1/authoring/demo-map/tools', authorization: CLI_TOKEN }), res as never, 'authoring.apply',
+      ), undefined);
+      assert.equal(res.statusCode, 401);
+      assert.equal((res.body as { code: string; message: string }).message, 'CLI Token 无效或已撤销');
+      // 浏览器会话（creatorCliPermissions 恒为空）打不开 AI 写面：这是机读专用门。
+      resetStub(baseIdentity({ creatorCliPermissions: [] }));
+      res = fakeResponse();
+      assert.equal(await mod.authorizeCreatorCliApi(
+        fakeRequest({ url: '/api/creator/v1/authoring/demo-map/tools', method: 'POST', cookie: 'box_local_player_session=abc' }),
+        res as never, 'authoring.apply',
+      ), undefined);
+      assert.equal(res.statusCode, 403);
+      assert.equal((res.body as { code: string }).code, 'CREATOR_CLI_PERMISSION_DENIED');
+    }],
+
+    ['authoring 路由族仍在 CLI 门内：Bearer 打 authoring 不被 UI 门二次拒绝，打 UI 路由仍 403', async () => {
+      const mod = await loadModule();
+      prepareServiceEnv();
+      assert.equal(mod.isCreatorCliApiRoute({ url: '/api/creator/v1/authoring/demo-map/tools' } as never), true);
+      assert.equal(mod.isCreatorCliApiRoute({ url: '/api/creator/v1/authoring/audit' } as never), true);
+      assert.equal(mod.rejectsCreatorCliBearerOnUiRoute(
+        { headers: { authorization: CLI_TOKEN }, url: '/api/creator/v1/authoring/demo-map/save' } as never,
+      ), false);
+      assert.equal(mod.rejectsCreatorCliBearerOnUiRoute(
+        { headers: { authorization: CLI_TOKEN }, url: '/api/internal/map-authoring/demo-map/tool' } as never,
+      ), true, 'internal 面不是 CLI 族：想拿 AI 权限只能走 creator/v1');
+    }],
+
     ['鉴权失败与权限不足的既有序列化结果不变', async () => {
       const mod = await loadModule();
       prepareServiceEnv();
