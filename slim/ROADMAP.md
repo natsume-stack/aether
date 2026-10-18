@@ -219,3 +219,31 @@ A5 删掉 `--runtime-only` spawn 后，仓库自身的构建校验脚本 **`scri
 | `plan/N1-play-page-customization.md` | A7 | 页面自定义现状与三档方案 |
 | `plan/N2-mcp-ai-map-authoring.md` | A8 | AI/MCP 接管可编程面取证与切片设计 |
 | `tools/compat-check.sh` + `baseline/` | A9 | 52 项检查脚本与基线 |
+
+---
+
+## 11. 主控轮次写回（O23–O27 + N6/N7，2026-10-18 17:0x，分支 `slim/local-deploy` = `29939f5`）
+
+上一轮把 7 条泳道硬中断在半成品状态；本轮 6 条全部收口。定损与逐条证据在 `box3-re/HANDOVER-3.md`，本节只写门状态与数字口径。
+
+| 泳道 | 状态 | 主控亲跑的数 | 交付物 |
+|---|---|---|---|
+| A MCP 写工具面 | **实** | `node --test test/*.test.js` → **178 tests / 178 pass / 0 fail** | `tools/box3-map-mcp/src/tools/index.js`、`src/errors.js`、`mock/authoring.js`；authoring 面 **12 → 37** 工具；`slim/scan/O23` |
+| B/D AI 身份 | **实**（纠偏后） | bridge 28/28、security 13/13（`node --experimental-strip-types`） | `authoring.apply` 为第 10 个 scope（additive）+ `/api/creator/v1/authoring/*` 6 端点 + 审计行；`_guard.ts` 未动；`slim/scan/O24`、`slim/plan/N6` |
+| C UI 事件绑定 | **实**（按决策 2 停在"不改形状"） | 49/49；生产图 blob `QmeE9eD…JHFNhV` 40,073 B / 61 节点 → 0 error 0 warning、输入逐字节不变 | `src/ui-binding.js` 10 条规则；结论：绑定只在客户端脚本正文（`ui.ts:41/:45/:16-28`、`defs.ts:816` TODO），**不扩 ui-rda**；`slim/scan/O25` |
+| E DoD 机器闸 | **部**（模块绿、**未登记进工具面**） | 42/42；17 条可执行断言、46 个去重 (规则,码) 组合、54 次反例实测变红 | `src/dod.js` 57 码 + 12 步 playbook（8 步不可跳，`auditPlaybook()` 可审规程本身）；`slim/scan/O26` |
+| G1b `/edit` 网关 | **实**（现网零改动） | 登录后 `/edit/e/<container>` **200 / 272,388 B**、`/_next` 13/13 命中、公网双层 **95,476 ms / earlyCloseCount=0** | `distribution/play-lite/gateway.js` 两道闸（internal 前缀拒绝 + Host/Origin 等值回写）；`/edit/app/e/*`=404 负例；O21 续章 G1b-1..5 |
+| H2b 转换器 | **实**（语义层）| **48/48 pass** | 自产 canonical 升序键字节 + CIDv0 自指；体素逐 chunk 复现真箱 **64 个 CID**；`git init` 首推 `master=6fd74d3`；`slim/scan/O27` |
+
+**四条既有闸本轮全绿**：`check-standalone.js` EXIT=0（35 modules / 377 blobs）、`compat-check.sh --quiet` **54/0**、MCP 178/178、转换器 48/48。
+
+**本轮新增的口径变更（不许再按旧数引用）**
+1. ~~MCP 只有 13 个工具~~ → authoring 面 37、readonly 面 21；但**引擎 headless 路由实测只挂载 17/22**（`ai-tool-route.ts:78-91` 未 spread `createScriptTools`），MCP 侧如实返回 `ENGINE_TOOL_NOT_MOUNTED` 而不是假装有。
+2. ~~AI 身份可以给 `/internal/*` 加一把共享密钥~~ → 作废并 stash 退场（`stash@{0}`）。身份 = `bxc_` CLI Token + `authoring.apply`。
+3. ~~UI 交互是能力空白、要新造事件模型~~ → 作废。事件名与枚举既有，缺的只是绑定校验门。
+4. `signEncode` 的 **−16 与 +16 撞码**是引擎自身行为（`box-encode.ts:13-19` mod-32 折叠），转换器照抄不修。
+5. `/edit` 公网化后 `/api/internal/**` **路由层照样命中**，只靠 loopback 判定挡 ⇒ 收紧责任在网关，不在"creator 不发布端口"这条部署不变量。
+
+**仍待用户决策（6 条，原文见 `box3-re/HANDOVER-3.md` §3）**：mudb 闸门固化进镜像 / 公网 AI 创作面是否开门 / `box3-map-mcp` 进 `rush.json` 但从未进 `pnpm-lock.yaml`（frozen install 会红，本轮用 WSL 快照剔除该行绕开，未动仓库 lockfile）/ 是否补 2 行挂载 `createScriptTools` / 现网 player-service 256m 贴顶 / `status.ts` 的 `headlessWriteRoute:'unavailable'` 旧文案。
+
+**下一步没开工的**：把 `map_dod_report` 与 UI 绑定门登记进 MCP 工具面（两模块均零依赖纯函数，就等这一步）；F 端到端闭环（只用 MCP 把空图做到可玩）。
