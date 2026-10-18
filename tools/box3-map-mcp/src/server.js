@@ -9,9 +9,12 @@
  */
 import process from 'node:process'
 import { buildTools } from './tools.js'
+import { errorPayload } from './errors.js'
+import { isWriteTool } from './tools/index.js'
+import { ENGINE_TOOL_FOR_MCP_TOOL } from './tools/_shared.js'
 
 const SUPPORTED_PROTOCOL_VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05']
-const SERVER_INFO = { name: 'box3-map-mcp', title: 'BOX3 地图创作 MCP（切片 A）', version: '0.1.0' }
+const SERVER_INFO = { name: 'box3-map-mcp', title: 'BOX3 地图创作 MCP（切片 A + P0-A 写面）', version: '0.2.0' }
 
 function rpcResult(id, result) {
   return { jsonrpc: '2.0', id, result }
@@ -21,13 +24,20 @@ function rpcError(id, code, message, data) {
   return { jsonrpc: '2.0', id, error: { code, message, ...(data === undefined ? {} : { data }) } }
 }
 
-function publicTool(tool) {
+/** The wire form of one advertised tool (also used by `--tools-json`). */
+export function publicTool(tool) {
+  const engineTool = ENGINE_TOOL_FOR_MCP_TOOL[tool.name]
   return {
     name: tool.name,
     description: tool.description,
     inputSchema: tool.inputSchema,
     annotations: tool.annotations,
-    _meta: { 'box3-map-mcp/scope': tool.scope },
+    _meta: {
+      'box3-map-mcp/scope': tool.scope,
+      // Which engine-side AI tool this maps to (services/game-server/src/edit/ai/),
+      // so coverage is checkable from the protocol instead of from a document.
+      ...(engineTool ? { 'box3-map-mcp/engine-tool': engineTool } : {}),
+    },
   }
 }
 
@@ -68,7 +78,15 @@ export function validateArgs(schema, args) {
 
 export function createHandler(ctx) {
   const tools = buildTools(ctx)
+  const writesDisabled = ctx.config.profile === 'readonly' || ctx.config.allowWrite === false
   const byName = new Map(tools.map((tool) => [tool.name, tool]))
+  // Second guard against a shadowed registration: `buildTools` already refuses
+  // duplicates, and a Map would otherwise silently keep the last one.
+  if (byName.size !== tools.length) {
+    const names = tools.map((tool) => tool.name)
+    const doubled = names.filter((name, index) => names.indexOf(name) !== index)
+    throw new Error(`重名注册：${[...new Set(doubled)].join(', ')}`)
+  }
 
   return async function handle(message) {
     if (!message || message.jsonrpc !== '2.0') {
@@ -87,9 +105,13 @@ export function createHandler(ctx) {
         capabilities: { tools: { listChanged: false } },
         serverInfo: SERVER_INFO,
         instructions:
-          '只读工具映射到 creator/v1 现有 scope；唯一写工具 script_write 默认 dry-run，' +
-          '真写必须带 expectedRevision（引擎 scripts.update 无 CAS）。' +
-          '改代码的固定顺序：script_write(dry-run 取 revision) → script_write(confirm) → ' +
+          '只读工具映射到 creator/v1 现有 scope；写面分两层：terrain_* / entity_* / model_* / ui_* / script_* 走 ' +
+          'loopback 内部路由改运行时内存态（需要活动编辑运行时，写完必须 map_save 才落盘），script_write 走 scripts.update 直接落盘。' +
+          '每个写工具都必须带 expectedRevision（引擎侧没有 CAS），不一致就 REVISION_CONFLICT 拒绝；' +
+          'confirm/dryRun 默认不落盘。失败一律回 {code, retryable, hint}，按 hint 走，不要盲目重试。' +
+          '硬顺序（replica-server.ts:1602：预览在跑时保存不记体素 chunk）：' +
+          'map_status → map_preview {action:"stop"} → 写 → map_save →（要验收）map_preview {action:"start"} → runtime_events_tail。' +
+          '改代码的固定顺序：script_write(dry-run 取 expectedRevision) → script_write(confirm) → ' +
           'script_read 读回 → runtime_events_tail 断言无 exception / 无 MODULE_NOT_FOUND。',
       })
     }
@@ -99,20 +121,42 @@ export function createHandler(ctx) {
     if (method === 'tools/list') {
       return rpcResult(id, {
         tools: tools.map(publicTool),
-        ...(ctx.config.cliToken ? {} : { degraded: '未设置 BOX_CREATOR_CLI_TOKEN：除 engine_health 外的引擎类工具会返回 CLI_TOKEN_MISSING' }),
+        ...(ctx.config.cliToken
+          ? {}
+          : {
+              degraded:
+                '未设置 BOX_CREATOR_CLI_TOKEN：creator/v1 读路由（map_list / script_* / data_read / runtime_* / map_resources）会返回 ' +
+                'CLI_TOKEN_MISSING；engine_health 与 loopback 内部的 terrain_* / entity_* / model_* / ui_* / map_* 不受影响。',
+            }),
       })
     }
     if (method === 'tools/call') {
       const name = params && params.name
       const tool = byName.get(name)
-      if (!tool) return rpcError(id, -32602, `未知工具：${name}`)
+      if (!tool) {
+        // A writer that exists but was dropped by the read-only profile must
+        // still answer with the structured WRITE_DISABLED contract instead of a
+        // bare JSON-RPC "unknown tool": the agent needs to learn it is gated,
+        // not that the capability does not exist.
+        if (isWriteTool(name) && writesDisabled) {
+          return rpcResult(
+            id,
+            inBandError(
+              Object.assign(new Error(`${name} 被禁用：本实例以只读 profile 启动（BOX_MCP_PROFILE=readonly / BOX_MCP_ALLOW_WRITE=0）`), {
+                code: 'WRITE_DISABLED',
+              }),
+            ),
+          )
+        }
+        return rpcError(id, -32602, `未知工具：${name}`)
+      }
       const args = (params && params.arguments) || {}
       const problems = validateArgs(tool.inputSchema, args)
       if (problems.length) {
         return rpcResult(id, {
           isError: true,
-          content: [{ type: 'text', text: `参数校验未通过：${JSON.stringify(problems)}` }],
-          structuredContent: { error: { code: 'INVALID_ARGS', problems } },
+          content: [{ type: 'text', text: JSON.stringify(problems, null, 2) }],
+          structuredContent: { error: errorPayload(Object.assign(new Error('参数校验未通过'), { code: 'INVALID_ARGS' }), { problems }) },
         })
       }
       try {
@@ -123,20 +167,25 @@ export function createHandler(ctx) {
           structuredContent: result,
         })
       } catch (error) {
-        const payload = {
-          code: error.code || 'TOOL_FAILED',
-          message: error.message,
-          ...(error.detail ? { detail: error.detail } : {}),
-        }
-        return rpcResult(id, {
-          isError: true,
-          content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }],
-          structuredContent: { error: payload },
-        })
+        return rpcResult(id, inBandError(error))
       }
     }
     if (isNotification) return undefined
     return rpcError(id, -32601, `方法未实现：${method}`)
+  }
+}
+
+/**
+ * Every tool failure leaves as an in-band MCP result (never a JSON-RPC error)
+ * whose `structuredContent.error` is the uniform `{code, retryable, hint,
+ * message, status?, detail?}` contract — see src/errors.js.
+ */
+function inBandError(error, extra) {
+  const payload = errorPayload(error, extra)
+  return {
+    isError: true,
+    content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }],
+    structuredContent: { error: payload },
   }
 }
 

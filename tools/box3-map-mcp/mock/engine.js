@@ -18,6 +18,10 @@ import fs from 'node:fs'
 import http from 'node:http'
 import path from 'node:path'
 import { contentHash, urlSafeSha256Name } from '../src/cid.js'
+import { createAuthoringSim } from './authoring.js'
+
+/** `/api/internal/map-authoring/<projectId>/{tool,status,preview,save}` */
+const INTERNAL_PATTERN = /^\/api\/internal\/map-authoring\/([^/]+)\/(tool|status|preview|save)$/
 
 const capabilities = {
   GET: {
@@ -138,11 +142,56 @@ export async function startMockEngine(spec) {
     nextId: events.length + 1,
     tamperBudget: tamper ? 1 : 0,
   }
+  // The loopback map-authoring double (mock/authoring.js). It is the surface the
+  // terrain/entity/model/ui/script/map-ops domains talk to, so the write
+  // guardrails are exercisable without a real map, exactly like the creator/v1
+  // double above.
+  const authoring = createAuthoringSim({ projectId: 'rpc-map', ...(spec.authoring || {}) })
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, 'http://127.0.0.1')
     const send = (status, body) => {
       res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' })
       res.end(JSON.stringify(body))
+    }
+    const internal = INTERNAL_PATTERN.exec(url.pathname)
+    if (internal) {
+      const suffix = internal[2]
+      // _guard.ts:44 — the internal surface validates the id before anything else.
+      if (!/^[a-z0-9][a-z0-9-]{0,62}$/.test(decodeURIComponent(internal[1]))) {
+        return send(400, { code: 'INVALID_PROJECT_ID', message: '永久地图 ID 无效' })
+      }
+      if (authoring.runtimeNotActive()) {
+        return send(409, { code: 'RUNTIME_NOT_ACTIVE', message: '该工程当前没有打开的编辑运行时' })
+      }
+      if (suffix === 'status') return send(200, authoring.status().body)
+      if (suffix === 'preview') {
+        if (req.method !== 'POST') return send(405, { code: 'METHOD_NOT_ALLOWED' })
+        const body = await readBody(req)
+        const answered = authoring.preview(body.action)
+        return send(answered.status, answered.body)
+      }
+      if (suffix === 'save') {
+        if (req.method !== 'POST') return send(405, { code: 'METHOD_NOT_ALLOWED' })
+        const body = await readBody(req)
+        const answered = authoring.save({ force: body.force === true })
+        return send(answered.status, answered.body)
+      }
+      // tool.ts: GET answers the runtime catalog, POST dispatches one tool call.
+      if (req.method === 'GET') return send(200, authoring.toolCatalog().body)
+      const body = await readBody(req)
+      const name = typeof body.tool === 'string' ? body.tool : typeof body.name === 'string' ? body.name : ''
+      if (!name) return send(400, { code: 'INVALID_BODY', message: 'body 必须为 { tool|name, args? }' })
+      // ai-tool-route.ts:187-198 — a tool that RAN is always wrapped as
+      // `{tool, result}`, and the two in-band refusals additionally get HTTP
+      // 409; router-level failures (unknown tool, bad args, no execute) are
+      // answered flat with their own code.
+      const answered = authoring.callTool(name, body.args || {})
+      const isToolResult = Object.prototype.hasOwnProperty.call(answered.body, 'success')
+      if (isToolResult) {
+        const conflict = answered.body.success === false && (answered.body.code === 'PREVIEW_RUNNING' || answered.body.code === 'REVISION_CONFLICT')
+        return send(conflict ? 409 : 200, { tool: name, result: answered.body })
+      }
+      return send(answered.status, answered.body)
     }
     const segments = url.pathname.split('/').filter(Boolean)
     // /api/creator/v1[/projects/:id[/...]]   ->  segments[0..2] are the prefix
@@ -351,6 +400,7 @@ export async function startMockEngine(spec) {
     baseUrl: `http://127.0.0.1:${address.port}`,
     token,
     state,
+    authoring,
     close: () => new Promise((resolve) => server.close(resolve)),
   }
 }

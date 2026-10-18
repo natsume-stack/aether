@@ -408,7 +408,7 @@
     },
     {
       "name": "script_write",
-      "description": "唯一的写工具：走 scripts.update 写一份作者脚本（PUT .../scripts/{side}/{entry}）。默认 confirm:false = dry-run，只返回计划（当前 revision、预测 CIDv0、类型门结论），不写任何东西。真写必须带 expectedRevision，与引擎当前 revision 不一致就 REVISION_CONFLICT 拒绝；落盘前必过类型门；写后逐字节读回校验，失败自动把原内容写回。副作用：产生新 blob 并推进版本链（引擎侧只增不改）。",
+      "description": "落盘写作者脚本的正路：走 scripts.update 写一份脚本（PUT .../scripts/{side}/{entry}），不依赖编辑运行时，引擎离线也能写。terrain_*/entity_*/ui_* 的 script_create/script_patch 只改编辑器内存态且当前不可达，别拿它们当落盘通道。默认 confirm:false = dry-run，只返回计划（当前 revision、预测 CIDv0、类型门结论），不写任何东西。真写必须带 expectedRevision，与引擎当前 revision 不一致就 REVISION_CONFLICT 拒绝；落盘前必过类型门；写后逐字节读回校验，失败自动把原内容写回。副作用：产生新 blob 并推进版本链（引擎侧只增不改）。",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -517,6 +517,1093 @@
       },
       "_meta": {
         "box3-map-mcp/scope": "scripts.update"
+      }
+    },
+    {
+      "name": "terrain_info",
+      "description": "读地形元信息：体素网格尺寸 shape、预览是否在跑（previewRunning）、以及本次地形写的乐观锁令牌 revision。任何 terrain_apply 之前都要先调它：region 要夹在 shape 内，expectedRevision 要取它给的 revision。副作用：无（只采样，不写）。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "description": "永久地图 ID（20 位小写十六进制）或本地工程目录名",
+            "minLength": 1,
+            "maxLength": 63
+          }
+        },
+        "required": [
+          "mapId"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "地形尺寸与 revision",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "loopback internal（无 creator/v1 scope）",
+        "box3-map-mcp/engine-tool": "terrainInfo"
+      }
+    },
+    {
+      "name": "terrain_read",
+      "description": "读一块 region 的体素（返回每格打包后的 uint16：低 14 位类型 id，高 2 位旋转）+ 当前 revision。写之前用它看现状、写之后用它验证。返回 revision 同样可以直接当 terrain_apply 的 expectedRevision。副作用：无。返回上限：引擎侧默认 20000 格、最大 200000 格，超出会标 truncated。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63
+          },
+          "region": {
+            "type": "object",
+            "description": "轴对齐体素区域，min/max 都是 [x,y,z] 整数三元组，两端都包含（闭区间）。越界不会报错而是被裁剪到 shape 内，裁剪后为空则报 TERRAIN_REGION_EMPTY —— 先用 terrain_info 拿 shape。",
+            "properties": {
+              "min": {
+                "type": "array",
+                "description": "下界 [x,y,z]，含端点，0 <= v < shape"
+              },
+              "max": {
+                "type": "array",
+                "description": "上界 [x,y,z]，含端点，必须 >= 对应 min"
+              }
+            },
+            "required": [
+              "min",
+              "max"
+            ],
+            "additionalProperties": false
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200000,
+            "description": "最多返回多少格，默认 20000"
+          }
+        },
+        "required": [
+          "mapId",
+          "region"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "读体素区域",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "loopback internal（无 creator/v1 scope）",
+        "box3-map-mcp/engine-tool": "terrainRead"
+      }
+    },
+    {
+      "name": "terrain_apply",
+      "description": "地形写：把一个 region 全部刷成同一个 block（可选 rotation）。引擎逐格 setVoxel 并返回 undoToken（回滚用）。硬护栏：① 必须带 expectedRevision（terrain_info/terrain_read 的 revision），不一致就 REVISION_CONFLICT 拒绝，绝不覆盖；② 本层单次上限 100000 格（按裁剪进 shape 后的实际格数算），引擎自身上限 500000；③ 预览在跑时默认拒绝（PREVIEW_RUNNING，依据 replica-server.ts:1602：运行时不记录 voxel chunk hash），除非显式 allowWhileRunning:true 只改内存；④ dryRun:true 只算改动集不写。写完必须 map_save 才落盘。副作用：改内存里的权威体素树。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63
+          },
+          "region": {
+            "type": "object",
+            "description": "轴对齐体素区域，min/max 都是 [x,y,z] 整数三元组，两端都包含（闭区间）。越界不会报错而是被裁剪到 shape 内，裁剪后为空则报 TERRAIN_REGION_EMPTY —— 先用 terrain_info 拿 shape。",
+            "properties": {
+              "min": {
+                "type": "array",
+                "description": "下界 [x,y,z]，含端点，0 <= v < shape"
+              },
+              "max": {
+                "type": "array",
+                "description": "上界 [x,y,z]，含端点，必须 >= 对应 min"
+              }
+            },
+            "required": [
+              "min",
+              "max"
+            ],
+            "additionalProperties": false
+          },
+          "block": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 65535,
+            "description": "要写入的体素类型 id（低 14 位）。传打包 uint16 也接受，但不给 rotation 时高 2 位会被清掉。"
+          },
+          "rotation": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3,
+            "description": "可选 2 位旋转"
+          },
+          "expectedRevision": {
+            "type": "string",
+            "description": "乐观锁令牌：terrain_info 或 terrain_read 返回的 revision；不一致直接拒绝"
+          },
+          "allowWhileRunning": {
+            "type": "boolean",
+            "description": "预览运行中仍要改内存态时才传 true；落盘仍然要先停预览再 map_save"
+          },
+          "dryRun": {
+            "type": "boolean",
+            "description": "true 只计算改动集与体积，不写任何东西"
+          }
+        },
+        "required": [
+          "mapId",
+          "region",
+          "block",
+          "expectedRevision"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "刷体素区域（带乐观锁与体积预算）",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "loopback internal（写内存 replica，map_save 才落盘）",
+        "box3-map-mcp/engine-tool": "terrainApply"
+      }
+    },
+    {
+      "name": "terrain_revert",
+      "description": "用 terrain_apply 返回的 undoToken 逐格回放旧值，把地形滚回去。写坏了先滚再说，不要拿新 apply 盖。undoToken 可达数 MB，本层给它 120 s 的上游预算。滚完同样要 map_save 才落盘。副作用：改内存体素树（把值改回改动前）。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63
+          },
+          "undoToken": {
+            "type": "string",
+            "description": "terrain_apply 原样返回的 undoToken（JSON 数组 [{x,y,z,prev}]）",
+            "minLength": 2
+          }
+        },
+        "required": [
+          "mapId",
+          "undoToken"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "回放 undoToken 回滚地形",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "loopback internal（写内存 replica，map_save 才落盘）",
+        "box3-map-mcp/engine-tool": "terrainRevert"
+      }
+    },
+    {
+      "name": "entity_list",
+      "description": "列出图里的实体（id / name / parentId / position / mesh）并给出本层算出的 revision。所有 entity_* 写操作的 expectedRevision 都取自这里。已知上限：引擎只回显前 50 行（entity-tools.ts:461），超过时 snapshotIncomplete=true，说明这把锁只覆盖前 50 行 + 总数，别把它当全图 CAS。副作用：无。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63,
+            "description": "永久地图 ID（20 位小写十六进制）或本地工程目录名"
+          }
+        },
+        "required": [
+          "mapId"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "实体清单与 revision",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "loopback internal（无 creator/v1 scope）",
+        "box3-map-mcp/engine-tool": "listEntities"
+      }
+    },
+    {
+      "name": "entity_create",
+      "description": "放实体。entities 数组一次最多 200 个，每项二选一：A) {name, parentId?, position?, mesh?, tags?} 走引擎 createEntity（裸节点）；B) {modelId, name?, parentId?, position?} 走引擎 createEntityFromModel（带 meshId/bounds/scale 的完整模型实例，modelId 取自 model_list；模型元数据取不到会报 Failed to retrieve model metadata）。必须先 entity_list 拿 expectedRevision。任一项失败就把本次已建的实体删掉并回报 rolledBack。副作用：写内存实体树，要 map_save 才落盘。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63,
+            "description": "永久地图 ID（20 位小写十六进制）或本地工程目录名"
+          },
+          "entities": {
+            "type": "array",
+            "description": "要放的实体数组，1-200 项",
+            "minItems": 1,
+            "maxItems": 200
+          },
+          "expectedRevision": {
+            "type": "string",
+            "description": "乐观锁令牌：entity_list 返回的 revision。引擎这类工具本身没有 CAS，锁由本层在调用前校验；不匹配就 REVISION_CONFLICT 拒绝，绝不覆盖。确认不需要锁才传 allowUnhedged:true。"
+          },
+          "allowUnhedged": {
+            "type": "boolean",
+            "description": "明知没有乐观锁也要写（默认禁止）"
+          }
+        },
+        "required": [
+          "mapId",
+          "entities",
+          "expectedRevision"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "放置实体（批量 + 回滚）",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "loopback internal（写内存实体树，map_save 才落盘）",
+        "box3-map-mcp/engine-tool": [
+          "createEntity",
+          "createEntityFromModel"
+        ]
+      }
+    },
+    {
+      "name": "entity_update",
+      "description": "改一个实体的属性（position / rotation / scale / tint / mesh / bounds 等，键名按 EntitySeedRDA 的字段）。引擎按 RDA schema 递归派发（entity-tools.ts:346-444），路径不存在的键只会 console.warn，所以写完必须 entity_list 读回确认。改前必须 entity_list 拿 expectedRevision（写单实体也校验整棵树的快照）。副作用：写内存实体树，要 map_save 才落盘。一次只改一个实体。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63,
+            "description": "永久地图 ID（20 位小写十六进制）或本地工程目录名"
+          },
+          "entityId": {
+            "type": "string",
+            "description": "实体 id（entity_list 返回的数字串，不是 name）",
+            "minLength": 1
+          },
+          "properties": {
+            "type": "object",
+            "description": "要更新的字段集合，例如 {position:[0,10,0], scale:[1,1,1]}"
+          },
+          "expectedRevision": {
+            "type": "string",
+            "description": "乐观锁令牌：entity_list 返回的 revision。引擎这类工具本身没有 CAS，锁由本层在调用前校验；不匹配就 REVISION_CONFLICT 拒绝，绝不覆盖。确认不需要锁才传 allowUnhedged:true。"
+          },
+          "allowUnhedged": {
+            "type": "boolean",
+            "description": "明知没有乐观锁也要写（默认禁止）"
+          }
+        },
+        "required": [
+          "mapId",
+          "entityId",
+          "properties",
+          "expectedRevision"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "改实体属性",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "loopback internal（写内存实体树，map_save 才落盘）",
+        "box3-map-mcp/engine-tool": "updateEntity"
+      }
+    },
+    {
+      "name": "entity_move",
+      "description": "把实体搬到新的 [x,y,z]（entity_update 的窄口径版本，只动 position，参数更少更不容易写错）。需要 entity_list 的 expectedRevision。副作用：写内存实体树，map_save 才落盘。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63,
+            "description": "永久地图 ID（20 位小写十六进制）或本地工程目录名"
+          },
+          "entityId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "position": {
+            "type": "array",
+            "description": "世界坐标 [x,y,z]（实体中心）；三个数字，不是对象",
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "expectedRevision": {
+            "type": "string",
+            "description": "乐观锁令牌：entity_list 返回的 revision。引擎这类工具本身没有 CAS，锁由本层在调用前校验；不匹配就 REVISION_CONFLICT 拒绝，绝不覆盖。确认不需要锁才传 allowUnhedged:true。"
+          },
+          "allowUnhedged": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "mapId",
+          "entityId",
+          "position",
+          "expectedRevision"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "搬动实体",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "loopback internal（写内存实体树，map_save 才落盘）",
+        "box3-map-mcp/engine-tool": "moveEntity"
+      }
+    },
+    {
+      "name": "entity_delete",
+      "description": "删实体（一次最多 200 个 id）。破坏性：默认 confirm:false 只返回将要删的清单（plan），confirm:true 才真删；同时必须带 entity_list 的 expectedRevision，防止删掉别人刚放的东西。注意引擎按 id 删除，父节点删掉后子节点的 parentId 不会自动重挂——要连子树一起删就把子孙 id 都列进来。副作用：改内存实体树，map_save 才落盘；删掉的实体没有 undoToken，只能靠 map_save 之前的版本控制回退。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63,
+            "description": "永久地图 ID（20 位小写十六进制）或本地工程目录名"
+          },
+          "entityIds": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 200,
+            "description": "要删除的实体 id 数组"
+          },
+          "expectedRevision": {
+            "type": "string",
+            "description": "乐观锁令牌：entity_list 返回的 revision。引擎这类工具本身没有 CAS，锁由本层在调用前校验；不匹配就 REVISION_CONFLICT 拒绝，绝不覆盖。确认不需要锁才传 allowUnhedged:true。"
+          },
+          "confirm": {
+            "type": "boolean",
+            "description": "false=dry-run 只出计划；true 才真删（默认 false）"
+          },
+          "allowUnhedged": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "mapId",
+          "entityIds",
+          "expectedRevision"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "删除实体（需 confirm）",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "loopback internal（破坏性写，map_save 才落盘）",
+        "box3-map-mcp/engine-tool": "deleteEntity"
+      }
+    },
+    {
+      "name": "entity_copy",
+      "description": "原地复制实体（含整棵子树，entity-tools.ts:528-573）。一次最多 200 个源 id，返回 newEntityIds（新 id 是引擎随机数，别自己猜）。复制不会自动偏移位置，复制完通常要 entity_move。需要 entity_list 的 expectedRevision。副作用：写内存实体树，map_save 才落盘。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63,
+            "description": "永久地图 ID（20 位小写十六进制）或本地工程目录名"
+          },
+          "entityIds": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 200
+          },
+          "expectedRevision": {
+            "type": "string",
+            "description": "乐观锁令牌：entity_list 返回的 revision。引擎这类工具本身没有 CAS，锁由本层在调用前校验；不匹配就 REVISION_CONFLICT 拒绝，绝不覆盖。确认不需要锁才传 allowUnhedged:true。"
+          },
+          "allowUnhedged": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "mapId",
+          "entityIds",
+          "expectedRevision"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "复制实体（含子树）",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "loopback internal（写内存实体树，map_save 才落盘）",
+        "box3-map-mcp/engine-tool": "copyEntities"
+      }
+    },
+    {
+      "name": "model_list",
+      "description": "列工程里已有的模型资产（{id, name}，name 已剥掉 mesh/ 前缀和 .vb 后缀）。entity_create 用 {modelId} 放实体、terrain/entity 的 mesh 字段用这个名字。数据源是运行时副本的 extraProjectInfo.meshAssets（entity-tools.ts:625），所以只有\"这张图已经带进来的资产\"，不含公共资源库（本地引擎的公共检索是空壳，见 model_search_public）。副作用：无。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 500,
+            "description": "默认 20"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "分页偏移，默认 0"
+          },
+          "modelName": {
+            "type": "string",
+            "maxLength": 120,
+            "description": "按名字子串过滤（不区分大小写）"
+          }
+        },
+        "required": [
+          "mapId"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "工程模型资产清单",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "loopback internal（无 creator/v1 scope）",
+        "box3-map-mcp/engine-tool": "getProjectModels"
+      }
+    },
+    {
+      "name": "model_search_public",
+      "description": "搜公共模型库。**当前本地引擎里它是空实现**：引擎固定返回 models:[] 和 \"Public model search is unavailable in the local engine.\"（entity-tools.ts:655-674）。本工具照实透传并标 unavailable:true，避免让上层以为\"库里没货\"。真要接公共库得等泳道 B/C 补引擎侧实现。副作用：无。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63
+          },
+          "query": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "搜索词"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "mapId",
+          "query"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "公共模型检索（引擎为空壳）",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "loopback internal（无 creator/v1 scope）",
+        "box3-map-mcp/engine-tool": "searchPublicModels"
+      }
+    },
+    {
+      "name": "model_add_to_project",
+      "description": "把公共模型加进工程资产。一次最多 200 个 modelId（数字 id 数组）。**引擎侧这是个空壳**：只有 inputSchema、没有 execute（entity-tools.ts:676-683），内部路由会回 501 TOOL_NOT_EXECUTABLE，本层把它翻译为 ENGINE_TOOL_NOT_IMPLEMENTED。现在能用的是：model_list 已有资产 + entity_create 放实体。副作用：调用即失败，不写任何东西。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63
+          },
+          "modelIds": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 200,
+            "description": "公共模型 id（数字）"
+          },
+          "confirm": {
+            "type": "boolean",
+            "description": "false=dry-run 只回报这次要加的 id 与可用性判断"
+          }
+        },
+        "required": [
+          "mapId",
+          "modelIds"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "导入公共模型（引擎未实现）",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "loopback internal（引擎无 execute）",
+        "box3-map-mcp/engine-tool": "addModelToProject"
+      }
+    },
+    {
+      "name": "ui_tree_read",
+      "description": "读整棵 UI 树（每个节点 id/name/parentId/type/childrenIds/value）+ 引擎算出的 revision。ui_node_add 的 expectedRevision 取这里（引擎自己校验），ui_node_remove 也用同一个令牌（本层校验）。节点数量大时本工具会把树原文返回，注意 context 占用：先用它定位要改的子树，再只写那块。副作用：无。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63
+          },
+          "nameFilter": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "只保留 name 含该子串的节点（本地过滤，不省流量但省阅读）"
+          }
+        },
+        "required": [
+          "mapId"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "UI 树与 revision",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "loopback internal（无 creator/v1 scope）",
+        "box3-map-mcp/engine-tool": "uiTreeRead"
+      }
+    },
+    {
+      "name": "ui_node_add",
+      "description": "往 UI 树加节点，一次最多 100 个。每项 {parentId?, name, nodeType:\"screen\"|\"element\", data}。parentId 省略时引擎挂到默认屏（DEFAULT_SCREEN_ID）。element 的 data 必须含 box/image/text/scrollBox/input 之一，否则本层直接拒绝（引擎会照收并给你一个渲染不出来的空节点）。必须带 ui_tree_read 的 expectedRevision；批量时逐个用上一次返回的 newRevision 继续（引擎会改树，令牌必变）。中途失败就用 uiNodeRemove 把本次已建节点删掉并回报 rolledBack。screen 的 layout 形态只做建议（advisory），不硬拦，因为引擎侧 schema 未在本地验证过。副作用：写内存 UI 树（每个节点一次 projectTransaction），map_save 才落盘。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63
+          },
+          "nodes": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "description": "要加的节点数组，顺序即创建顺序"
+          },
+          "expectedRevision": {
+            "type": "string",
+            "description": "乐观锁令牌：ui_tree_read 的 revision（引擎 uiNodeAdd 原生校验这个值，权威）。批量时第 2 个起由本层自动改用上一次返回的 newRevision。"
+          }
+        },
+        "required": [
+          "mapId",
+          "nodes",
+          "expectedRevision"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "加 UI 节点（批量 + 链式 revision + 回滚）",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "loopback internal（写内存 UI 树，map_save 才落盘）",
+        "box3-map-mcp/engine-tool": "uiNodeAdd"
+      }
+    },
+    {
+      "name": "ui_node_remove",
+      "description": "按 id 删 UI 节点，一次最多 100 个。破坏性：默认 confirm:false 只出计划（会列出将被删节点的 name/type 和父节点），confirm:true 才真删。引擎 delete 侧没有 CAS，所以 expectedRevision（ui_tree_read 的 revision）由本层校验。引擎按 id 数组删除且不会重挂子节点：删父节点要把它子孙的 id 一起传进来。没有 undoToken，删除不可在本层回滚——先 ui_tree_read 留一份原文再删。副作用：改内存 UI 树，map_save 才落盘。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63
+          },
+          "nodeIds": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100
+          },
+          "expectedRevision": {
+            "type": "string",
+            "description": "ui_tree_read 的 revision；本层校验（引擎 uiNodeRemove 不校验）"
+          },
+          "confirm": {
+            "type": "boolean",
+            "description": "false=dry-run 只出计划；true 才真删（默认 false）"
+          },
+          "allowUnhedged": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "mapId",
+          "nodeIds",
+          "expectedRevision"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "删除 UI 节点（需 confirm）",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "loopback internal（破坏性写，map_save 才落盘）",
+        "box3-map-mcp/engine-tool": "uiNodeRemove"
+      }
+    },
+    {
+      "name": "script_list_runtime",
+      "description": "列**编辑器内存里**的脚本文件（fileId / name / isClient / order），区别于 script_list 的共享脚本 HTTP 表：这里能看到还没保存的新建/改名文件。写运行时脚本前用它取 fileId 和 revision。当前状态：引擎 headless 路由当前没挂 createScriptTools（ai-tool-route.ts:78-91），这一族会回 ENGINE_TOOL_NOT_MOUNTED；正文写入请走 script_write（HTTP scripts.update，有 CAS + 类型门 + 读回）。 副作用：无。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63
+          }
+        },
+        "required": [
+          "mapId"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "运行时脚本清单",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "loopback internal（需活动编辑运行时）",
+        "box3-map-mcp/engine-tool": "listScripts"
+      }
+    },
+    {
+      "name": "script_read_runtime",
+      "description": "读编辑器内存里某个 fileId 的脚本正文（未保存态）。script_patch 之前必须先用它读原文并记下 contentHash，因为 patch 是字符下标级 insert/remove，下标只有对当前正文才有意义。当前状态：引擎 headless 路由当前没挂 createScriptTools（ai-tool-route.ts:78-91），这一族会回 ENGINE_TOOL_NOT_MOUNTED；正文写入请走 script_write（HTTP scripts.update，有 CAS + 类型门 + 读回）。 副作用：无。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63
+          },
+          "fileId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "script_list_runtime 给的 id"
+          }
+        },
+        "required": [
+          "mapId",
+          "fileId"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "运行时脚本正文",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "loopback internal（需活动编辑运行时）",
+        "box3-map-mcp/engine-tool": "readScript"
+      }
+    },
+    {
+      "name": "script_create",
+      "description": "在编辑器里新建一份脚本文件（name / content / isClient）。本地门：正文先过 typegate（语法 + 契约 + 敏感信息），再过危险面扫描（eval / Function / 动态 import / __proto__ / node 内置模块）；index.js 与 clientIndex.js 是引擎保留入口，引擎自己会拒。必须带 script_list_runtime 的 revision。当前状态：引擎 headless 路由当前没挂 createScriptTools（ai-tool-route.ts:78-91），这一族会回 ENGINE_TOOL_NOT_MOUNTED；正文写入请走 script_write（HTTP scripts.update，有 CAS + 类型门 + 读回）。 副作用：写内存 fileDict，要 map_save 才进盘。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63
+          },
+          "name": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._-]{1,160}$",
+            "description": "文件名，例如 quest.js；不能是 index.js / clientIndex.js"
+          },
+          "content": {
+            "type": "string",
+            "description": "初始正文（可空串）"
+          },
+          "isClient": {
+            "type": "boolean",
+            "description": "true=客户端脚本（ESM 沙箱），false=服务端（CJS 沙箱）"
+          },
+          "expectedRevision": {
+            "type": "string",
+            "description": "script_list_runtime 的 revision"
+          },
+          "dialect": {
+            "type": "string",
+            "enum": [
+              "cjs",
+              "esm"
+            ],
+            "description": "不传按 side 默认：server=cjs、client=esm"
+          },
+          "typeGateMode": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "language-service",
+              "syntax",
+              "off"
+            ]
+          },
+          "allowUnhedged": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "mapId",
+          "name",
+          "content",
+          "expectedRevision"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "新建运行时脚本文件",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "loopback internal（写内存 fileDict，map_save 才落盘）",
+        "box3-map-mcp/engine-tool": "createScript"
+      }
+    },
+    {
+      "name": "script_patch",
+      "description": "按字符下标补丁式改运行时脚本（operations: [{type:\"insert\",index,text} | {type:\"remove\",index,count}]）。所有下标都以\"本次调用前的正文\"为基准，所以必须同时带 expectedRevision（文件表快照）和 expectedContentHash（script_read_runtime 返回的 contentHash）——本层会先重读正文比对，不一致就拒，避免把下标打在已经变过的文件上。一次最多 200 个 operation；正文还要过类型门（按打完补丁后的预期长度做旁路提示）。当前状态：引擎 headless 路由当前没挂 createScriptTools（ai-tool-route.ts:78-91），这一族会回 ENGINE_TOOL_NOT_MOUNTED；正文写入请走 script_write（HTTP scripts.update，有 CAS + 类型门 + 读回）。 副作用：写内存 fileDict，要 map_save 才进盘。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63
+          },
+          "fileId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "operations": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 200,
+            "description": "按顺序应用的 insert/remove 操作；index 以初始正文为基准"
+          },
+          "expectedRevision": {
+            "type": "string",
+            "description": "script_list_runtime 的 revision"
+          },
+          "expectedContentHash": {
+            "type": "string",
+            "description": "script_read_runtime 的 contentHash（正文级 CAS）"
+          },
+          "typeGateMode": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "language-service",
+              "syntax",
+              "off"
+            ]
+          },
+          "allowUnhedged": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "mapId",
+          "fileId",
+          "operations",
+          "expectedRevision",
+          "expectedContentHash"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "补丁式修改运行时脚本",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "loopback internal（写内存 fileDict，map_save 才落盘）",
+        "box3-map-mcp/engine-tool": "updateScript"
+      }
+    },
+    {
+      "name": "script_delete",
+      "description": "删一个运行时脚本文件（按 fileId）。破坏性：默认 confirm:false 只回报将要删的文件名，confirm:true 才真删；必须带 script_list_runtime 的 revision。index.js / clientIndex.js 由引擎自己拦（保留入口）。当前状态：引擎 headless 路由当前没挂 createScriptTools（ai-tool-route.ts:78-91），这一族会回 ENGINE_TOOL_NOT_MOUNTED；正文写入请走 script_write（HTTP scripts.update，有 CAS + 类型门 + 读回）。 副作用：改内存 fileDict，map_save 才落盘；本层没有 undoToken 可回滚。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63
+          },
+          "fileId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "expectedRevision": {
+            "type": "string"
+          },
+          "confirm": {
+            "type": "boolean"
+          },
+          "allowUnhedged": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "mapId",
+          "fileId",
+          "expectedRevision"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "删除运行时脚本（需 confirm）",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "loopback internal（破坏性写，map_save 才落盘）",
+        "box3-map-mcp/engine-tool": "deleteScript"
+      }
+    },
+    {
+      "name": "map_status",
+      "description": "这张图现在能不能被 headless 写：编辑运行时是否活着（runtimeActive）、预览是否在跑（preview.running / phase）、以及 Next 侧自报的 headlessWriteRoute 状态。写之前先跑它：runtimeActive=false 时任何写都会 409 RUNTIME_NOT_ACTIVE，得先在 Creator 里打开这张图的编辑器。副作用：无。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63
+          }
+        },
+        "required": [
+          "mapId"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "编辑运行时与写面状态",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "loopback internal（无 creator/v1 scope）"
+      }
+    },
+    {
+      "name": "map_tool_catalog",
+      "description": "问引擎本身：\"这张图的运行时现在挂了哪些 AI 工具\"，并自动和本 MCP 依赖的工具名单对比，回报 missing（引擎没挂 → 对应 MCP 写工具会报 ENGINE_TOOL_NOT_MOUNTED）与 extra。判断\"这个能力现在到底能不能用\"就靠它，不用猜。副作用：无。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63
+          }
+        },
+        "required": [
+          "mapId"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "引擎工具目录与覆盖差集",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "loopback internal（无 creator/v1 scope）"
+      }
+    },
+    {
+      "name": "map_preview",
+      "description": "开/停这张图的实时预览（转发运行时的 /internal/creator-preview-runtime）。地形写的硬顺序要求先停预览再保存；验收（runtime_events_tail）反过来要求预览在跑。所以典型闭环是：map_preview stop → 写 → map_save → map_preview start → runtime_events_tail 看有没有 exception。副作用：真启停运行时进程里的预览会话（会断开当前编辑器预览连接）。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "start",
+              "stop"
+            ],
+            "description": "start=开预览，stop=停预览"
+          }
+        },
+        "required": [
+          "mapId",
+          "action"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "启停实时预览",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "loopback internal（控制运行时预览会话）"
+      }
+    },
+    {
+      "name": "map_save",
+      "description": "把当前内存里的编辑结果落盘（转发 /internal/save-local-project，返回 permissionHash）。这是整条链的收口：terrain_* / entity_* / ui_* 只改运行时副本，不 map_save 就什么都不留。预览在跑时上游会 409 PREVIEW_RUNNING 拒绝（replica-server.ts:1602：运行时不记录 voxel chunk，存了就是丢地形）；确实只要存非体素改动才传 force:true。写完 map_save 之后用 map_revision 复核 headHash 是否推进。副作用：写工程目录的 blob 与版本链（只增不改）。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63
+          },
+          "force": {
+            "type": "boolean",
+            "description": "预览仍在跑时也要保存（会丢体素 chunk 记录，默认 false）"
+          }
+        },
+        "required": [
+          "mapId"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "保存地图到盘（版本链只增）",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "box3-map-mcp/scope": "loopback internal（写工程目录 / 版本链）"
       }
     }
   ]

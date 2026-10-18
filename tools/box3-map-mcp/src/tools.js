@@ -1,15 +1,26 @@
 /**
- * Tool registry. Eleven read tools + one write tool. Eight of the readers map
- * onto an existing, already-scoped `creator/v1` route; the other three
- * (`script_typecheck`, `contract_describe`, `map_revision`) are purely local
- * and open no socket (plan/N2 6 切片 A). The scope column matters: nothing here
- * asks for a capability outside the factory nine in
- * `apps/game/shared/creator-cli-policy.ts:5-15`.
+ * Tool registry. Two layers, merged into ONE advertised face:
+ *
+ *   1. the slice-A base face (`buildBaseTools` below): 11 readers mapped onto an
+ *      existing, already-scoped `creator/v1` route or computed purely locally,
+ *      plus the single disk writer `script_write`. The scope column matters:
+ *      nothing here asks for a capability outside the factory nine in
+ *      `apps/game/shared/creator-cli-policy.ts:5-15`.
+ *   2. the write domains (`./tools/index.js`): terrain / entity / model / ui /
+ *      script-runtime / map-ops, driven over the loopback
+ *      `/api/internal/map-authoring/<id>/{tool,status,preview,save}` surface
+ *      with no creator/v1 scope (that boundary is the loopback socket check).
+ *
+ * `buildTools()` is what `server.js` and `index.js` consume; it is the merged,
+ * duplicate-checked, profile-filtered face. Before P0-A the domains existed but
+ * nothing imported them, so `tools/list` advertised layer 1 only and every
+ * `terrain_* / entity_* / model_* / ui_* / script_* / map_*` name was dead code.
  */
 import { checkScript, describeContract } from './typegate.js'
 import { writeScript } from './script-write.js'
 import { judgeEvents } from './acceptance.js'
 import { verifyBlobName } from './cid.js'
+import { buildDomainTools, mergeToolSets, isWriteTool } from './tools/index.js'
 
 const mapIdSchema = {
   type: 'string',
@@ -46,7 +57,7 @@ const dialectSchema = {
     'require/module.exports 在那个沙箱里不存在）。显式传值会覆盖默认，并在返回的 dialect/dialectSource 里如实标注。',
 }
 
-export function buildTools(ctx) {
+export function buildBaseTools(ctx) {
   const readOnly = (title) => ({
     title,
     readOnlyHint: true,
@@ -378,7 +389,8 @@ export function buildTools(ctx) {
     {
       name: 'script_write',
       description:
-        '唯一的写工具：走 scripts.update 写一份作者脚本（PUT .../scripts/{side}/{entry}）。' +
+        '落盘写作者脚本的正路：走 scripts.update 写一份脚本（PUT .../scripts/{side}/{entry}），' +
+        '不依赖编辑运行时，引擎离线也能写。terrain_*/entity_*/ui_* 的 script_create/script_patch 只改编辑器内存态且当前不可达，别拿它们当落盘通道。' +
         '默认 confirm:false = dry-run，只返回计划（当前 revision、预测 CIDv0、类型门结论），不写任何东西。' +
         '真写必须带 expectedRevision，与引擎当前 revision 不一致就 REVISION_CONFLICT 拒绝；' +
         '落盘前必过类型门；写后逐字节读回校验，失败自动把原内容写回。副作用：产生新 blob 并推进版本链（引擎侧只增不改）。',
@@ -422,8 +434,19 @@ export function buildTools(ctx) {
     },
   ]
 
-  if (ctx.config.profile === 'readonly' || !ctx.config.allowWrite) {
-    return tools.filter((tool) => tool.name !== 'script_write')
-  }
   return tools
+}
+
+/**
+ * THE MERGED FACE (`tools/list` and `tools/call` both come from here).
+ *
+ * Duplicate names throw at build time: `server.js` indexes by name with a Map,
+ * so a collision would otherwise shadow a tool silently and an agent would call
+ * the wrong implementation. Read-only profiles drop every writer — the slice-A
+ * one plus the 15 domain writers named in `WRITE_TOOL_NAMES`.
+ */
+export function buildTools(ctx) {
+  const all = mergeToolSets([buildBaseTools(ctx), buildDomainTools(ctx)])
+  const readOnlyProfile = ctx.config.profile === 'readonly' || ctx.config.allowWrite === false
+  return readOnlyProfile ? all.filter((tool) => !isWriteTool(tool.name)) : all
 }

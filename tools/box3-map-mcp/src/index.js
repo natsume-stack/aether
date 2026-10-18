@@ -14,7 +14,8 @@ import { requestJson, tailEvents } from './engine-client.js'
 import { LocalMapStore } from './local-store.js'
 import { GuardError } from './script-write.js'
 import { buildTools } from './tools.js'
-import { startStdioServer } from './server.js'
+import { publicTool, startStdioServer } from './server.js'
+import { ENGINE_AI_TOOLS } from './tools/_shared.js'
 
 export function buildContext(env = process.env) {
   const config = loadConfig(env)
@@ -34,14 +35,30 @@ const invokedDirectly =
 export function main(env = process.env, argv = process.argv.slice(2)) {
   const context = buildContext(env)
   if (argv.includes('--tools-json')) {
-    const tools = buildTools(context).map((tool) => ({
-      name: tool.name,
-      description: tool.description,
-      inputSchema: tool.inputSchema,
-      annotations: tool.annotations,
-      _meta: { 'box3-map-mcp/scope': tool.scope },
-    }))
+    // Same projection as `tools/list`, so the snapshot and the protocol can
+    // never drift apart.
+    const tools = buildTools(context).map(publicTool)
     process.stdout.write(`${JSON.stringify({ tools }, null, 2)}\n`)
+    return undefined
+  }
+  if (argv.includes('--coverage-json')) {
+    const tools = buildTools(context)
+    const names = tools.map((tool) => tool.name)
+    process.stdout.write(
+      `${JSON.stringify(
+        {
+          advertised: names.length,
+          names,
+          engineAiTools: ENGINE_AI_TOOLS.length,
+          engineToolCoverage: ENGINE_AI_TOOLS.map((row) => ({
+            ...row,
+            advertised: names.includes(row.mcpTool),
+          })),
+        },
+        null,
+        2,
+      )}\n`,
+    )
     return undefined
   }
   if (argv.includes('--config-json')) {

@@ -69,13 +69,26 @@ test('unknown protocol version falls back to a supported one', async (t) => {
   assert.equal(response.result.protocolVersion, '2025-06-18')
 })
 
-test('tools/list advertises the eight read tools plus the single writer', async (t) => {
+test('tools/list advertises the eight read tools plus the merged write face', async (t) => {
   const { handle } = await harness(t)
   const response = await handle({ jsonrpc: '2.0', id: 3, method: 'tools/list' })
   const names = response.result.tools.map((tool) => tool.name)
   for (const name of requiredReadTools) assert.ok(names.includes(name), `缺少只读工具 ${name}`)
   assert.ok(names.includes('script_write'))
-  assert.equal(names.filter((name) => !name.endsWith('_read') && name !== 'script_write' && !['engine_health', 'map_list', 'map_resources', 'script_list', 'runtime_status', 'runtime_events_tail', 'map_revision', 'script_typecheck', 'contract_describe'].includes(name)).length, 0)
+  // CLOSED SET, now over the merged face (P0-A): the slice-A base face plus the
+  // six write domains. Nothing may show up that is not declared here — this is
+  // the assertion that used to encode "the single writer is script_write".
+  const declared = [
+    ...requiredReadTools,
+    'script_write', 'script_typecheck', 'contract_describe', 'map_revision',
+    'terrain_info', 'terrain_read', 'terrain_apply', 'terrain_revert',
+    'entity_list', 'entity_create', 'entity_update', 'entity_move', 'entity_delete', 'entity_copy',
+    'model_list', 'model_search_public', 'model_add_to_project',
+    'ui_tree_read', 'ui_node_add', 'ui_node_remove',
+    'script_list_runtime', 'script_read_runtime', 'script_create', 'script_patch', 'script_delete',
+    'map_status', 'map_tool_catalog', 'map_preview', 'map_save',
+  ]
+  assert.deepEqual([...new Set(names)].sort(), [...declared].sort())
   for (const tool of response.result.tools) {
     assert.equal(tool.inputSchema.type, 'object', `${tool.name} 的 inputSchema 必须是 object`)
     assert.ok(tool.description.length > 20)
