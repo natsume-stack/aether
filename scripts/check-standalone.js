@@ -21,6 +21,14 @@ function readRequired(file, label = file) {
     return fs.readFileSync(filePath, 'utf8');
 }
 
+// This repository is checked out with CRLF endings on Windows and LF endings on
+// Linux, so a line-based assertion must ignore the carriage return and reach the
+// same verdict under both. Regex-based assertions already tolerate CRLF because
+// JS `$` matches before `\r`; only explicit line splitting needs this helper.
+function splitLines(text) {
+    return text.split(/\r?\n/);
+}
+
 function requirePattern(source, file, label, pattern) {
     if (source && !pattern.test(source)) {
         fail(`${file}: missing ${label}`);
@@ -767,7 +775,7 @@ const composeFile = 'docker-compose.yml';
 const composeSource = readRequired(composeFile);
 const composeServiceNames = [];
 let inServices = false;
-for (const line of composeSource.split('\n')) {
+for (const line of splitLines(composeSource)) {
     if (line === 'services:') {
         inServices = true;
         continue;
@@ -1499,11 +1507,16 @@ requirePattern(
 
 const projectRuntimeApiFile = 'apps/game/pages/api/local-projects/[id]/runtime.ts';
 readRequired(projectRuntimeApiFile);
+// The per-project Creator runtime no longer re-spawns the launcher with
+// `--runtime-only --runtime-mode <mode>`; it boots the game server in-process.
+// The invariant is unchanged: production artifacts may only be chosen by the
+// single `production` gate, and the project runtime must reach the game server
+// through that gate with its own `mode` still carried into the environment.
 requirePattern(
     launcherSource,
     'apps/local-engine/src/launcher.js',
     'development project runtime avoids production artifacts',
-    /startProjectRuntime[\s\S]*?\.\.\.\(production \? \['--production'\] : \[\]\)[\s\S]*?'--runtime-mode'[\s\S]*?mode/,
+    /const gameServerLaunchArgs = \(\) =>\s*production\s*\?\s*\[[^\]]*'--useProdBundle'[^\]]*\][\s\S]*?:\s*\[[^\]]*'src\/launch\.ts'[^\]]*\];[\s\S]*?const startProjectRuntime =[\s\S]*?spawnRuntime\(process\.execPath, gameServerLaunchArgs\(\)[\s\S]*?env: gameServerEnv\(runtime, mode, port/,
 );
 requirePattern(
     launcherSource,
@@ -1872,8 +1885,7 @@ checkPlayerServicePruning();
 const dockerIgnoreFile = '.dockerignore';
 const dockerIgnoreSource = readRequired(dockerIgnoreFile);
 const dockerIgnoreEntries = new Set(
-    dockerIgnoreSource
-        .split('\n')
+    splitLines(dockerIgnoreSource)
         .map((line) => line.trim())
         .filter((line) => line && !line.startsWith('#')),
 );
@@ -1942,7 +1954,7 @@ function checkEmptySecrets(value, prefix = '') {
 checkEmptySecrets(fullLocalConfig);
 
 const dockerEnvSource = readRequired('.env.docker.example');
-for (const line of dockerEnvSource.split('\n')) {
+for (const line of splitLines(dockerEnvSource)) {
     const match = line.match(/^([A-Z0-9_]+)=(.*)$/);
     if (
         match &&

@@ -248,6 +248,16 @@ export class MuServer {
                                 socket.close();
                             }
                         } else {
+                            // The handshake slot is per session, but every socket of the
+                            // session feeds it (1 reliable + N unreliable). The client only
+                            // sends its handshake JSON on the reliable socket, so an
+                            // unreliable/binary frame can land first through a proxy; it
+                            // must be dropped (unreliable data is lossy by contract) instead
+                            // of being JSON.parse'd and killing the whole session.
+                            if (unreliable || typeof data !== 'string') {
+                                console.warn(`mudb: dropped pre-handshake ${unreliable ? 'unreliable' : 'binary'} frame for ${socket.sessionId}`);
+                                return;
+                            }
                             checkProtocolConsistency(data);
                             validationPacket = false;
                         }

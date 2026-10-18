@@ -44,6 +44,7 @@
     { "packageName": "@box/vb-parser", "projectFolder": "packages/vb-parser" },
     { "packageName": "@box/voxa-project", "projectFolder": "packages/voxa-project" },
     { "packageName": "@box/game-server", "projectFolder": "services/game-server" },
-    { "packageName": "@box/repo-tooling", "projectFolder": "tools/repo-tooling" }
+    { "packageName": "@box/repo-tooling", "projectFolder": "tools/repo-tooling" },
+    { "packageName": "box3-map-mcp", "projectFolder": "tools/box3-map-mcp" }
   ]
 }

@@ -164,10 +164,15 @@ export const createMapAuthoringTools = (
     return cells;
   };
 
+  const voxelTuple = z.tuple([
+    z.number().int().min(0),
+    z.number().int().min(0),
+    z.number().int().min(0),
+  ]);
   const regionSchema = z
     .object({
-      min: z.array(z.number().int().min(0)).length(3).describe('Inclusive lower corner [x,y,z]'),
-      max: z.array(z.number().int().min(0)).length(3).describe('Inclusive upper corner [x,y,z]'),
+      min: voxelTuple.describe('Inclusive lower corner [x,y,z]'),
+      max: voxelTuple.describe('Inclusive upper corner [x,y,z]'),
     })
     .describe('Axis-aligned voxel region');
 

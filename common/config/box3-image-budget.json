@@ -35,11 +35,11 @@
       "server-manager": { "contentBytes": 196059058 }
     },
     "measuredRemovableBytes": {
-      "comment": "W2 在现役镜像内实测到的黑名单命中字节（见 box3-image-blacklist.json 的运行报告），用于说明 transition 档中有多少是可证明回收的。",
+      "comment": "W2 在现役镜像内实测到的黑名单命中字节（见 box3-image-blacklist.json 的运行报告），用于说明 transition 档中有多少是可证明回收的。E5 校准（2026-10-18）：player-service 原值 88,497,820 漏算了 monaco-vs 的 12,953,811 B，补上后 = 101,451,631，与黑名单各规则 measured 之和一致；play 的 Monaco 项实测为 0 B（v2026.1.4 的 play 镜像里根本没有 static/vs），play 该字段沿用 creator 值属历史遗留、本泳道未复核，标 UNVERIFIED。",
       "creator": 138393952,
       "voxa": 128358637,
       "play": 138393952,
-      "player-service": 88497820,
+      "player-service": 101451631,
       "player-auth-portal": 0,
       "server-manager": 0
     }

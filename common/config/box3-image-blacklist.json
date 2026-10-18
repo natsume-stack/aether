@@ -89,17 +89,18 @@
     {
       "id": "monaco-vs",
       "label": "Monaco 编辑器 static/vs 目录",
-      "owner": "W1",
+      "owner": "E5",
       "glob": "**/.next/static/vs",
       "find": { "type": "d", "name": "vs", "path": "*/.next/static/vs" },
       "maxEntries": null,
       "byService": {
         "play": { "maxEntries": 0 },
+        "player-service": { "maxEntries": 0 },
         "voxa": { "maxEntries": 0 },
         "player-auth-portal": { "maxEntries": 0 },
         "server-manager": { "maxEntries": 0 }
       },
-      "note": "实测：play 在 v2026.1.4 已经没有 static/vs，所以 play 可以立即上 0；creator 与 player-service 仍各有一份 12,953,811 B，是否清零取决于 W1 报告的 play-lite 结论，这里先只报告。",
+      "note": "E5 取证（2026-10-18，现役 v2026.1.4 镜像内 du -sb，非宿主拷贝口径）：play = 0 B（镜像 17e19af276fe 与现网/lite 两个 play 容器全树 find -type d -name vs 零命中，且 /_next/static/vs/loader.js 实测 404 而服务健康）；creator 与 player-service 各一份 12,953,811 B / 113 文件。player-service 判可清零的依据：该树 .next/server/app 不存在（app-path-routes-manifest 仍列 /e/[container]/page 但 page.js 未编译），唯一含 /_next/static/vs 字面量的 chunk 589.29c38bfd5c55357e.js 只被懒加载键 app/e/[container]/map-edit-page.client.tsx -> src/views/edit/index 引用，实测 ps 对 /e/* 返回 pages-router 404；删掉 vs 后 ps 照常启动（MODULE_NOT_FOUND=0），/ 200/559B、/404 404/4793B、chunk 589 200/2820994B 的 sha256 与出厂树逐项一致。creator 不得上 0：它编译了 server/app/e/[container]/page.js，真实引用点 apps/game/src/client/edit/code-editor/monaco.ts:25。play 的 0 B 是构建期决定的：apps/game/webpack/index.js:20 的 if (!isPlayBuild && !isServer) 使 play 构建不复制 monaco-editor/min/vs，该守卫由 scripts/check-standalone.js 的「Monaco excluded from player builds」断言锁死。执行入口：scripts/prune-standalone.mjs 的 STATIC_DIR_RULES / monaco-static-vs（必须 --service 显式声明 play|player-service，并二次校验 server/app/e 未编译）。",
       "measured": { "creator": 12953811, "play": 0, "player-service": 12953811 }
     }
   ]

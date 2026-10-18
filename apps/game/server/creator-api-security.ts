@@ -11,6 +11,16 @@ import {
 
 const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '::1']);
 
+/**
+ * Route family that is contracted to a CLI Bearer token. Every operation under
+ * it declares `creatorToken` bearer security in
+ * `internals/apis/openapi/openapi.json`; the Creator lifecycle routes
+ * (`/api/local-projects/**`, `/api/creator-models/**`, `/api/system/**`) declare
+ * no bearer scheme at all and authorise against the account's user-level
+ * `creatorPermissions`.
+ */
+export const CREATOR_CLI_API_PATH_PREFIX = '/api/creator/v1';
+
 function hostnameOf(value: string | undefined) {
   if (!value) return '';
   try {
@@ -81,6 +91,72 @@ export async function allowAuthenticatedCreatorApi(
 }
 
 /**
+ * Route path used only to classify a credential. Anything that cannot be
+ * classified with certainty returns `''`, which fails closed for a Bearer and
+ * never affects the cookie path.
+ */
+function creatorRequestPathname(req: Pick<NextApiRequest, 'url'>) {
+  const raw = String(req.url || '').trim();
+  if (!raw) return '';
+  let pathname = raw;
+  if (/^https?:\/\//i.test(raw)) {
+    try {
+      pathname = new URL(raw).pathname;
+    } catch {
+      return '';
+    }
+  }
+  for (const cut of [pathname.indexOf('?'), pathname.indexOf('#')]) {
+    if (cut >= 0) pathname = pathname.slice(0, cut);
+  }
+  let decoded = '';
+  try {
+    decoded = decodeURIComponent(pathname);
+  } catch {
+    return '';
+  }
+  const segments = decoded.split('/').filter(Boolean);
+  if (segments.some((segment) => segment === '.' || segment === '..')) return '';
+  return `/${segments.join('/')}`;
+}
+
+export function usesCreatorCliBearer(req: Pick<NextApiRequest, 'headers'>) {
+  return /^\s*Bearer\s+\S/i.test(String(req.headers.authorization || ''));
+}
+
+export function isCreatorCliApiRoute(req: Pick<NextApiRequest, 'url'>) {
+  const pathname = creatorRequestPathname(req);
+  return pathname === CREATOR_CLI_API_PATH_PREFIX || pathname.startsWith(`${CREATOR_CLI_API_PATH_PREFIX}/`);
+}
+
+/**
+ * Gate: a CLI Bearer credential may only reach the CLI route family.
+ *
+ * `player-service-client.ts` forwards *any* `Authorization: Bearer ` value as
+ * `X-Box-Creator-Authorization`, and `pages/api/player-internal/runtime-identity.ts`
+ * then resolves it with `resolveCreatorCliTokenIdentity` instead of the session
+ * cookie. That CLI identity still carries the account's user-level
+ * `creatorPermissions`, so a Bearer passed the capability check of
+ * `authenticatedCreatorIdentity` no matter which of the nine CLI scopes it holds
+ * — the scopes were only ever enforced inside `allowAuthenticatedCreatorCliApi`.
+ * One read-only `bxc_…` token could therefore create, publish, export, package,
+ * import or delete maps, which silently voids the minimum-privilege promise of
+ * CLI scopes and contradicts the OpenAPI contract (those routes declare no
+ * bearer scheme, only the `/api/creator/v1/**` operations declare `creatorToken`).
+ *
+ * The rule is inert for browser sessions, which never send `Authorization`, and
+ * inert for `/api/creator/v1/**` — including the scene-control family, which is
+ * CLI-contracted and still gated by the account's `projects.edit` permission.
+ *
+ * One-step rollback: set `BOX_CREATOR_ALLOW_CLI_BEARER_ON_UI_ROUTES=true`.
+ */
+export function rejectsCreatorCliBearerOnUiRoute(req: Pick<NextApiRequest, 'headers' | 'url'>) {
+  if (!usesCreatorCliBearer(req)) return false;
+  if (process.env.BOX_CREATOR_ALLOW_CLI_BEARER_ON_UI_ROUTES === 'true') return false;
+  return !isCreatorCliApiRoute(req);
+}
+
+/**
  * Same authorization gate as allowAuthenticatedCreatorApi, but returns the
  * verified identity when a feature must bind a short-lived browser session to
  * its owner. Never derive that owner from a browser supplied value.
@@ -91,6 +167,13 @@ export async function authenticatedCreatorIdentity(
   capability: CreatorCapability | readonly CreatorCapability[] = 'projects.view',
 ): Promise<RuntimePlayerIdentity | undefined> {
   if (!allowCreatorApi(req, res)) return undefined;
+  if (rejectsCreatorCliBearerOnUiRoute(req)) {
+    res.status(403).json({
+      code: 'CREATOR_CLI_ROUTE_DENIED',
+      message: 'CLI Token 只能调用 /api/creator/v1 接口；此创作端点需要浏览器会话，或为该 Token 申请对应的 CLI scope',
+    });
+    return undefined;
+  }
   try {
     const { identity } = await resolvePlayerServiceIdentity(
       req,

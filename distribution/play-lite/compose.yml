@@ -78,6 +78,10 @@ services:
       NEXT_PUBLIC_APP_REGION: ${NEXT_PUBLIC_APP_REGION:-cn}
       BOX_PLAY_ADMIN_TOKEN: ${BOX_PLAY_ADMIN_TOKEN:-}
       PERMISSION_TOKEN_SECRET: ${PERMISSION_TOKEN_SECRET:?请在 .env 中设置 PERMISSION_TOKEN_SECRET}
+      # Runtime join admission is verified here (map-admission). The launcher in Play
+      # signs short-lived runtime tokens with this secret; empty means Play writes no
+      # credential file and the runtime rejects every join (fail closed).
+      BOX_MODERATION_SIGNING_SECRET: ${BOX_MODERATION_SIGNING_SECRET:-}
       BOX_SERVER_PUBLIC_URL: ${BOX_PLAYER_SERVICE_PUBLIC_URL:-http://127.0.0.1:4124}
       BOX_PLAYER_SERVICE_PUBLIC_URL: ${BOX_PLAYER_SERVICE_PUBLIC_URL:-http://127.0.0.1:4124}
       BOX_PLAY_PUBLIC_URL: ${BOX_PLAY_PUBLIC_URL:-http://127.0.0.1:4121}
@@ -214,6 +218,10 @@ services:
       BOX_PLAY_ADMIN_TOKEN: ${BOX_PLAY_ADMIN_TOKEN:-}
       BOX_LOCAL_PLAYER_LIMIT: ${BOX_LOCAL_PLAYER_LIMIT:-70}
       PERMISSION_TOKEN_SECRET: ${PERMISSION_TOKEN_SECRET:?请在 .env 中设置 PERMISSION_TOKEN_SECRET}
+      # The launcher hands a rotating credential file to each map runtime only when this
+      # secret is non-empty; without it ModerationClient.admission() fails closed and
+      # every player is kicked at join (CloseType.NoAuth).
+      BOX_MODERATION_SIGNING_SECRET: ${BOX_MODERATION_SIGNING_SECRET:-}
       BOX_SERVER_PUBLIC_URL: ${BOX_PLAY_PUBLIC_URL:-http://127.0.0.1:4121}
       BOX_PLAYER_SERVICE_INTERNAL_URL: http://player-service:3213
       BOX_PLAYER_SERVICE_PUBLIC_URL: ${BOX_PLAYER_SERVICE_PUBLIC_URL:-http://127.0.0.1:4124}

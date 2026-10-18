@@ -35,6 +35,9 @@
  *   --strict-manifests      manifest 里声明过的一律保留
  *   --drop-embedded-static  删掉 standalone 内已有的 `.next/static`，给「Dockerfile 会再 COPY
  *                           一份到同路径」的目标用
+ *   --service <name>        声明这棵树属于哪个部署（creator/play/player-service/…）。
+ *                           只有显式声明了服务，`STATIC_DIR_RULES` 那类「整目录浏览器产物」规则
+ *                           才会参与；未声明一律不碰。
  *   --verify-boot <entry>   起 `node <entry>`，要求它绑定 PORT
  *   --boot-timeout <ms>     verify-boot 预算，默认 60000
  *   --quiet                 只打汇总
@@ -104,6 +107,47 @@ const TRIM_RULES = new Map([
     ],
 ]);
 
+/**
+ * Whole-directory rules over traced *browser output* rather than the pnpm store.
+ *
+ * Unlike `CORE_RULES`/`EXTENDED_RULES` these match a path inside `.next`, so the
+ * reference scan cannot protect them: a browser chunk is allowed to name a URL it
+ * will fetch, and `node_modules` is not involved. Safety therefore comes from two
+ * narrower facts, both checked per tree:
+ *   1. `services` must name the deployment being pruned (`--service`). No flag, no
+ *      static-dir pruning — the rules never fire on an unknown tree.
+ *   2. `guard` must confirm the tree cannot route to the code that requests the
+ *      directory. A rule that cannot prove that reports `kept` instead of deleting.
+ */
+const STATIC_DIR_RULES = [
+    {
+        id: 'monaco-static-vs',
+        // `apps/game/webpack/index.js` copies `monaco-editor/min/vs` into
+        // `<dist>/static/vs`, which Next serves at `/_next/static/vs`.
+        match: /[\\/]\.next[\\/]static[\\/]vs$/,
+        services: ['play', 'player-service'],
+        // The only thing that ever asks for `/_next/static/vs/*` is the AMD loader
+        // configured in `src/client/edit/code-editor/monaco.ts`
+        // (`paths: { vs: '/_next/static/vs' }`), reached through the lazy key
+        // `app/e/[container]/map-edit-page.client.tsx -> src/views/edit/index`.
+        // That route is compiled into `.next/server/app/e/**`; a tree without it
+        // cannot serve the editor and so cannot be asked for the loader.
+        guardDir: (matched) => path.join(path.dirname(path.dirname(matched)), 'server', 'app', 'e'),
+        guardBlocks: 'the tree compiles the app/e/[container] editor route',
+        note: 'Monaco AMD tree; player deployments neither copy it (play build excludes it in webpack/index.js) nor compile the route that requests it',
+    },
+];
+
+/** Deployment names accepted by `--service`; they key the static-dir rules. */
+const SERVICE_NAMES = new Set([
+    'creator',
+    'play',
+    'player-service',
+    'player-auth-portal',
+    'voxa',
+    'server-manager',
+]);
+
 const SCANNABLE_EXTENSIONS = new Set([
     '.js',
     '.cjs',
@@ -129,6 +173,7 @@ function parseArgs(argv) {
         tier: 'all',
         json: '',
         keep: [],
+        service: '',
         strictManifests: false,
         dropEmbeddedStatic: false,
         verifyBoot: '',
@@ -146,6 +191,8 @@ function parseArgs(argv) {
             options.json = argv[++index] || '';
         } else if (arg === '--keep') {
             options.keep.push(argv[++index] || '');
+        } else if (arg === '--service') {
+            options.service = argv[++index] || '';
         } else if (arg === '--strict-manifests') {
             options.strictManifests = true;
         } else if (arg === '--drop-embedded-static') {
@@ -170,6 +217,9 @@ function parseArgs(argv) {
     }
     if (!['core', 'all'].includes(options.tier)) {
         throw new Error(`--tier must be "core" or "all", got: ${options.tier}`);
+    }
+    if (options.service && !SERVICE_NAMES.has(options.service)) {
+        throw new Error(`--service must be one of ${[...SERVICE_NAMES].join(', ')}, got: ${options.service}`);
     }
 
     return options;
@@ -683,6 +733,53 @@ function pruneRoot(root, options, log) {
         }
     }
 
+    const staticDirs = [];
+    const staticDirsKept = [];
+    let staticDirBytes = 0;
+    if (options.service) {
+        for (const rule of STATIC_DIR_RULES) {
+            if (!rule.services.includes(options.service)) {
+                continue;
+            }
+            walk(root, (full, entry) => {
+                if (!entry.isDirectory() || inNodeModules(full)) {
+                    return;
+                }
+                if (!rule.match.test(full)) {
+                    return;
+                }
+                if (options.keep.some((needle) => full.includes(needle))) {
+                    return;
+                }
+                const guard = rule.guardDir(full);
+                if (isDirectory(guard)) {
+                    const bytes = sizeOf(full);
+                    staticDirsKept.push({
+                        path: full,
+                        bytes,
+                        rule: rule.id,
+                        reason: `${rule.guardBlocks}: ${guard}`,
+                    });
+                    log(
+                        `  kept ${rule.id} ${full} (${bytes} bytes): ${rule.guardBlocks}`,
+                    );
+                    return;
+                }
+                const bytes = removePath(full, options.apply);
+                staticDirBytes += bytes;
+                staticDirs.push({
+                    path: full,
+                    bytes,
+                    rule: rule.id,
+                    reason: rule.note,
+                });
+                log(
+                    `  ${options.apply ? 'removed' : 'would remove'} ${rule.id} ${full} (${bytes} bytes): ${rule.note}`,
+                );
+            });
+        }
+    }
+
     const danglingLinks = [];
     if (options.apply && deletedPackages.length > 0) {
         const removedDirs = new Set(
@@ -754,15 +851,18 @@ function pruneRoot(root, options, log) {
         totalBefore,
         totalAfter: options.apply
             ? sizeOf(root)
-            : totalBefore - deletedBytes - trimmedBytes - embeddedStaticBytes,
-        deletedBytes: deletedBytes + trimmedBytes + embeddedStaticBytes,
+            : totalBefore - deletedBytes - trimmedBytes - embeddedStaticBytes - staticDirBytes,
+        deletedBytes: deletedBytes + trimmedBytes + embeddedStaticBytes + staticDirBytes,
         buildToolDeletedBytes: deletedBytes,
         trimmedBytes,
         embeddedStaticBytes,
+        staticDirBytes,
         deletedPackages: deletedPackages.sort((a, b) => b.bytes - a.bytes),
         trimmedFiles: trimmedFiles.sort((a, b) => b.bytes - a.bytes).slice(0, 40),
         trimmedFileCount: trimmedFiles.length,
         embeddedStatic,
+        staticDirs,
+        staticDirsKept,
         skipped: skipped.sort((a, b) => b.bytes - a.bytes),
         manifestDeclarations: Object.fromEntries(
             [...manifestDeclarations]
@@ -883,6 +983,7 @@ async function main() {
         buildToolDeletedBytes: reports.reduce((total, item) => total + item.buildToolDeletedBytes, 0),
         trimmedBytes: reports.reduce((total, item) => total + item.trimmedBytes, 0),
         embeddedStaticBytes: reports.reduce((total, item) => total + item.embeddedStaticBytes, 0),
+        staticDirBytes: reports.reduce((total, item) => total + item.staticDirBytes, 0),
         totalBefore: reports.reduce((total, item) => total + item.totalBefore, 0),
         totalAfter: reports.reduce((total, item) => total + item.totalAfter, 0),
         skipped: reports.flatMap((item) => item.skipped),
@@ -897,7 +998,7 @@ async function main() {
 
     process.stdout.write(
         `\n${options.apply ? 'APPLIED' : 'DRY-RUN'}: removed ${summary.deletedBytes} bytes ` +
-            `(tools ${summary.buildToolDeletedBytes}, trimmed ${summary.trimmedBytes}, embedded static ${summary.embeddedStaticBytes}); ` +
+            `(tools ${summary.buildToolDeletedBytes}, trimmed ${summary.trimmedBytes}, embedded static ${summary.embeddedStaticBytes}, static dirs ${summary.staticDirBytes}); ` +
             `${summary.skipped.length} candidate(s) kept; total ${summary.totalBefore} -> ${summary.totalAfter}\n`,
     );
 
