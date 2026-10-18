@@ -296,6 +296,14 @@ async function getLanguageService(config, side) {
   const ts = module.default ?? module
   if (!ts || typeof ts.createLanguageService !== 'function') return undefined
 
+  // TypeScript normalises every path it hands to a LanguageServiceHost to
+  // forward slashes. A `path.join` result on Windows carries backslashes, so
+  // without this the probe and the virtual `.d.ts` files never match a host
+  // lookup, the snapshot comes back undefined, and the program is built with
+  // only the lib files in it — `getValidSourceFile` then throws
+  // "Could not find source file" and the whole gate dies instead of degrading.
+  const norm = (file) => (typeof ts.normalizePath === 'function' ? ts.normalizePath(file) : file.replace(/\\/g, '/'))
+
   const files = {}
   const missing = []
   const wanted =
@@ -305,13 +313,13 @@ async function getLanguageService(config, side) {
           ['api.d.ts', 'apps/game/src/resource/api-declarations.dts'],
           ['server-api.d.ts', 'packages/script-api/dts/server-api-types.dts'],
         ]
-  for (const [virtualName, relative] of wanted) {
+  for (const [, relative] of wanted) {
     const absolute = path.join(config.repoRoot, relative)
     if (!fs.existsSync(absolute)) {
       missing.push(relative)
       continue
     }
-    files[path.join(config.repoRoot, virtualName)] = fs.readFileSync(absolute, 'utf8')
+    files[norm(absolute)] = fs.readFileSync(absolute, 'utf8')
   }
   if (missing.length || !Object.keys(files).length) {
     return { unavailable: `声明文件缺失：${missing.join(', ')}` }
@@ -322,9 +330,11 @@ async function getLanguageService(config, side) {
   // The probe file has to be parsed in the same module context the sandbox uses,
   // otherwise the language service reports every real `clientIndex.js` as
   // "Cannot use import statement outside a module". `.mjs` is the ESM probe.
-  const scriptPath = path.join(
-    config.repoRoot,
-    side === 'client' ? '__box3_map_mcp_probe__.mjs' : '__box3_map_mcp_probe__.js',
+  const scriptPath = norm(
+    path.join(
+      config.repoRoot,
+      side === 'client' ? '__box3_map_mcp_probe__.mjs' : '__box3_map_mcp_probe__.js',
+    ),
   )
   const options = {
     target: ts.ScriptTarget.ES2020,
@@ -339,15 +349,19 @@ async function getLanguageService(config, side) {
   const service = ts.createLanguageService({
     getCompilationSettings: () => options,
     getScriptFileNames: () => [scriptPath, ...Object.keys(files)],
-    getScriptVersion: (file) => (file === scriptPath ? String(version) : '1'),
+    getScriptVersion: (file) => (norm(file) === scriptPath ? String(version) : '1'),
     getScriptSnapshot: (file) => {
-      const text = file === scriptPath ? source : files[file] ?? ts.sys.readFile(file)
+      const key = norm(file)
+      const text = key === scriptPath ? source : files[key] ?? ts.sys.readFile(file)
       return text === undefined ? undefined : ts.ScriptSnapshot.fromString(text)
     },
-    getCurrentDirectory: () => config.repoRoot,
+    getCurrentDirectory: () => norm(config.repoRoot),
     getDefaultLibFileName: ts.getDefaultLibFilePath,
-    fileExists: (file) => file === scriptPath || file in files || ts.sys.fileExists(file),
-    readFile: (file) => files[file] ?? ts.sys.readFile(file),
+    fileExists: (file) => {
+      const key = norm(file)
+      return key === scriptPath || key in files || ts.sys.fileExists(file)
+    },
+    readFile: (file) => files[norm(file)] ?? ts.sys.readFile(file),
     readDirectory: ts.sys.readDirectory,
   })
   const handle = {
@@ -487,7 +501,42 @@ export async function checkScript(args, config) {
     }
   }
 
-  const diagnostics = handle.check(args.content)
+  let diagnostics
+  try {
+    diagnostics = handle.check(args.content)
+  } catch (error) {
+    if (requested === 'language-service') {
+      return {
+        satisfied: false,
+        mode: 'language-service',
+        blocking: true,
+        dialect,
+        dialectSource,
+        errors: [
+          {
+            severity: 'error',
+            code: 'LANGUAGE_SERVICE_FAILED',
+            message: `语言服务层运行失败：${error && error.message ? error.message : String(error)}`,
+          },
+        ],
+        warnings,
+        notes,
+      }
+    }
+    notes.push(
+      `语言服务层抛错（${error && error.message ? error.message : String(error)}），已降级到 syntax 层。这一层不含语义类型检查。`,
+    )
+    return {
+      satisfied: !errors.length,
+      mode: 'syntax-fallback',
+      blocking: true,
+      dialect,
+      dialectSource,
+      errors,
+      warnings,
+      notes,
+    }
+  }
   const typeErrors = diagnostics.filter((item) => item.severity === 'error')
   return {
     satisfied: !typeErrors.length && !errors.length,
