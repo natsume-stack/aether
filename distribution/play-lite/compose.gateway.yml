@@ -1,0 +1,225 @@
+# BOX3 play-lite · G1 增量编排：同域名路径前缀（/edit 创作端、/admin 管理端、/ 玩家端）
+#
+# 用法（**不替换** compose.yml，只叠加）：
+#   cd distribution/play-lite
+#   docker compose -f compose.yml -f compose.gateway.yml up -d
+#   （只带 -f compose.yml 时，本文件的三个新服务与全部前缀 env 都不存在，行为与今天完全一致。）
+#
+# 为什么必须多这一跳，而不是让 Play 的 rewrites 去转 creator：
+#   * apps/game/next.config.js 的 rewrites 是**构建期固化**进 .next 产物的，运行期改不了，
+#     destination 又只有 9966/9967/9968（同一容器内的运行时进程）；拿它转 creator 等于把
+#     三个服务的公网路由表烤进玩家端镜像，换一次前缀就要重建镜像。
+#   * @box/deployment-routing README 明写「包不负责证书、Nginx、服务登录或授权，
+#     不改写其他服务与外部源地址」⇒ 跨服务分流必须另有一层，本文件 + gateway.js 就是那层。
+#   * 前缀本身确实运行时生效（standalone.cjs 读 BOX_APP_BASE_PATH）⇒ 只改 env、不换镜像。
+#
+# ★ 关键机制（本泳道实测纠正，原文见 box3-re/tmp/g1-gw-up-raw.txt [C][D]）：
+#   deployment-routing 只往 nextConfig 挂 **assetPrefix**，**从不设 nextConfig.basePath**，
+#   所以 Next 服务端路由器的 basePath 恒为空 —— 带前缀打进去必然 404：
+#     creator 容器内 GET /edit/projects -> 404 ；GET /projects -> 307（真路由）
+#     ps      容器内 GET /admin         -> 404 ；GET /         -> 200（管理站页面）
+#   出站方向由 server.cjs 的 html()/writeHead 改写把前缀**加回**，
+#   入站方向由本层（gateway.js 的 stripPrefix）**剥掉** —— 等价于 Nginx
+#   `location /edit/ { proxy_pass http://creator:3000/; }` 的尾部斜杠语义。
+#   ⇒ 只有「浏览器 -> 网关」这一段存在前缀；服务之间的 server-to-server URL 一律不带前缀。
+#
+# 纪律：creator / player-service 不再发布宿主端口，公网唯一入口是 path-gateway；
+# 内部互联一律用 Docker DNS 名，绝不填公网回环地址（历史坑：BOX_PLAY_INTERNAL_URL）。
+name: ${BOX_LITE_PROJECT_NAME:-box3-lite}
+
+x-lite-secrets: &lite-secrets
+  PERMISSION_TOKEN_SECRET: ${PERMISSION_TOKEN_SECRET:?请在 .env 中设置 PERMISSION_TOKEN_SECRET}
+  BOX_MODERATION_SIGNING_SECRET: ${BOX_MODERATION_SIGNING_SECRET:-}
+
+services:
+  # ──────────────────────────────────────────────────────────────── 新增：路径分流层
+  path-gateway:
+    # 复用 play 镜像里已有的 node 运行时（不新建镜像、不装依赖、不跑 rush）。
+    image: ${BOX_PLAY_IMAGE:-box-local-engine-play}:${BOX_IMAGE_TAG:-v2026.1.4-linux-amd64}
+    pull_policy: never
+    platform: ${BOX_PLAY_PLATFORM:-linux/amd64}
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: ${BOX_GATEWAY_MEMORY_LIMIT:-128m}
+    cpus: ${BOX_GATEWAY_CPU_LIMIT:-0.5}
+    pids_limit: 64
+    depends_on:
+      play:
+        condition: service_healthy
+      player-service:
+        condition: service_healthy
+      creator:
+        condition: service_healthy
+    entrypoint: ["node"]
+    command: ["/opt/box-path-gateway/gateway.js"]
+    environment:
+      # 非 root 容器 bind 不了 1024 以下端口：容器内 8080，宿主发布口见 ports。
+      BOX_GATEWAY_PORT: "8080"
+      BOX_GATEWAY_ROUTES: ${BOX_GATEWAY_ROUTES:-{}}
+    volumes:
+      - type: bind
+        source: ./gateway.js
+        target: /opt/box-path-gateway/gateway.js
+        read_only: true
+        bind:
+          create_host_path: false
+    ports:
+      - "${BOX_BIND_IP:-127.0.0.1}:${BOX_GATEWAY_HOST_PORT:-4180}:8080"
+      # G1b：公网双层 WS 探针用的第二发布口。WSL2 的 localhostForwarding 对「容器重建后重新
+      # bind 的端口」有实测漏转发（宿主 curl 127.0.0.1:4180=000，而 4121=200），0.0.0.0 发布可
+      # 让宿主经 WSL NAT IP 直连，cloudflared（Windows 侧）由此拨通。默认与主发布同形，不额外开口。
+      - "${BOX_GATEWAY_TUNNEL_BIND_IP:-127.0.0.1}:${BOX_GATEWAY_TUNNEL_PORT:-4181}:8080"
+    healthcheck:
+      # play 镜像自带的 HEALTHCHECK 探的是它自己的 3000/9966，这里换成网关自身存活探针。
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:8080/__gateway-health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+
+  # ──────────────────────────────────────────────────────────────── 新增：创作端
+  creator-storage-init:
+    image: ${BOX_GATEWAY_CREATOR_IMAGE:-box-local-engine-creator:v2026.1.4-linux-amd64}
+    pull_policy: never
+    user: "0:0"
+    entrypoint: []
+    command:
+      - sh
+      - -c
+      - >-
+        mkdir -p /app/apps/local-engine/projects /app/apps/local-engine/dist
+        /app/apps/local-engine/backups /app/apps/local-engine/data/blobs
+        && (chown -R 1000:1000 /app/apps/local-engine/projects 2>/dev/null || true)
+        && (chown -R 1000:1000 /app/apps/local-engine/dist 2>/dev/null || true)
+        && (chown -R 1000:1000 /app/apps/local-engine/backups 2>/dev/null || true)
+        && (chown -R 1000:1000 /app/apps/local-engine/data 2>/dev/null || true)
+    restart: "no"
+    network_mode: none
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+    volumes:
+      - "${BOX_LITE_DATA_DIRECTORY:-./data}/apps/local-engine/projects:/app/apps/local-engine/projects"
+      - "${BOX_LITE_DATA_DIRECTORY:-./data}/apps/local-engine/dist:/app/apps/local-engine/dist"
+      - "${BOX_LITE_DATA_DIRECTORY:-./data}/apps/local-engine/data:/app/apps/local-engine/data"
+      - "${BOX_LITE_DATA_DIRECTORY:-./data}/apps/local-engine/backups:/app/apps/local-engine/backups"
+
+  creator:
+    image: ${BOX_GATEWAY_CREATOR_IMAGE:-box-local-engine-creator:v2026.1.4-linux-amd64}
+    pull_policy: never
+    platform: ${BOX_PLAY_PLATFORM:-linux/amd64}
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: ${BOX_CREATOR_MEMORY_LIMIT:-2g}
+    cpus: ${BOX_CREATOR_CPU_LIMIT:-2.0}
+    pids_limit: ${BOX_CREATOR_PIDS_LIMIT:-1024}
+    depends_on:
+      player-service:
+        condition: service_healthy
+      creator-storage-init:
+        condition: service_completed_successfully
+    environment:
+      <<: *lite-secrets
+      # 出站前缀：本服务把 /edit 加回自己发出的 HTML / CSS / Location。
+      BOX_APP_BASE_PATH: ${BOX_CREATOR_BASE_PATH:-/edit}
+      BOX_PUBLIC_SERVICE_PREFIXES_BY_ORIGIN: ${BOX_PUBLIC_SERVICE_PREFIXES_BY_ORIGIN:-{}}
+      BOX_DEPLOYMENT_MODE: creator
+      # 故意不设 BOX_RUNTIME_MANAGER_URL / TOKEN：与 play-lite 同一策略，
+      # launcher 回落到共享 Node 子进程运行时，不需要 server-manager、不需要 Docker socket。
+      BOX_PLAY_RUNTIME_HOST: 0.0.0.0
+      BOX_EDIT_RUNTIME_HOST: 0.0.0.0
+      BOX_LOCAL_PLAYER_LIMIT: ${BOX_LOCAL_PLAYER_LIMIT:-70}
+      BOX_CREATOR_EDIT_MAX_RUNTIMES: ${BOX_CREATOR_EDIT_MAX_RUNTIMES:-2}
+      BOX_CREATOR_PLAY_MAX_RUNTIMES: ${BOX_CREATOR_PLAY_MAX_RUNTIMES:-2}
+      BOX_CREATOR_EDIT_PREWARM_RUNTIMES: 0
+      BOX_RUNTIME_IDLE_TIMEOUT_MS: ${BOX_RUNTIME_IDLE_TIMEOUT_MS:-900000}
+      BOX_RUNTIME_START_TIMEOUT_MS: ${BOX_RUNTIME_START_TIMEOUT_MS:-1800000}
+      BOX_RUNTIME_CACHE_PATH: /app/apps/local-engine/projects/.runtime-cache
+      # server-to-server **不经网关，所以绝不带前缀**：
+      # 实测带 /admin 时 creator 的 /api/local-projects -> 503 PLAYER_SERVICE_UNAVAILABLE
+      # （内部身份调用 404）；不带前缀才回到正常的 401/会话链路。
+      BOX_PLAYER_SERVICE_INTERNAL_URL: http://player-service:3213
+      # 只有「给浏览器看的」地址才带前缀。peers 查表只取 origin，路径不影响。
+      BOX_PLAYER_SERVICE_PUBLIC_URL: ${BOX_GATEWAY_ORIGIN:-http://127.0.0.1:4180}${BOX_PLAYER_SERVICE_BASE_PATH:-/admin}
+      BOX_CREATOR_PUBLIC_URL: ${BOX_GATEWAY_ORIGIN:-http://127.0.0.1:4180}${BOX_CREATOR_BASE_PATH:-/edit}
+      BOX_SERVER_PUBLIC_URL: ${BOX_GATEWAY_ORIGIN:-http://127.0.0.1:4180}${BOX_CREATOR_BASE_PATH:-/edit}
+      BOX_PLAY_PUBLIC_URL: ${BOX_GATEWAY_ORIGIN:-http://127.0.0.1:4180}
+      BOX_PLAYER_LOGIN_URL: ${BOX_PLAYER_LOGIN_URL:-http://127.0.0.1:4125}
+      BOX_VOXA_PUBLIC_URL: ${BOX_VOXA_PUBLIC_URL:-}
+      VOXA_URL: ${BOX_VOXA_PUBLIC_URL:-}
+      # creator API 的 Host 门（apps/game/server/creator-api-security.ts:33-61）：
+      # 网关原样透传 Host/Origin，这里把对外 Host 加进白名单（回环恒允许）。
+      # 两个变量都要有：BOX_CREATOR_ALLOWED_HOSTS 给「非回环 Host 用例」，
+      # BOX_GATEWAY_ORIGIN_HOST 给真实浏览器用的那个 host（含端口也没关系，代码只取 hostname）。
+      BOX_CREATOR_ALLOWED_HOSTS: ${BOX_CREATOR_ALLOWED_HOSTS:-box3.test},${BOX_GATEWAY_ORIGIN_HOST:-127.0.0.1}
+      BOX_TRUST_PROXY: ${BOX_TRUST_PROXY:-false}
+      BOX_SESSION_TTL_MS: ${BOX_SESSION_TTL_MS:-60000}
+      BOX_RUNTIME_IDENTITY_TTL_MS: ${BOX_RUNTIME_IDENTITY_TTL_MS:-300000}
+      BOX_SCRIPT_HEAP_MB: ${BOX_SCRIPT_HEAP_MB:-512}
+      SCRIPT_MEMORY_LIMIT: ${BOX_SCRIPT_MEMORY_MB:-512}
+      BOX_SESSION_RATE_LIMIT_PER_MINUTE: ${BOX_SESSION_RATE_LIMIT_PER_MINUTE:-60}
+      BOX_CREATE_SESSION_TIMEOUT_MS: ${BOX_CREATE_SESSION_TIMEOUT_MS:-120000}
+      BOX_DATABASE_URL: ${BOX_DATABASE_URL:?请在 .env 中设置 BOX_DATABASE_URL}
+      BOX_DATABASE_SCHEMA: ${BOX_DATABASE_SCHEMA:-box_engine}
+      BOX_DATABASE_POOL_SIZE: ${BOX_DATABASE_POOL_SIZE:-4}
+      BOX_DATABASE_SSL: ${BOX_DATABASE_SSL:-false}
+      BOX_DATABASE_SSL_REJECT_UNAUTHORIZED: ${BOX_DATABASE_SSL_REJECT_UNAUTHORIZED:-true}
+      BOX_DATA_STORAGE_LOCK_TIMEOUT_MS: ${BOX_DATA_STORAGE_LOCK_TIMEOUT_MS:-10000}
+    # 不发布任何宿主端口：公网只能经 path-gateway 的 /edit 进来。
+    volumes:
+      - "${BOX_LITE_DATA_DIRECTORY:-./data}/apps/local-engine/projects:/app/apps/local-engine/projects"
+      - "${BOX_LITE_DATA_DIRECTORY:-./data}/apps/local-engine/dist:/app/apps/local-engine/dist"
+      - "${BOX_LITE_DATA_DIRECTORY:-./data}/apps/local-engine/data:/app/apps/local-engine/data"
+      - "${BOX_LITE_DATA_DIRECTORY:-./data}/apps/local-engine/backups:/app/apps/local-engine/backups"
+
+  # ────────────────────────────────────────────────── 叠加：给既有服务接上路径前缀
+  # 只叠加 env，compose.yml 的服务定义与语义不变；不带本文件时全部回到今天的默认值。
+  player-service:
+    environment:
+      # 管理站挂到 /admin；根路径 `/` 让位给玩家端（Play）。
+      BOX_APP_BASE_PATH: ${BOX_PLAYER_SERVICE_BASE_PATH:-/admin}
+      BOX_PUBLIC_SERVICE_PREFIXES_BY_ORIGIN: ${BOX_PUBLIC_SERVICE_PREFIXES_BY_ORIGIN:-{}}
+      BOX_PLAYER_SERVICE_PUBLIC_URL: ${BOX_GATEWAY_ORIGIN:-http://127.0.0.1:4180}${BOX_PLAYER_SERVICE_BASE_PATH:-/admin}
+      BOX_SERVER_PUBLIC_URL: ${BOX_GATEWAY_ORIGIN:-http://127.0.0.1:4180}${BOX_PLAYER_SERVICE_BASE_PATH:-/admin}
+      # 管理页跳玩家端/创作端：Next 会给相对站内链接补自己的前缀，跨应用链接必须是
+      # 「网关 origin」的绝对地址；相对 /p/<map> 由 peers 里的 /p 兜住（见 .env 注释）。
+      BOX_PLAY_PUBLIC_URL: ${BOX_GATEWAY_ORIGIN:-http://127.0.0.1:4180}
+      BOX_CREATOR_PUBLIC_URL: ${BOX_GATEWAY_ORIGIN:-http://127.0.0.1:4180}${BOX_CREATOR_BASE_PATH:-/edit}
+      # 仍然走 Docker DNS，绝不填公网回环地址（历史坑：解析到 player-service 自己）。
+      BOX_PLAY_INTERNAL_URL: http://play:3000
+
+  play:
+    environment:
+      # Play 保持无前缀（/ 与 /p/<map> 零回归），只需要认识兄弟前缀，
+      # 免得 publicPath() 给 /edit、/admin 的链接二次加前缀。
+      BOX_PUBLIC_SERVICE_PREFIXES_BY_ORIGIN: ${BOX_PUBLIC_SERVICE_PREFIXES_BY_ORIGIN:-{}}
+      BOX_PLAYER_SERVICE_PUBLIC_URL: ${BOX_GATEWAY_ORIGIN:-http://127.0.0.1:4180}${BOX_PLAYER_SERVICE_BASE_PATH:-/admin}
+      BOX_CREATOR_PUBLIC_URL: ${BOX_GATEWAY_ORIGIN:-http://127.0.0.1:4180}${BOX_CREATOR_BASE_PATH:-/edit}
+
+  player-auth-portal:
+    environment:
+      BOX_PUBLIC_SERVICE_PREFIXES_BY_ORIGIN: ${BOX_PUBLIC_SERVICE_PREFIXES_BY_ORIGIN:-{}}
+      # 门户 -> player-service 是 server-to-server，不经网关：**不能带 /admin 前缀**。
+      BOX_PLAYER_SERVICE_INTERNAL_URL: http://player-service:3213
+      # 登录成功后回跳创作端：portal 的 returnURL() 只比 origin，带 /edit 路径合法。
+      BOX_CREATOR_PUBLIC_URL: ${BOX_GATEWAY_ORIGIN:-http://127.0.0.1:4180}${BOX_CREATOR_BASE_PATH:-/edit}
