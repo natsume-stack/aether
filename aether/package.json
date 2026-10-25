@@ -1,0 +1,12 @@
+{
+  "name": "aether",
+  "version": "0.1.0",
+  "description": "aether · AI 大世界构建引擎（muse 游戏大脑 / gaia 地形 / prism UI / chisel VOXA 建模）",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test:muse": "node src/muse/selftest/brain/run-selftest.mjs",
+    "test:prism": "node src/prism/selftest/ui/run-selftest.mjs",
+    "pipeline": "node examples/run-pipeline.mjs"
+  }
+}

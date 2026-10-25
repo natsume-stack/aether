@@ -1,0 +1,470 @@
+{
+  "version": "GDD/0.1",
+  "id": "大逃杀-512x512",
+  "name": "大逃杀·缩圈",
+  "genre": "大逃杀",
+  "themeKeywords": [
+    "缩圈",
+    "拾取",
+    "生存"
+  ],
+  "artStyle": "hitech",
+  "mapSize": [
+    512,
+    512
+  ],
+  "heightBudget": 64,
+  "seed": 123,
+  "players": {
+    "count": 8,
+    "teams": 2
+  },
+  "loop": {
+    "phases": [
+      "跳伞落地",
+      "拾取装备",
+      "转移进圈",
+      "决赛圈"
+    ],
+    "economy": [
+      "装备品质"
+    ],
+    "winConditions": [
+      "最后存活"
+    ]
+  },
+  "zones": [
+    {
+      "id": "z0",
+      "role": "hub",
+      "name": "中央城区",
+      "center": [
+        256,
+        256
+      ],
+      "radius": 51,
+      "elevationHint": "varies",
+      "biome": "高密度城区",
+      "priority": 1,
+      "adjacency": [
+        "z7"
+      ],
+      "gameplayNotes": "高价值城区"
+    },
+    {
+      "id": "z1",
+      "role": "resource",
+      "name": "外围资源点",
+      "center": [
+        332,
+        332
+      ],
+      "radius": 28,
+      "elevationHint": "hill",
+      "biome": "村落/工厂",
+      "priority": 2,
+      "adjacency": [
+        "z0"
+      ],
+      "gameplayNotes": "resource"
+    },
+    {
+      "id": "z2",
+      "role": "resource",
+      "name": "外围资源点",
+      "center": [
+        288,
+        365
+      ],
+      "radius": 28,
+      "elevationHint": "hill",
+      "biome": "村落/工厂",
+      "priority": 2,
+      "adjacency": [
+        "z0"
+      ],
+      "gameplayNotes": "resource"
+    },
+    {
+      "id": "z3",
+      "role": "resource",
+      "name": "外围资源点",
+      "center": [
+        192,
+        419
+      ],
+      "radius": 28,
+      "elevationHint": "hill",
+      "biome": "村落/工厂",
+      "priority": 2,
+      "adjacency": [
+        "z0"
+      ],
+      "gameplayNotes": "resource"
+    },
+    {
+      "id": "z4",
+      "role": "resource",
+      "name": "外围资源点",
+      "center": [
+        72,
+        242
+      ],
+      "radius": 28,
+      "elevationHint": "hill",
+      "biome": "村落/工厂",
+      "priority": 2,
+      "adjacency": [
+        "z0"
+      ],
+      "gameplayNotes": "resource"
+    },
+    {
+      "id": "z5",
+      "role": "boss",
+      "name": "军事要塞",
+      "center": [
+        163,
+        163
+      ],
+      "radius": 28,
+      "elevationHint": "plateau-10",
+      "biome": "要塞",
+      "priority": 3,
+      "adjacency": [
+        "z0"
+      ],
+      "gameplayNotes": "boss"
+    },
+    {
+      "id": "z6",
+      "role": "transition",
+      "name": "野外区",
+      "center": [
+        223,
+        68
+      ],
+      "radius": 28,
+      "elevationHint": "varies",
+      "biome": "荒野",
+      "priority": 4,
+      "adjacency": [
+        "z0"
+      ],
+      "gameplayNotes": "transition"
+    },
+    {
+      "id": "z7",
+      "role": "transition",
+      "name": "野外区",
+      "center": [
+        273,
+        167
+      ],
+      "radius": 28,
+      "elevationHint": "varies",
+      "biome": "荒野",
+      "priority": 4,
+      "adjacency": [
+        "z0"
+      ],
+      "gameplayNotes": "transition"
+    },
+    {
+      "id": "z8",
+      "role": "transition",
+      "name": "野外区",
+      "center": [
+        380,
+        232
+      ],
+      "radius": 28,
+      "elevationHint": "varies",
+      "biome": "荒野",
+      "priority": 4,
+      "adjacency": [
+        "z0"
+      ],
+      "gameplayNotes": "transition"
+    }
+  ],
+  "poiGraph": {
+    "nodes": [
+      {
+        "id": "p_z0",
+        "zone": "z0",
+        "pos": [
+          256,
+          0,
+          256
+        ],
+        "kind": "altar"
+      },
+      {
+        "id": "p_z1",
+        "zone": "z1",
+        "pos": [
+          332,
+          0,
+          332
+        ],
+        "kind": "ore"
+      },
+      {
+        "id": "p_z2",
+        "zone": "z2",
+        "pos": [
+          288,
+          0,
+          365
+        ],
+        "kind": "ore"
+      },
+      {
+        "id": "p_z3",
+        "zone": "z3",
+        "pos": [
+          192,
+          0,
+          419
+        ],
+        "kind": "ore"
+      },
+      {
+        "id": "p_z4",
+        "zone": "z4",
+        "pos": [
+          72,
+          0,
+          242
+        ],
+        "kind": "ore"
+      },
+      {
+        "id": "p_z5",
+        "zone": "z5",
+        "pos": [
+          163,
+          0,
+          163
+        ],
+        "kind": "boss"
+      },
+      {
+        "id": "p_z6",
+        "zone": "z6",
+        "pos": [
+          223,
+          0,
+          68
+        ],
+        "kind": "checkpoint"
+      },
+      {
+        "id": "p_z7",
+        "zone": "z7",
+        "pos": [
+          273,
+          0,
+          167
+        ],
+        "kind": "checkpoint"
+      },
+      {
+        "id": "p_z8",
+        "zone": "z8",
+        "pos": [
+          380,
+          0,
+          232
+        ],
+        "kind": "checkpoint"
+      }
+    ],
+    "edges": [
+      {
+        "a": "p_z0",
+        "b": "p_z7",
+        "kind": "path"
+      },
+      {
+        "a": "p_z1",
+        "b": "p_z0",
+        "kind": "path"
+      },
+      {
+        "a": "p_z2",
+        "b": "p_z0",
+        "kind": "path"
+      },
+      {
+        "a": "p_z3",
+        "b": "p_z0",
+        "kind": "path"
+      },
+      {
+        "a": "p_z4",
+        "b": "p_z0",
+        "kind": "path"
+      },
+      {
+        "a": "p_z5",
+        "b": "p_z0",
+        "kind": "path"
+      },
+      {
+        "a": "p_z6",
+        "b": "p_z0",
+        "kind": "path"
+      },
+      {
+        "a": "p_z7",
+        "b": "p_z0",
+        "kind": "path"
+      },
+      {
+        "a": "p_z8",
+        "b": "p_z0",
+        "kind": "path"
+      }
+    ]
+  },
+  "terrain": {
+    "continentProfile": "continent",
+    "rivers": 2,
+    "landmarkSilhouettes": [
+      "中央塔群"
+    ],
+    "traversal": "walk",
+    "biomePalette": [
+      {
+        "biome": "高密度城区",
+        "blocks": {
+          "top": "dark_grass_rock",
+          "sub": "stone",
+          "base": "stone"
+        },
+        "density": 0.25816229896852744
+      },
+      {
+        "biome": "村落/工厂",
+        "blocks": {
+          "top": "orange_grass_all",
+          "sub": "dirt",
+          "base": "stone"
+        },
+        "density": 0.2684626333485357
+      },
+      {
+        "biome": "要塞",
+        "blocks": {
+          "top": "grass_rock",
+          "sub": "stone",
+          "base": "stone"
+        },
+        "density": 0.21161289305426179
+      },
+      {
+        "biome": "荒野",
+        "blocks": {
+          "top": "withered_grass",
+          "sub": "dirt",
+          "base": "stone"
+        },
+        "density": 0.25622935383114964
+      }
+    ],
+    "water": {
+      "level": 8,
+      "bodies": 2
+    }
+  },
+  "ui": {
+    "screens": [
+      {
+        "id": "hud",
+        "purpose": "战斗主界面"
+      }
+    ],
+    "components": [
+      {
+        "kind": "hotbar",
+        "bindings": {}
+      },
+      {
+        "kind": "hearts",
+        "bindings": {}
+      },
+      {
+        "kind": "armorBar",
+        "bindings": {}
+      },
+      {
+        "kind": "nameplate",
+        "bindings": {}
+      },
+      {
+        "kind": "killfeed",
+        "bindings": {}
+      },
+      {
+        "kind": "minimapFrame",
+        "bindings": {}
+      },
+      {
+        "kind": "timer",
+        "bindings": {}
+      },
+      {
+        "kind": "crosshair",
+        "bindings": {}
+      },
+      {
+        "kind": "buffRow",
+        "bindings": {}
+      },
+      {
+        "kind": "ammoCounter",
+        "bindings": {}
+      }
+    ],
+    "density": "medium",
+    "criticalInfo": [
+      "hotbar",
+      "hearts",
+      "armorBar"
+    ]
+  },
+  "models": [
+    {
+      "role": "landmark",
+      "name": "hitech-drop-pod",
+      "style": "空投舱",
+      "sizeHint": [
+        16,
+        20,
+        16
+      ],
+      "animated": true
+    },
+    {
+      "role": "prop",
+      "name": "hitech-crate",
+      "style": "补给箱",
+      "sizeHint": [
+        10,
+        8,
+        10
+      ]
+    }
+  ],
+  "fun": {
+    "scores": {
+      "clarity": 100,
+      "pacing": 71,
+      "balance": 100,
+      "depth": 85
+    },
+    "notes": []
+  }
+}

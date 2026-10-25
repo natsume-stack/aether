@@ -1,0 +1,459 @@
+{
+  "version": "GDD/0.1",
+  "id": "起床战争-256x256",
+  "name": "起床战争·床战",
+  "genre": "起床战争",
+  "themeKeywords": [
+    "床战",
+    "资源岛",
+    "桥"
+  ],
+  "artStyle": "pixel",
+  "mapSize": [
+    256,
+    256
+  ],
+  "heightBudget": 64,
+  "seed": 7,
+  "players": {
+    "count": 16,
+    "teams": 4
+  },
+  "loop": {
+    "phases": [
+      "守床",
+      "收集铁金绿钻",
+      "搭桥进攻",
+      "破床歼灭"
+    ],
+    "economy": [
+      "铁",
+      "金",
+      "绿宝石",
+      "钻石"
+    ],
+    "winConditions": [
+      "全员歼灭且床已破"
+    ]
+  },
+  "zones": [
+    {
+      "id": "z0",
+      "role": "spawn",
+      "name": "红方岛",
+      "center": [
+        128,
+        44
+      ],
+      "radius": 19,
+      "elevationHint": "plateau-14",
+      "biome": "浮空草岛",
+      "priority": 1,
+      "adjacency": [
+        "z6"
+      ],
+      "gameplayNotes": "红方 基地岛",
+      "team": 0
+    },
+    {
+      "id": "z1",
+      "role": "spawn",
+      "name": "蓝方岛",
+      "center": [
+        212,
+        128
+      ],
+      "radius": 19,
+      "elevationHint": "plateau-14",
+      "biome": "浮空草岛",
+      "priority": 1,
+      "adjacency": [
+        "z4"
+      ],
+      "gameplayNotes": "蓝方 基地岛",
+      "team": 1
+    },
+    {
+      "id": "z2",
+      "role": "spawn",
+      "name": "绿方岛",
+      "center": [
+        128,
+        212
+      ],
+      "radius": 19,
+      "elevationHint": "plateau-14",
+      "biome": "浮空草岛",
+      "priority": 1,
+      "adjacency": [
+        "z5"
+      ],
+      "gameplayNotes": "绿方 基地岛",
+      "team": 2
+    },
+    {
+      "id": "z3",
+      "role": "spawn",
+      "name": "黄方岛",
+      "center": [
+        44,
+        128
+      ],
+      "radius": 19,
+      "elevationHint": "plateau-14",
+      "biome": "浮空草岛",
+      "priority": 1,
+      "adjacency": [
+        "z5"
+      ],
+      "gameplayNotes": "黄方 基地岛",
+      "team": 3
+    },
+    {
+      "id": "z4",
+      "role": "resource",
+      "name": "中环资源岛",
+      "center": [
+        165,
+        148
+      ],
+      "radius": 17,
+      "elevationHint": "plateau-10",
+      "biome": "矿岛",
+      "priority": 2,
+      "adjacency": [
+        "z6"
+      ],
+      "gameplayNotes": "资源岛"
+    },
+    {
+      "id": "z5",
+      "role": "resource",
+      "name": "中环资源岛",
+      "center": [
+        92,
+        150
+      ],
+      "radius": 17,
+      "elevationHint": "plateau-10",
+      "biome": "矿岛",
+      "priority": 2,
+      "adjacency": [
+        "z6"
+      ],
+      "gameplayNotes": "资源岛"
+    },
+    {
+      "id": "z6",
+      "role": "shop",
+      "name": "中央钻石岛",
+      "center": [
+        128,
+        128
+      ],
+      "radius": 13,
+      "elevationHint": "plateau-16",
+      "biome": "钻石岛",
+      "priority": 1,
+      "adjacency": [
+        "z4"
+      ],
+      "gameplayNotes": "中央高价值区"
+    }
+  ],
+  "poiGraph": {
+    "nodes": [
+      {
+        "id": "p_z0",
+        "zone": "z0",
+        "pos": [
+          128,
+          0,
+          44
+        ],
+        "kind": "bed"
+      },
+      {
+        "id": "p_z1",
+        "zone": "z1",
+        "pos": [
+          212,
+          0,
+          128
+        ],
+        "kind": "bed"
+      },
+      {
+        "id": "p_z2",
+        "zone": "z2",
+        "pos": [
+          128,
+          0,
+          212
+        ],
+        "kind": "bed"
+      },
+      {
+        "id": "p_z3",
+        "zone": "z3",
+        "pos": [
+          44,
+          0,
+          128
+        ],
+        "kind": "bed"
+      },
+      {
+        "id": "p_z4",
+        "zone": "z4",
+        "pos": [
+          165,
+          0,
+          148
+        ],
+        "kind": "ore"
+      },
+      {
+        "id": "p_z5",
+        "zone": "z5",
+        "pos": [
+          92,
+          0,
+          150
+        ],
+        "kind": "ore"
+      },
+      {
+        "id": "p_z6",
+        "zone": "z6",
+        "pos": [
+          128,
+          0,
+          128
+        ],
+        "kind": "shop"
+      },
+      {
+        "id": "p_z6_npc",
+        "zone": "z6",
+        "pos": [
+          131,
+          0,
+          131
+        ],
+        "kind": "shopkeeper"
+      }
+    ],
+    "edges": [
+      {
+        "a": "p_z0",
+        "b": "p_z6",
+        "kind": "path"
+      },
+      {
+        "a": "p_z1",
+        "b": "p_z4",
+        "kind": "path"
+      },
+      {
+        "a": "p_z2",
+        "b": "p_z5",
+        "kind": "path"
+      },
+      {
+        "a": "p_z3",
+        "b": "p_z5",
+        "kind": "path"
+      },
+      {
+        "a": "p_z4",
+        "b": "p_z6",
+        "kind": "path"
+      },
+      {
+        "a": "p_z5",
+        "b": "p_z6",
+        "kind": "path"
+      },
+      {
+        "a": "p_z6",
+        "b": "p_z4",
+        "kind": "path"
+      },
+      {
+        "a": "p_z0",
+        "b": "p_z1",
+        "kind": "portal"
+      },
+      {
+        "a": "p_z0",
+        "b": "p_z2",
+        "kind": "portal"
+      },
+      {
+        "a": "p_z0",
+        "b": "p_z3",
+        "kind": "portal"
+      }
+    ]
+  },
+  "terrain": {
+    "continentProfile": "archipelago",
+    "rivers": 0,
+    "landmarkSilhouettes": [
+      "中央钻石尖塔"
+    ],
+    "traversal": "parkour",
+    "biomePalette": [
+      {
+        "biome": "浮空草岛",
+        "blocks": {
+          "top": "grass",
+          "sub": "dirt",
+          "base": "stone"
+        },
+        "density": 0.1817557129729539
+      },
+      {
+        "biome": "矿岛",
+        "blocks": {
+          "top": "dark_grass_rock",
+          "sub": "dirt",
+          "base": "stone"
+        },
+        "density": 0.1892937386361882
+      },
+      {
+        "biome": "钻石岛",
+        "blocks": {
+          "top": "light_sand",
+          "sub": "stone",
+          "base": "stone"
+        },
+        "density": 0.32653614491689953
+      }
+    ],
+    "water": {
+      "level": 8,
+      "bodies": 0
+    }
+  },
+  "ui": {
+    "screens": [
+      {
+        "id": "hud",
+        "purpose": "战斗主界面"
+      },
+      {
+        "id": "shop",
+        "purpose": "商店弹窗"
+      }
+    ],
+    "components": [
+      {
+        "kind": "hotbar",
+        "bindings": {}
+      },
+      {
+        "kind": "hearts",
+        "bindings": {}
+      },
+      {
+        "kind": "nameplate",
+        "bindings": {}
+      },
+      {
+        "kind": "killfeed",
+        "bindings": {}
+      },
+      {
+        "kind": "minimapFrame",
+        "bindings": {}
+      },
+      {
+        "kind": "scoreboard",
+        "bindings": {}
+      },
+      {
+        "kind": "timer",
+        "bindings": {}
+      },
+      {
+        "kind": "teamScore",
+        "bindings": {}
+      },
+      {
+        "kind": "crosshair",
+        "bindings": {}
+      },
+      {
+        "kind": "buffRow",
+        "bindings": {}
+      },
+      {
+        "kind": "shopGrid",
+        "bindings": {}
+      }
+    ],
+    "density": "medium",
+    "criticalInfo": [
+      "hotbar",
+      "hearts",
+      "nameplate"
+    ]
+  },
+  "models": [
+    {
+      "role": "landmark",
+      "name": "bedwars-base",
+      "style": "床战基地塔",
+      "sizeHint": [
+        24,
+        26,
+        24
+      ],
+      "animated": false
+    },
+    {
+      "role": "landmark",
+      "name": "pixel-team-bed",
+      "style": "像素床",
+      "sizeHint": [
+        14,
+        6,
+        20
+      ]
+    },
+    {
+      "role": "prop",
+      "name": "pixel-generator",
+      "style": "像素生成器",
+      "sizeHint": [
+        10,
+        12,
+        10
+      ],
+      "animated": true
+    },
+    {
+      "role": "prop",
+      "name": "pixel-altar",
+      "style": "像素祭坛",
+      "sizeHint": [
+        12,
+        10,
+        12
+      ],
+      "animated": true
+    }
+  ],
+  "fun": {
+    "scores": {
+      "clarity": 90,
+      "pacing": 94,
+      "balance": 100,
+      "depth": 100
+    },
+    "notes": []
+  }
+}

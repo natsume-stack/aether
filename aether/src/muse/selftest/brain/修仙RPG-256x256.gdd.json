@@ -1,0 +1,448 @@
+{
+  "version": "GDD/0.1",
+  "id": "修仙RPG-256x256",
+  "name": "修仙RPG·水墨",
+  "genre": "修仙RPG",
+  "themeKeywords": [
+    "水墨",
+    "云海",
+    "飞升"
+  ],
+  "artStyle": "ink",
+  "mapSize": [
+    256,
+    256
+  ],
+  "heightBudget": 64,
+  "seed": 42,
+  "players": {
+    "count": 8,
+    "teams": 2
+  },
+  "loop": {
+    "phases": [
+      "打坐修炼",
+      "采集炼丹",
+      "历练突破",
+      "渡劫飞升"
+    ],
+    "economy": [
+      "灵石",
+      "灵草",
+      "丹药"
+    ],
+    "winConditions": [
+      "渡劫成功飞升"
+    ]
+  },
+  "zones": [
+    {
+      "id": "z0",
+      "role": "hub",
+      "name": "青冥城",
+      "center": [
+        128,
+        128
+      ],
+      "radius": 28,
+      "elevationHint": "plateau-12",
+      "biome": "云上主城",
+      "priority": 1,
+      "adjacency": [
+        "z2"
+      ],
+      "gameplayNotes": "枢纽"
+    },
+    {
+      "id": "z1",
+      "role": "resource",
+      "name": "灵田/药谷",
+      "center": [
+        128,
+        41
+      ],
+      "radius": 18,
+      "elevationHint": "hill",
+      "biome": "灵植谷地",
+      "priority": 2,
+      "adjacency": [
+        "z0"
+      ],
+      "gameplayNotes": "resource"
+    },
+    {
+      "id": "z2",
+      "role": "resource",
+      "name": "灵田/药谷",
+      "center": [
+        203,
+        84
+      ],
+      "radius": 18,
+      "elevationHint": "hill",
+      "biome": "灵植谷地",
+      "priority": 2,
+      "adjacency": [
+        "z0"
+      ],
+      "gameplayNotes": "resource"
+    },
+    {
+      "id": "z3",
+      "role": "boss",
+      "name": "渡劫峰",
+      "center": [
+        203,
+        172
+      ],
+      "radius": 18,
+      "elevationHint": "peak",
+      "biome": "雷岩绝顶",
+      "priority": 1,
+      "adjacency": [
+        "z0"
+      ],
+      "gameplayNotes": "boss"
+    },
+    {
+      "id": "z4",
+      "role": "shop",
+      "name": "坊市",
+      "center": [
+        128,
+        215
+      ],
+      "radius": 18,
+      "elevationHint": "flat",
+      "biome": "石板街市",
+      "priority": 3,
+      "adjacency": [
+        "z0"
+      ],
+      "gameplayNotes": "shop"
+    },
+    {
+      "id": "z5",
+      "role": "transition",
+      "name": "云桥",
+      "center": [
+        53,
+        172
+      ],
+      "radius": 18,
+      "elevationHint": "bridge",
+      "biome": "云海",
+      "priority": 4,
+      "adjacency": [
+        "z0"
+      ],
+      "gameplayNotes": "transition"
+    },
+    {
+      "id": "z6",
+      "role": "transition",
+      "name": "云桥",
+      "center": [
+        53,
+        84
+      ],
+      "radius": 18,
+      "elevationHint": "bridge",
+      "biome": "云海",
+      "priority": 4,
+      "adjacency": [
+        "z0"
+      ],
+      "gameplayNotes": "transition"
+    }
+  ],
+  "poiGraph": {
+    "nodes": [
+      {
+        "id": "p_z0",
+        "zone": "z0",
+        "pos": [
+          128,
+          0,
+          128
+        ],
+        "kind": "altar"
+      },
+      {
+        "id": "p_z1",
+        "zone": "z1",
+        "pos": [
+          128,
+          0,
+          41
+        ],
+        "kind": "ore"
+      },
+      {
+        "id": "p_z2",
+        "zone": "z2",
+        "pos": [
+          203,
+          0,
+          84
+        ],
+        "kind": "ore"
+      },
+      {
+        "id": "p_z3",
+        "zone": "z3",
+        "pos": [
+          203,
+          0,
+          172
+        ],
+        "kind": "boss"
+      },
+      {
+        "id": "p_z4",
+        "zone": "z4",
+        "pos": [
+          128,
+          0,
+          215
+        ],
+        "kind": "shop"
+      },
+      {
+        "id": "p_z4_npc",
+        "zone": "z4",
+        "pos": [
+          131,
+          0,
+          218
+        ],
+        "kind": "shopkeeper"
+      },
+      {
+        "id": "p_z5",
+        "zone": "z5",
+        "pos": [
+          53,
+          0,
+          172
+        ],
+        "kind": "checkpoint"
+      },
+      {
+        "id": "p_z6",
+        "zone": "z6",
+        "pos": [
+          53,
+          0,
+          84
+        ],
+        "kind": "checkpoint"
+      }
+    ],
+    "edges": [
+      {
+        "a": "p_z0",
+        "b": "p_z2",
+        "kind": "path"
+      },
+      {
+        "a": "p_z1",
+        "b": "p_z0",
+        "kind": "path"
+      },
+      {
+        "a": "p_z2",
+        "b": "p_z0",
+        "kind": "path"
+      },
+      {
+        "a": "p_z3",
+        "b": "p_z0",
+        "kind": "path"
+      },
+      {
+        "a": "p_z4",
+        "b": "p_z0",
+        "kind": "path"
+      },
+      {
+        "a": "p_z5",
+        "b": "p_z0",
+        "kind": "path"
+      },
+      {
+        "a": "p_z6",
+        "b": "p_z0",
+        "kind": "path"
+      }
+    ]
+  },
+  "terrain": {
+    "continentProfile": "continent",
+    "rivers": 2,
+    "landmarkSilhouettes": [
+      "中央主峰",
+      "环山"
+    ],
+    "traversal": "walk",
+    "biomePalette": [
+      {
+        "biome": "云上主城",
+        "blocks": {
+          "top": "grass",
+          "sub": "dirt",
+          "base": "stone"
+        },
+        "density": 0.2701655627880245
+      },
+      {
+        "biome": "灵植谷地",
+        "blocks": {
+          "top": "orange_grass",
+          "sub": "dirt",
+          "base": "stone"
+        },
+        "density": 0.24724358384963124
+      },
+      {
+        "biome": "雷岩绝顶",
+        "blocks": {
+          "top": "dark_volcanic_rock",
+          "sub": "stone",
+          "base": "stone"
+        },
+        "density": 0.3078698690235615
+      },
+      {
+        "biome": "石板街市",
+        "blocks": {
+          "top": "light_sand",
+          "sub": "dirt",
+          "base": "stone"
+        },
+        "density": 0.2804601062159054
+      },
+      {
+        "biome": "云海",
+        "blocks": {
+          "top": "snow",
+          "sub": "snow",
+          "base": "stone"
+        },
+        "density": 0.20622208481188864
+      }
+    ],
+    "water": {
+      "level": 8,
+      "bodies": 2
+    }
+  },
+  "ui": {
+    "screens": [
+      {
+        "id": "hud",
+        "purpose": "战斗主界面"
+      }
+    ],
+    "components": [
+      {
+        "kind": "hotbar",
+        "bindings": {}
+      },
+      {
+        "kind": "hearts",
+        "bindings": {}
+      },
+      {
+        "kind": "xpBar",
+        "bindings": {}
+      },
+      {
+        "kind": "nameplate",
+        "bindings": {}
+      },
+      {
+        "kind": "bossbar",
+        "bindings": {}
+      },
+      {
+        "kind": "minimapFrame",
+        "bindings": {}
+      },
+      {
+        "kind": "scoreboard",
+        "bindings": {}
+      },
+      {
+        "kind": "timer",
+        "bindings": {}
+      },
+      {
+        "kind": "teamScore",
+        "bindings": {}
+      },
+      {
+        "kind": "toast",
+        "bindings": {}
+      },
+      {
+        "kind": "buffRow",
+        "bindings": {}
+      },
+      {
+        "kind": "crosshair",
+        "bindings": {}
+      }
+    ],
+    "density": "medium",
+    "criticalInfo": [
+      "hotbar",
+      "hearts",
+      "xpBar"
+    ]
+  },
+  "models": [
+    {
+      "role": "hero",
+      "name": "ink-crane",
+      "style": "仙鹤",
+      "sizeHint": [
+        34,
+        40,
+        16
+      ],
+      "animated": true
+    },
+    {
+      "role": "landmark",
+      "name": "ink-pagoda",
+      "style": "问心塔",
+      "sizeHint": [
+        22,
+        44,
+        22
+      ],
+      "animated": false
+    },
+    {
+      "role": "landmark",
+      "name": "ink-furnace",
+      "style": "青铜丹炉",
+      "sizeHint": [
+        24,
+        30,
+        24
+      ],
+      "animated": true
+    }
+  ],
+  "fun": {
+    "scores": {
+      "clarity": 98,
+      "pacing": 94,
+      "balance": 100,
+      "depth": 99
+    },
+    "notes": []
+  }
+}

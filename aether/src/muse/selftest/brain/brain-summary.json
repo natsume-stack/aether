@@ -1,0 +1,74 @@
+[
+  {
+    "id": "像素战争-512x512",
+    "ok": true,
+    "zones": 10,
+    "pois": 11,
+    "fun": {
+      "clarity": 100,
+      "pacing": 87,
+      "balance": 100,
+      "depth": 99
+    },
+    "warnings": [
+      "有河流但无水域系生物群系"
+    ]
+  },
+  {
+    "id": "起床战争-256x256",
+    "ok": true,
+    "zones": 7,
+    "pois": 8,
+    "fun": {
+      "clarity": 90,
+      "pacing": 94,
+      "balance": 100,
+      "depth": 100
+    },
+    "warnings": []
+  },
+  {
+    "id": "修仙RPG-256x256",
+    "ok": true,
+    "zones": 7,
+    "pois": 8,
+    "fun": {
+      "clarity": 98,
+      "pacing": 94,
+      "balance": 100,
+      "depth": 99
+    },
+    "warnings": [
+      "spawn 区数量少于队伍数"
+    ]
+  },
+  {
+    "id": "夺旗-384x384",
+    "ok": true,
+    "zones": 7,
+    "pois": 7,
+    "fun": {
+      "clarity": 90,
+      "pacing": 78,
+      "balance": 100,
+      "depth": 75
+    },
+    "warnings": []
+  },
+  {
+    "id": "大逃杀-512x512",
+    "ok": true,
+    "zones": 9,
+    "pois": 9,
+    "fun": {
+      "clarity": 100,
+      "pacing": 71,
+      "balance": 100,
+      "depth": 85
+    },
+    "warnings": [
+      "spawn 区数量少于队伍数",
+      "有河流但无水域系生物群系"
+    ]
+  }
+]

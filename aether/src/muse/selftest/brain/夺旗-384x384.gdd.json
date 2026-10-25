@@ -1,0 +1,406 @@
+{
+  "version": "GDD/0.1",
+  "id": "夺旗-384x384",
+  "name": "夺旗·对抗",
+  "genre": "夺旗",
+  "themeKeywords": [
+    "对抗",
+    "护送",
+    "旗帜"
+  ],
+  "artStyle": "hitech",
+  "mapSize": [
+    384,
+    384
+  ],
+  "heightBudget": 64,
+  "seed": 99,
+  "players": {
+    "count": 16,
+    "teams": 4
+  },
+  "loop": {
+    "phases": [
+      "取旗",
+      "护送回营",
+      "防守反击",
+      "返程加速"
+    ],
+    "economy": [
+      "充能核心"
+    ],
+    "winConditions": [
+      "先夺 N 旗"
+    ]
+  },
+  "zones": [
+    {
+      "id": "z0",
+      "role": "spawn",
+      "name": "红方基地",
+      "center": [
+        192,
+        73
+      ],
+      "radius": 31,
+      "elevationHint": "plateau-8",
+      "biome": "基地平台",
+      "priority": 1,
+      "adjacency": [
+        "z_hub"
+      ],
+      "gameplayNotes": "红方 出生+核心",
+      "team": 0
+    },
+    {
+      "id": "z1",
+      "role": "spawn",
+      "name": "蓝方基地",
+      "center": [
+        311,
+        192
+      ],
+      "radius": 31,
+      "elevationHint": "plateau-8",
+      "biome": "基地平台",
+      "priority": 1,
+      "adjacency": [
+        "z_hub"
+      ],
+      "gameplayNotes": "蓝方 出生+核心",
+      "team": 1
+    },
+    {
+      "id": "z2",
+      "role": "spawn",
+      "name": "绿方基地",
+      "center": [
+        192,
+        311
+      ],
+      "radius": 31,
+      "elevationHint": "plateau-8",
+      "biome": "基地平台",
+      "priority": 1,
+      "adjacency": [
+        "z_hub"
+      ],
+      "gameplayNotes": "绿方 出生+核心",
+      "team": 2
+    },
+    {
+      "id": "z3",
+      "role": "spawn",
+      "name": "黄方基地",
+      "center": [
+        73,
+        192
+      ],
+      "radius": 31,
+      "elevationHint": "plateau-8",
+      "biome": "基地平台",
+      "priority": 1,
+      "adjacency": [
+        "z_hub"
+      ],
+      "gameplayNotes": "黄方 出生+核心",
+      "team": 3
+    },
+    {
+      "id": "z4",
+      "role": "arena",
+      "name": "中央峡谷",
+      "center": [
+        192,
+        192
+      ],
+      "radius": 44,
+      "elevationHint": "canyon",
+      "biome": "峡谷",
+      "priority": 2,
+      "adjacency": [
+        "z5"
+      ],
+      "gameplayNotes": "中立"
+    },
+    {
+      "id": "z5",
+      "role": "resource",
+      "name": "侧翼高地",
+      "center": [
+        237,
+        237
+      ],
+      "radius": 19,
+      "elevationHint": "hill",
+      "biome": "高地",
+      "priority": 3,
+      "adjacency": [
+        "z4"
+      ],
+      "gameplayNotes": "中立"
+    },
+    {
+      "id": "z6",
+      "role": "resource",
+      "name": "侧翼高地",
+      "center": [
+        147,
+        237
+      ],
+      "radius": 19,
+      "elevationHint": "hill",
+      "biome": "高地",
+      "priority": 3,
+      "adjacency": [
+        "z4"
+      ],
+      "gameplayNotes": "中立"
+    }
+  ],
+  "poiGraph": {
+    "nodes": [
+      {
+        "id": "p_z0",
+        "zone": "z0",
+        "pos": [
+          192,
+          0,
+          73
+        ],
+        "kind": "base"
+      },
+      {
+        "id": "p_z1",
+        "zone": "z1",
+        "pos": [
+          311,
+          0,
+          192
+        ],
+        "kind": "base"
+      },
+      {
+        "id": "p_z2",
+        "zone": "z2",
+        "pos": [
+          192,
+          0,
+          311
+        ],
+        "kind": "base"
+      },
+      {
+        "id": "p_z3",
+        "zone": "z3",
+        "pos": [
+          73,
+          0,
+          192
+        ],
+        "kind": "base"
+      },
+      {
+        "id": "p_z4",
+        "zone": "z4",
+        "pos": [
+          192,
+          0,
+          192
+        ],
+        "kind": "core"
+      },
+      {
+        "id": "p_z5",
+        "zone": "z5",
+        "pos": [
+          237,
+          0,
+          237
+        ],
+        "kind": "ore"
+      },
+      {
+        "id": "p_z6",
+        "zone": "z6",
+        "pos": [
+          147,
+          0,
+          237
+        ],
+        "kind": "ore"
+      }
+    ],
+    "edges": [
+      {
+        "a": "p_z4",
+        "b": "p_z5",
+        "kind": "path"
+      },
+      {
+        "a": "p_z5",
+        "b": "p_z4",
+        "kind": "path"
+      },
+      {
+        "a": "p_z6",
+        "b": "p_z4",
+        "kind": "path"
+      },
+      {
+        "a": "p_z0",
+        "b": "p_z1",
+        "kind": "portal"
+      },
+      {
+        "a": "p_z0",
+        "b": "p_z2",
+        "kind": "portal"
+      },
+      {
+        "a": "p_z0",
+        "b": "p_z3",
+        "kind": "portal"
+      }
+    ]
+  },
+  "terrain": {
+    "continentProfile": "canyon",
+    "rivers": 1,
+    "landmarkSilhouettes": [
+      "跨谷大桥"
+    ],
+    "traversal": "parkour",
+    "biomePalette": [
+      {
+        "biome": "基地平台",
+        "blocks": {
+          "top": "dark_sand",
+          "sub": "stone",
+          "base": "stone"
+        },
+        "density": 0.2190698718605563
+      },
+      {
+        "biome": "峡谷",
+        "blocks": {
+          "top": "grass_rock",
+          "sub": "stone",
+          "base": "stone"
+        },
+        "density": 0.30072341482853515
+      },
+      {
+        "biome": "高地",
+        "blocks": {
+          "top": "snow_land",
+          "sub": "stone",
+          "base": "stone"
+        },
+        "density": 0.26113073024433103
+      }
+    ],
+    "water": {
+      "level": 8,
+      "bodies": 2
+    }
+  },
+  "ui": {
+    "screens": [
+      {
+        "id": "hud",
+        "purpose": "战斗主界面"
+      }
+    ],
+    "components": [
+      {
+        "kind": "hearts",
+        "bindings": {}
+      },
+      {
+        "kind": "nameplate",
+        "bindings": {}
+      },
+      {
+        "kind": "killfeed",
+        "bindings": {}
+      },
+      {
+        "kind": "minimapFrame",
+        "bindings": {}
+      },
+      {
+        "kind": "scoreboard",
+        "bindings": {}
+      },
+      {
+        "kind": "timer",
+        "bindings": {}
+      },
+      {
+        "kind": "teamScore",
+        "bindings": {}
+      },
+      {
+        "kind": "crosshair",
+        "bindings": {}
+      },
+      {
+        "kind": "buffRow",
+        "bindings": {}
+      },
+      {
+        "kind": "toast",
+        "bindings": {}
+      }
+    ],
+    "density": "medium",
+    "criticalInfo": [
+      "hearts",
+      "nameplate",
+      "killfeed"
+    ]
+  },
+  "models": [
+    {
+      "role": "landmark",
+      "name": "hitech-flag-base",
+      "style": "旗座",
+      "sizeHint": [
+        12,
+        6,
+        12
+      ]
+    },
+    {
+      "role": "landmark",
+      "name": "hitech-flag",
+      "style": "能量旗",
+      "sizeHint": [
+        6,
+        26,
+        6
+      ],
+      "animated": true
+    },
+    {
+      "role": "prop",
+      "name": "hitech-pad",
+      "style": "加速板",
+      "sizeHint": [
+        10,
+        2,
+        10
+      ]
+    }
+  ],
+  "fun": {
+    "scores": {
+      "clarity": 90,
+      "pacing": 78,
+      "balance": 100,
+      "depth": 75
+    },
+    "notes": []
+  }
+}
