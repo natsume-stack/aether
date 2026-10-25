@@ -1,0 +1,53 @@
+{
+  "genre": "像素战争",
+  "mapSize": [
+    512,
+    512
+  ],
+  "stages": {
+    "brain": {
+      "ok": true,
+      "zones": 10,
+      "fun": {
+        "clarity": 100,
+        "pacing": 87,
+        "balance": 100,
+        "depth": 99
+      },
+      "artStyle": "pixel",
+      "uiComponents": 16,
+      "models": 5
+    },
+    "ui": {
+      "desktop": {
+        "overlapCount": 0,
+        "outOfBoundsCount": 0,
+        "placed": 16,
+        "hidden": 0,
+        "png": "D:\\desktop\\神奇代码岛\\aether\\aether\\examples\\ui\\demo-desktop.png"
+      },
+      "laptop": {
+        "overlapCount": 0,
+        "outOfBoundsCount": 0,
+        "placed": 16,
+        "hidden": 0,
+        "png": "D:\\desktop\\神奇代码岛\\aether\\aether\\examples\\ui\\demo-laptop.png"
+      },
+      "mobile": {
+        "overlapCount": 0,
+        "outOfBoundsCount": 0,
+        "placed": 13,
+        "hidden": 3,
+        "png": "D:\\desktop\\神奇代码岛\\aether\\aether\\examples\\ui\\demo-mobile.png"
+      }
+    },
+    "terrain": {
+      "pending": true,
+      "reason": "Cannot find module 'D:\\desktop\\神奇代码岛\\aether\\aether\\src\\gaia\\terrain-engine.mjs' imported from D:\\desktop\\神奇代码岛\\aether\\ae"
+    },
+    "models": {
+      "pending": true,
+      "reason": "Cannot find module 'D:\\desktop\\神奇代码岛\\aether\\aether\\src\\chisel\\run-model-v3.mjs' imported from D:\\desktop\\神奇代码岛\\aether\\ae"
+    }
+  }
+}

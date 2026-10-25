@@ -36,11 +36,14 @@ for (const [pid, layout] of Object.entries(layouts)) {
 
 // 3) 地形（模块就绪则接入）
 try {
-  const { generateTerrainPlan } = await import('../src/gaia/terrain-engine.mjs');
-  const { renderTopDown } = await import('../../terrain-render.mjs');
-  const plan = generateTerrainPlan({ gdd });
-  const shots = await renderTopDown({ plan, outDir: path.join(OUT, 'terrain') });
-  report.stages.terrain = { ok: true, metrics: plan.metrics, pngs: shots };
+  const { buildTerrainPlan, exportPlanJson } = await import('../src/gaia/terrain-engine.mjs');
+  const { renderTopDown, renderIsometric } = await import('../../terrain-render.mjs');
+  const plan = buildTerrainPlan(gdd);
+  fs.mkdirSync(path.join(OUT, 'terrain'), { recursive: true });
+  fs.writeFileSync(path.join(OUT, 'terrain', 'topdown.png'), renderTopDown(plan, { scale: 1 }));
+  fs.writeFileSync(path.join(OUT, 'terrain', 'iso.png'), renderIsometric(plan, { cellSize: Math.max(2, Math.round(640 / Math.max(...plan.size))) }));
+  fs.writeFileSync(path.join(OUT, 'terrain', 'plan.json'), exportPlanJson(plan));
+  report.stages.terrain = { ok: true, metrics: plan.metrics, size: plan.size, attempts: (plan.attempt || 0) + 1 };
   console.log('[terrain]', JSON.stringify(plan.metrics));
 } catch (e) {
   report.stages.terrain = { pending: true, reason: String(e.message || e).slice(0, 120) };

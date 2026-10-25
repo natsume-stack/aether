@@ -1,5 +1,5 @@
 /**
- * muse.mjs — 游戏设计大脑 Muse (GDD/0.1)
+ * game-design-brain.mjs — 游戏设计大脑 (GDD/0.1)
  *
  * 让 AI 像人类制作人一样思考：这个游戏该包括什么系统、空间怎么布局、
  * 需要哪些 HUD/模型/地形。类型学知识库(GenreKB) + 空间规划器 + fun 自评，
