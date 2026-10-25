@@ -15,9 +15,9 @@ export const GenreKB = {
     loop: { phases: ['采集资源', '升级装备', '团战推进', '摧毁核心'], economy: ['矿石', '木材', '金币'], winConditions: ['摧毁敌方水晶', '积分领先'] },
     systems: [
       { id: 'respawn', name: '重生', ui: [], models: [] },
-      { id: 'shop', name: '战备商店', ui: ['shopGrid'], models: [{ role: 'prop', name: 'pixel-shop-stall', style: '像素货摊', sizeHint: [20, 14, 14] }] },
-      { id: 'resource', name: '矿脉采集', ui: ['ammoCounter'], models: [{ role: 'prop', name: 'pixel-ore-vein', style: '像素矿脉', sizeHint: [12, 10, 12] }] },
-      { id: 'core', name: '队伍水晶', ui: ['bossbar'], models: [{ role: 'landmark', name: 'pixel-crystal', style: '像素水晶', sizeHint: [14, 22, 14], animated: true }] },
+      { id: 'shop', name: '战备商店', ui: ['shopGrid'], models: [] },
+      { id: 'resource', name: '矿脉采集', ui: ['ammoCounter'], models: [{ role: 'prop', name: 'pixel-pickaxe', style: '像素矿镐', sizeHint: [22, 30, 10], animated: false }] },
+      { id: 'core', name: '队伍水晶', ui: ['bossbar'], models: [{ role: 'landmark', name: 'pixel-turret', style: '水晶守卫炮塔', sizeHint: [30, 26, 30], animated: true }] },
     ],
     spatialPattern: 'symmetric-camps',
     zoneRecipe: [
@@ -29,8 +29,8 @@ export const GenreKB = {
     poiKinds: ['bed', 'shop', 'ore', 'core'],
     hud: ['hotbar', 'hearts', 'armorBar', 'hunger', 'xpBar', 'nameplate', 'killfeed', 'minimapFrame', 'scoreboard', 'timer', 'teamScore', 'crosshair', 'buffRow', 'ammoCounter'],
     models: [
-      { role: 'hero', name: 'pixel-blaster', style: '像素步枪', sizeHint: [22, 8, 6], animated: false },
-      { role: 'landmark', name: 'pixel-castle', style: '像素城堡', sizeHint: [40, 40, 40], animated: false },
+      { role: 'hero', name: 'pixel-blaster', style: '像素步枪', sizeHint: [26, 9, 5], animated: true },
+      { role: 'landmark', name: 'pixel-castle', style: '像素城堡', sizeHint: [42, 40, 42], animated: false },
     ],
     terrain: { continentProfile: 'island-ring', rivers: 1, landmarkSilhouettes: ['中央火山口'], traversal: 'walk' },
     pacing: { routeSeconds: [25, 45], shrink: false },
@@ -99,7 +99,7 @@ export const GenreKB = {
     hud: ['hotbar', 'hearts', 'xpBar', 'nameplate', 'bossbar', 'minimapFrame', 'scoreboard', 'timer', 'teamScore', 'toast', 'buffRow', 'crosshair'],
     models: [
       { role: 'hero', name: 'ink-crane', style: '仙鹤', sizeHint: [34, 40, 16], animated: true },
-      { role: 'landmark', name: 'ink-pagoda', style: '问心塔', sizeHint: [22, 44, 22], animated: false },
+      { role: 'landmark', name: 'ink-stele', style: '问心剑碑', sizeHint: [22, 44, 13], animated: true },
     ],
     terrain: { continentProfile: 'continent', rivers: 2, landmarkSilhouettes: ['中央主峰', '环山'], traversal: 'walk' },
     pacing: { routeSeconds: [20, 40], shrink: false },
@@ -183,7 +183,7 @@ export const GenreKB = {
     ],
     poiKinds: ['loot', 'crate', 'tower', 'vault'],
     hud: ['hotbar', 'hearts', 'armorBar', 'nameplate', 'killfeed', 'minimapFrame', 'timer', 'crosshair', 'buffRow', 'ammoCounter'],
-    models: [{ role: 'landmark', name: 'hitech-drop-pod', style: '空投舱', sizeHint: [16, 20, 16], animated: true }],
+    models: [{ role: 'landmark', name: 'hitech-station', style: '补给轨道站', sizeHint: [34, 12, 34], animated: true }],
     terrain: { continentProfile: 'continent', rivers: 2, landmarkSilhouettes: ['中央塔群'], traversal: 'walk' },
     pacing: { routeSeconds: [40, 70], shrink: true },
   },

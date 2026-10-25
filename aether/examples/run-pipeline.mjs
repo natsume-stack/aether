@@ -54,8 +54,8 @@ try {
 try {
   const { runModelPipeline } = await import('../src/chisel/run-model-v3.mjs');
   const r = await runModelPipeline({ gdd, outDir: path.join(OUT, 'models') });
-  report.stages.models = { ok: true, built: r.reports?.length ?? r.models?.length ?? 'n/a' };
-  console.log('[models] ok');
+  report.stages.models = { ok: r.allPass, models: r.summary.length, allPass: r.allPass, acceptance: r.criticSummary.acceptance, ms: r.criticSummary.ms };
+  console.log('[models]', JSON.stringify(report.stages.models.acceptance));
 } catch (e) {
   report.stages.models = { pending: true, reason: String(e.message || e).slice(0, 120) };
   console.log('[models] pending:', report.stages.models.reason);

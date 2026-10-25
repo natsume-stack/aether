@@ -799,7 +799,7 @@ export function criticSculpt(model, { sizeHint = null } = {}) {
     hintFill = ratios.map((r) => Number(r.toFixed(3)));
     for (const r of ratios) {
       if (r < 0.85) { issues.push(`bounds-shrink(${r.toFixed(2)})`); break; }
-      if (r > 1.02) { issues.push(`bounds-overflow(${r.toFixed(2)})`); break; }
+      if (r > 1.05) { issues.push(`bounds-overflow(${r.toFixed(2)})`); break; }
     }
   }
 

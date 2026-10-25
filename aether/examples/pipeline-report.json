@@ -43,7 +43,7 @@
     },
     "terrain": {
       "pending": true,
-      "reason": "Cannot find module 'D:\\desktop\\神奇代码岛\\aether\\aether\\src\\gaia\\terrain-engine.mjs' imported from D:\\desktop\\神奇代码岛\\aether\\ae"
+      "reason": "Cannot find module 'D:\\desktop\\神奇代码岛\\aether\\terrain-render.mjs' imported from D:\\desktop\\神奇代码岛\\aether\\aether\\examples\\ru"
     },
     "models": {
       "pending": true,
