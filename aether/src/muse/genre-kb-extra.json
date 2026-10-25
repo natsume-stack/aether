@@ -1,0 +1,30 @@
+[
+  {
+    "name": "雪地据点",
+    "match": ["雪地据点", "snow stronghold", "雪原争夺", "雪山攻防"],
+    "artStyle": "pixel",
+    "themeKeywords": ["雪原", "寒风", "据点", "攻防"],
+    "loop": {
+      "phases": ["抢占据点", "采集寒晶", "筑防御线", "围攻主堡"],
+      "economy": ["寒晶", "木料", "雪砖"],
+      "winConditions": ["占领全部据点", "摧毁敌方主堡"]
+    },
+    "systems": [
+      { "id": "stronghold", "name": "据点占领", "ui": ["teamScore"], "models": [{ "role": "landmark", "name": "snow-beacon", "style": "雪原信标塔", "sizeHint": [18, 30, 18], "animated": true }] },
+      { "id": "gather", "name": "寒晶采集", "ui": ["ammoCounter"], "models": [{ "role": "prop", "name": "snow-crystal", "style": "寒晶簇", "sizeHint": [10, 14, 10], "animated": true }] },
+      { "id": "fortify", "name": "雪砖防御", "ui": ["shopGrid"], "models": [] }
+    ],
+    "spatialPattern": "symmetric-camps",
+    "zoneRecipe": [
+      { "role": "spawn", "count": "teams", "name": "{team}雪营", "elevationHint": "plateau-12", "biome": "雪原苔地", "priority": 1 },
+      { "role": "objective", "count": 3, "name": "中立据点", "elevationHint": "hill", "biome": "寒风山脊", "priority": 2 },
+      { "role": "resource", "count": 2, "name": "寒晶矿脉", "elevationHint": "bowl+4", "biome": "冰湖谷地", "priority": 2 },
+      { "role": "boss", "count": 1, "name": "中央主堡", "elevationHint": "peak", "biome": "极风峰顶", "priority": 1 }
+    ],
+    "poiKinds": ["beacon", "crystal", "fortress"],
+    "hud": ["hotbar", "hearts", "nameplate", "killfeed", "minimapFrame", "scoreboard", "timer", "teamScore", "crosshair", "buffRow", "ammoCounter"],
+    "models": [{ "role": "landmark", "name": "snow-citadel", "style": "极寒主堡", "sizeHint": [30, 34, 30], "animated": false }],
+    "terrain": { "continentProfile": "continent", "rivers": 1, "landmarkSilhouettes": ["中央冰峰"], "traversal": "walk" },
+    "pacing": { "routeSeconds": [22, 42], "shrink": false }
+  }
+]

@@ -11,9 +11,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildTerrainPlan, exportPlanJson } from '../../terrain-engine.mjs';
-import { renderTopDown, renderIsometric } from '../../terrain-render.mjs';
-import { buildExecutionPlan } from '../../terrain-executor.mjs';
+import { buildTerrainPlan, exportPlanJson } from '../terrain-engine.mjs';
+import { renderTopDown, renderIsometric } from '../terrain-render.mjs';
+import { buildExecutionPlan } from '../terrain-executor.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const outDir = here;

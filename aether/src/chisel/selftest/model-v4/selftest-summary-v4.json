@@ -1,0 +1,25 @@
+{
+  "version": "SelftestV4/0.1",
+  "models": 3,
+  "allPass": true,
+  "scores": [
+    {
+      "subject": "青铜丹炉",
+      "score": 10,
+      "iou": {}
+    },
+    {
+      "subject": "仙鹤",
+      "score": 10,
+      "iou": {}
+    },
+    {
+      "subject": "雪原信标塔",
+      "score": 10,
+      "iou": {
+        "front": 0.215,
+        "left": 0.217
+      }
+    }
+  ]
+}

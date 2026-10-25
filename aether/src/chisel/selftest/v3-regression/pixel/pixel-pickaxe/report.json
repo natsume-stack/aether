@@ -1,0 +1,119 @@
+{
+  "version": "ModelReport/0.3-sculpt-v3",
+  "artStyle": "pixel",
+  "style": "pixel-pickaxe",
+  "role": "prop",
+  "requested": {
+    "name": "pixel-pickaxe",
+    "sizeHint": [
+      22,
+      30,
+      10
+    ],
+    "animated": false
+  },
+  "program": {
+    "key": "pixel-pickaxe",
+    "natural": [
+      22,
+      30,
+      12
+    ],
+    "fitted": true
+  },
+  "bounds": {
+    "size": [
+      22,
+      30,
+      10
+    ],
+    "fill": [
+      1,
+      1,
+      1
+    ]
+  },
+  "critic": {
+    "before": {
+      "score": 10,
+      "issues": [],
+      "entropy": 3.289,
+      "silhouette": {
+        "occupancy": 0.333,
+        "bbox": [
+          22,
+          30
+        ],
+        "components": 1,
+        "componentsArea": [
+          220
+        ],
+        "mainRatio": 1,
+        "singleMain": true
+      },
+      "floatingClusters": 0,
+      "edgeNoise": 0.168
+    },
+    "after": {
+      "score": 10,
+      "issues": [],
+      "entropy": 3.289,
+      "silhouette": {
+        "occupancy": 0.333,
+        "bbox": [
+          22,
+          30
+        ],
+        "components": 1,
+        "componentsArea": [
+          220
+        ],
+        "mainRatio": 1,
+        "singleMain": true
+      },
+      "floatingClusters": 0,
+      "edgeNoise": 0.168
+    },
+    "repaired": false,
+    "rounds": []
+  },
+  "stats": {
+    "version": 7,
+    "texels": 2600,
+    "usedColors": 15,
+    "rects": 150,
+    "palette": 30,
+    "meshes": 1
+  },
+  "gates": {
+    "palette": true,
+    "usedColors": true,
+    "rects": true,
+    "texels": true,
+    "pass": true
+  },
+  "structures": {
+    "boundsOk": true,
+    "animOk": true,
+    "animated": false,
+    "animations": 0,
+    "bones": 0
+  },
+  "hashes": {
+    "project": "Qmb48G7dJ4o3cd6JxB2ZVqVWHsjN3nhFZ9dHQiaNJfv2fY",
+    "modelData": "QmTfnCeSsfuyFoNVaFpC68io2gs8SF77HpTa2LvtoJaS8i"
+  },
+  "bytes": {
+    "project": 2782,
+    "modelData": 4608,
+    "bundle": 8974
+  },
+  "palette": 30,
+  "groups": [
+    {
+      "id": "pickaxe_body",
+      "filled": 1770
+    }
+  ],
+  "ms": 75
+}

@@ -438,12 +438,12 @@
   "models": [
     {
       "role": "landmark",
-      "name": "hitech-drop-pod",
-      "style": "空投舱",
+      "name": "hitech-station",
+      "style": "补给轨道站",
       "sizeHint": [
-        16,
-        20,
-        16
+        34,
+        12,
+        34
       ],
       "animated": true
     },

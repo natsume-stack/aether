@@ -1,0 +1,16 @@
+{
+  "version": "N17ModelStatusV3/0.1",
+  "artStyle": "pixel",
+  "models": 4,
+  "allPass": true,
+  "acceptance": {
+    "allGatesPass": true,
+    "silhouetteSingleRate": 1,
+    "floatingAfterRepair": 0,
+    "entropyInRange": true,
+    "boundsFillInRange": true,
+    "animatedHaveBones": true,
+    "perModelMsUnder3000": true
+  },
+  "ms": 780
+}

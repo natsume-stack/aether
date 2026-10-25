@@ -1,0 +1,136 @@
+{
+  "version": "ModelReport/0.3-sculpt-v3",
+  "artStyle": "ink",
+  "style": "ink-furnace",
+  "role": "hero",
+  "requested": {
+    "name": "bronze-furnace",
+    "sizeHint": [
+      28,
+      35,
+      28
+    ],
+    "animated": true
+  },
+  "program": {
+    "key": "ink-furnace",
+    "natural": [
+      28,
+      35,
+      28
+    ],
+    "fitted": true
+  },
+  "bounds": {
+    "size": [
+      28,
+      35,
+      28
+    ],
+    "fill": [
+      1,
+      1,
+      1
+    ]
+  },
+  "critic": {
+    "before": {
+      "score": 8.5,
+      "issues": [
+        "floating-clusters(1)"
+      ],
+      "entropy": 3.857,
+      "silhouette": {
+        "occupancy": 0.693,
+        "bbox": [
+          28,
+          35
+        ],
+        "components": 1,
+        "componentsArea": [
+          679
+        ],
+        "mainRatio": 1,
+        "singleMain": true
+      },
+      "floatingClusters": 1,
+      "edgeNoise": 0.096
+    },
+    "after": {
+      "score": 10,
+      "issues": [],
+      "entropy": 3.857,
+      "silhouette": {
+        "occupancy": 0.693,
+        "bbox": [
+          28,
+          35
+        ],
+        "components": 1,
+        "componentsArea": [
+          679
+        ],
+        "mainRatio": 1,
+        "singleMain": true
+      },
+      "floatingClusters": 0,
+      "edgeNoise": 0.096
+    },
+    "repaired": true,
+    "rounds": [
+      {
+        "round": 1,
+        "actions": [
+          "weld(bridged=1,removed=0)"
+        ]
+      }
+    ]
+  },
+  "stats": {
+    "version": 7,
+    "texels": 5700,
+    "usedColors": 30,
+    "rects": 2668,
+    "palette": 38,
+    "meshes": 3
+  },
+  "gates": {
+    "palette": true,
+    "usedColors": true,
+    "rects": true,
+    "texels": true,
+    "pass": true
+  },
+  "structures": {
+    "boundsOk": true,
+    "animOk": true,
+    "animated": true,
+    "animations": 1,
+    "bones": 1
+  },
+  "hashes": {
+    "project": "QmX1HqyYXhxdqHqJX4oE8mbQVKBJYqCkskH85FDqrVtVh5",
+    "modelData": "QmYH5tj3XRb3DcCPMMpxyZpV5vwnpfB2Q6xboKrf7BCgJ8"
+  },
+  "bytes": {
+    "project": 7064,
+    "modelData": 34093,
+    "bundle": 29467
+  },
+  "palette": 38,
+  "groups": [
+    {
+      "id": "furnace_body",
+      "filled": 4221
+    },
+    {
+      "id": "furnace_flame",
+      "filled": 1908
+    },
+    {
+      "id": "weld_2_14_29",
+      "filled": 3
+    }
+  ],
+  "ms": 179
+}

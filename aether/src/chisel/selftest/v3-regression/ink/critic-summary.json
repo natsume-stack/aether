@@ -1,0 +1,155 @@
+{
+  "version": "CriticSummary/0.3",
+  "artStyle": "ink",
+  "models": 4,
+  "gates": {
+    "minPalette": 28,
+    "minUsedColors": 12,
+    "minRects": 160,
+    "minTexels": 1200
+  },
+  "acceptance": {
+    "allGatesPass": true,
+    "silhouetteSingleRate": 1,
+    "floatingAfterRepair": 0,
+    "entropyInRange": true,
+    "boundsFillInRange": true,
+    "animatedHaveBones": true,
+    "perModelMsUnder3000": true
+  },
+  "repairCase": {
+    "style": "ink-furnace",
+    "before": {
+      "score": 8.5,
+      "issues": [
+        "floating-clusters(1)"
+      ],
+      "entropy": 3.857,
+      "silhouette": {
+        "occupancy": 0.693,
+        "bbox": [
+          28,
+          35
+        ],
+        "components": 1,
+        "componentsArea": [
+          679
+        ],
+        "mainRatio": 1,
+        "singleMain": true
+      },
+      "floatingClusters": 1,
+      "edgeNoise": 0.096
+    },
+    "after": {
+      "score": 10,
+      "issues": [],
+      "entropy": 3.857,
+      "silhouette": {
+        "occupancy": 0.693,
+        "bbox": [
+          28,
+          35
+        ],
+        "components": 1,
+        "componentsArea": [
+          679
+        ],
+        "mainRatio": 1,
+        "singleMain": true
+      },
+      "floatingClusters": 0,
+      "edgeNoise": 0.096
+    },
+    "rounds": [
+      {
+        "round": 1,
+        "actions": [
+          "weld(bridged=1,removed=0)"
+        ]
+      }
+    ],
+    "beforePng": "preview-before-repair.png",
+    "afterPng": "ink-furnace/model/model-preview.png"
+  },
+  "summary": [
+    {
+      "style": "ink-furnace",
+      "score": 10,
+      "scoreBefore": 8.5,
+      "entropy": 3.857,
+      "silhouetteSingle": true,
+      "floatingAfter": 0,
+      "fillMin": 1,
+      "gates": {
+        "palette": true,
+        "usedColors": true,
+        "rects": true,
+        "texels": true,
+        "pass": true
+      },
+      "repaired": true,
+      "ms": 179,
+      "pass": true
+    },
+    {
+      "style": "ink-crane",
+      "score": 10,
+      "scoreBefore": 10,
+      "entropy": 3.253,
+      "silhouetteSingle": true,
+      "floatingAfter": 0,
+      "fillMin": 0.909,
+      "gates": {
+        "palette": true,
+        "usedColors": true,
+        "rects": true,
+        "texels": true,
+        "pass": true
+      },
+      "repaired": false,
+      "ms": 205,
+      "pass": true
+    },
+    {
+      "style": "ink-stele",
+      "score": 10,
+      "scoreBefore": 10,
+      "entropy": 3.893,
+      "silhouetteSingle": true,
+      "floatingAfter": 0,
+      "fillMin": 1,
+      "gates": {
+        "palette": true,
+        "usedColors": true,
+        "rects": true,
+        "texels": true,
+        "pass": true
+      },
+      "repaired": false,
+      "ms": 57,
+      "pass": true
+    },
+    {
+      "style": "ink-boat",
+      "score": 8.5,
+      "scoreBefore": 8.5,
+      "entropy": 3.515,
+      "silhouetteSingle": true,
+      "floatingAfter": 0,
+      "fillMin": 1,
+      "gates": {
+        "palette": true,
+        "usedColors": true,
+        "rects": true,
+        "texels": true,
+        "pass": true
+      },
+      "repaired": false,
+      "ms": 162,
+      "pass": true
+    }
+  ],
+  "allPass": true,
+  "ms": 684
+}

@@ -1,0 +1,202 @@
+{
+  "version": "ModelBrief/1.0",
+  "subject": "雪原信标塔",
+  "style": "pixel",
+  "subjectType": "landmark",
+  "mood": [
+    "凛冽",
+    "指引"
+  ],
+  "animated": true,
+  "sizeHint": [
+    20,
+    34,
+    20
+  ],
+  "silhouette": {
+    "front": [
+      [
+        0.28,
+        0
+      ],
+      [
+        0.6,
+        0.05
+      ],
+      [
+        0.5,
+        0.3
+      ],
+      [
+        0.66,
+        0.52
+      ],
+      [
+        0.48,
+        0.7
+      ],
+      [
+        0.64,
+        0.86
+      ],
+      [
+        0.72,
+        0.93
+      ],
+      [
+        0.36,
+        0.97
+      ],
+      [
+        0.7,
+        1
+      ],
+      [
+        0.28,
+        0
+      ]
+    ],
+    "side": [
+      [
+        0.28,
+        0
+      ],
+      [
+        0.6,
+        0.05
+      ],
+      [
+        0.5,
+        0.3
+      ],
+      [
+        0.66,
+        0.52
+      ],
+      [
+        0.48,
+        0.7
+      ],
+      [
+        0.64,
+        0.86
+      ],
+      [
+        0.72,
+        0.93
+      ],
+      [
+        0.36,
+        0.97
+      ],
+      [
+        0.7,
+        1
+      ],
+      [
+        0.28,
+        0
+      ]
+    ]
+  },
+  "silhouetteThreshold": 0.2,
+  "parts": [
+    {
+      "id": "beacon_spire",
+      "role": "body",
+      "position": [
+        1,
+        1,
+        1
+      ],
+      "size": [
+        18,
+        32,
+        18
+      ],
+      "shape": {
+        "fromSilhouette": "front"
+      },
+      "paint": {
+        "hex": "#7f93a8",
+        "steps": 8,
+        "vRange": [
+          0.55,
+          1.12
+        ],
+        "rampT": "height",
+        "noise": 0.12,
+        "edge": {
+          "lighten": 0.18,
+          "n": 5
+        }
+      }
+    },
+    {
+      "id": "beacon_flame",
+      "role": "detail",
+      "position": [
+        6,
+        30,
+        6
+      ],
+      "size": [
+        8,
+        5,
+        8
+      ],
+      "shape": {
+        "primitives": [
+          {
+            "op": "ell",
+            "center": [
+              4,
+              2,
+              4
+            ],
+            "r": [
+              3.4,
+              2.2,
+              3.4
+            ]
+          }
+        ]
+      },
+      "paint": {
+        "hex": "#ffd27a",
+        "steps": 5,
+        "vRange": [
+          0.95,
+          1.35
+        ],
+        "rampT": "depthLight",
+        "noise": 0.18,
+        "glow": {
+          "hex": "#ffe9b0",
+          "depth": 1.2,
+          "emissive": 1
+        }
+      }
+    }
+  ],
+  "bones": [
+    {
+      "id": "bone_body",
+      "name": "Body",
+      "position": [
+        10,
+        0,
+        10
+      ]
+    }
+  ],
+  "animations": [
+    {
+      "id": "beacon_pulse",
+      "type": "alpha",
+      "bone": "bone_body",
+      "amplitude": 3,
+      "period": 2.2
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "artStyle": "ink",
+  "models": [
+    {
+      "role": "hero",
+      "name": "bronze-furnace",
+      "style": "丹炉",
+      "sizeHint": [
+        28,
+        35,
+        28
+      ],
+      "animated": true
+    },
+    {
+      "role": "hero",
+      "name": "crane",
+      "style": "仙鹤",
+      "sizeHint": [
+        38,
+        48,
+        22
+      ],
+      "animated": true
+    },
+    {
+      "role": "landmark",
+      "name": "sword-stele",
+      "style": "石碑",
+      "sizeHint": [
+        22,
+        44,
+        13
+      ],
+      "animated": true
+    },
+    {
+      "role": "landmark",
+      "name": "sky-boat",
+      "style": "云舟",
+      "sizeHint": [
+        52,
+        28,
+        20
+      ],
+      "animated": true
+    }
+  ]
+}

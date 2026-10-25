@@ -45,7 +45,16 @@ muse.generateGDD(类型/尺寸/种子)
         └→ chisel : GDD.models + artStyle → 雕塑程序 → critic/修复循环 → .voxaproject bundle
 ```
 
+## 接入已有地图（识别码通道）
+
+对**现有地图 / 玩家自建地图**，aether 不需要重新起图：在 Creator 编辑器（或 VOXA
+页面）右下角的 **Agent Active** 面板拿到识别码发给 AI，AI 用它换令牌即可加入
+开发——地图码 = 全量开发（terrain/ui/脚本/保存），VOXA 码 = 仅模型构建
+（chisel 的 `.voxaproject` 产物可直接导入）。协议与端点详见
+`box3-local-engine/docs/agent-active.md`。
+
 ## 版史
 
+- v0.2.1 · 2026-10-25 · 修复 gaia/chisel 断链导入（selftest 与 pipeline 的相对路径、preview-renderer/png/common 回迁），全链路 512×512 实测 PASS；新增识别码接入通道（见上）
 - v0.2.0 · 2026-10-25 · 四引擎全链路贯通（像素战争 512×512：GDD→HUD→地形→模型 全指标 PASS）。chisel v3：24 流派程序 + critic 自评 + autoRepair + 统一密度门禁；gaia：验收 9/10；muse↔chisel 产能对表
 - v0.1.0 · 2026-10-25 · muse + prism 完成自测；gaia/chisel v3 在途（chisel v2 核心已就位）

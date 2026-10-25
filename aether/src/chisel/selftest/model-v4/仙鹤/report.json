@@ -1,0 +1,122 @@
+{
+  "version": "ModelReport/0.4-brief-v4",
+  "subject": "仙鹤",
+  "style": "ink",
+  "requested": {
+    "sizeHint": [
+      38,
+      44,
+      30
+    ],
+    "animated": true
+  },
+  "composed": {
+    "parts": [
+      {
+        "id": "crane_body",
+        "filled": 1348
+      },
+      {
+        "id": "crane_neck",
+        "filled": 332
+      },
+      {
+        "id": "crane_beak",
+        "filled": 32
+      },
+      {
+        "id": "crane_wing_l",
+        "filled": 584
+      },
+      {
+        "id": "crane_wing_r",
+        "filled": 584
+      },
+      {
+        "id": "crane_tail",
+        "filled": 324
+      },
+      {
+        "id": "crane_leg_l",
+        "filled": 90
+      },
+      {
+        "id": "crane_leg_r",
+        "filled": 90
+      },
+      {
+        "id": "weld_8_16_25",
+        "filled": 5
+      }
+    ],
+    "naturalBefore": [
+      37,
+      39,
+      30
+    ]
+  },
+  "critic": {
+    "before": {
+      "score": 8.5,
+      "issues": [
+        "floating-clusters(1)"
+      ]
+    },
+    "after": {
+      "score": 10,
+      "issues": [],
+      "entropy": 4.345,
+      "floating": 0
+    },
+    "repaired": true,
+    "rounds": [
+      {
+        "round": 1,
+        "actions": [
+          "weld(bridged=1,removed=0)"
+        ]
+      }
+    ]
+  },
+  "structure": {
+    "silhouetteIoU": {},
+    "silhouetteOk": true,
+    "boundsFill": [
+      0.974,
+      0.909,
+      1
+    ],
+    "boundsOk": true,
+    "animOk": true,
+    "animations": 3
+  },
+  "stats": {
+    "version": 7,
+    "texels": 1638,
+    "usedColors": 35,
+    "rects": 858,
+    "palette": 42,
+    "meshes": 9
+  },
+  "gates": {
+    "palette": true,
+    "usedColors": true,
+    "rects": true,
+    "texels": true,
+    "pass": true
+  },
+  "pass": true,
+  "judge": null,
+  "views": {
+    "front": "src\\chisel\\selftest\\model-v4\\仙鹤\\views\\view-front.png",
+    "back": "src\\chisel\\selftest\\model-v4\\仙鹤\\views\\view-back.png",
+    "left": "src\\chisel\\selftest\\model-v4\\仙鹤\\views\\view-left.png",
+    "right": "src\\chisel\\selftest\\model-v4\\仙鹤\\views\\view-right.png",
+    "iso": "src\\chisel\\selftest\\model-v4\\仙鹤\\model\\model-preview.png"
+  },
+  "hashes": {
+    "project": "QmVH8cF16wSBZras1kzF9BRDJQa6zrMbEsxj7ZRyAVcwuk",
+    "modelData": "QmSZhwKRs27SzR9jKs8WELi78WWMwDrACmU9vXTiqCPbyW"
+  },
+  "ms": 153
+}

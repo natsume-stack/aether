@@ -1,0 +1,1 @@
+{"version":7,"projectName":"pixel-turret","bounds":[30,26,30],"motionList":[{"id":"sweep","name":"Radar Sweep","duration":6}],"useCustomBounds":true,"customBounds":{"size":[30,26,30],"offset":[0,0,0]},"renderBoxOffset":[0,0,0],"dataHash":"Qmb4ie59UGu17jF9qPKRboquk2xZwR9UuKp4mKm2aBema8"}

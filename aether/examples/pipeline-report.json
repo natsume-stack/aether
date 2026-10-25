@@ -16,7 +16,7 @@
       },
       "artStyle": "pixel",
       "uiComponents": 16,
-      "models": 5
+      "models": 4
     },
     "ui": {
       "desktop": {
@@ -42,12 +42,88 @@
       }
     },
     "terrain": {
-      "pending": true,
-      "reason": "Cannot find module 'D:\\desktop\\神奇代码岛\\aether\\terrain-render.mjs' imported from D:\\desktop\\神奇代码岛\\aether\\aether\\examples\\ru"
+      "ok": true,
+      "metrics": {
+        "landRatio": 0.474,
+        "elevationHistogram": [
+          138006,
+          40449,
+          59292,
+          14472,
+          6619,
+          2734,
+          572,
+          0
+        ],
+        "biomeCount": 4,
+        "biomeCoverage": {
+          "water": 0.526,
+          "出生平原": 0.06,
+          "矿洞丘陵": 0.164,
+          "焦土平原": 0.158,
+          "石板广场": 0.092
+        },
+        "biomeAdjacencyRate": 0.997,
+        "biomeBoundaryPairs": 14313,
+        "poiConnectivity": 1,
+        "pathEdges": 9,
+        "bridges": 375,
+        "zoneSlopeMean": 0.01,
+        "zoneSlopes": {
+          "z0": 0.012,
+          "z1": 0.012,
+          "z2": 0.012,
+          "z3": 0.012,
+          "z4": 0.009,
+          "z5": 0.009,
+          "z6": 0.009,
+          "z7": 0.009,
+          "z8": 0.01,
+          "z9": 0.004
+        },
+        "transitionWidth": {
+          "min": 6.5,
+          "mean": 14.1,
+          "max": 18.8
+        },
+        "rivers": 2,
+        "lakes": 3,
+        "landmarks": 2,
+        "scatterCount": 608,
+        "thresholds": {
+          "landRatio": [
+            0.45,
+            0.75
+          ],
+          "poiConnectivity": 1,
+          "zoneSlopeMean": 0.35,
+          "biomeCount": 4,
+          "biomeAdjacencyRate": 0.6
+        },
+        "violations": [],
+        "passed": true,
+        "elapsedMs": 866
+      },
+      "size": [
+        512,
+        512
+      ],
+      "attempts": 1
     },
     "models": {
-      "pending": true,
-      "reason": "Cannot find module 'D:\\desktop\\神奇代码岛\\aether\\aether\\src\\chisel\\run-model-v3.mjs' imported from D:\\desktop\\神奇代码岛\\aether\\ae"
+      "ok": true,
+      "models": 4,
+      "allPass": true,
+      "acceptance": {
+        "allGatesPass": true,
+        "silhouetteSingleRate": 1,
+        "floatingAfterRepair": 0,
+        "entropyInRange": true,
+        "boundsFillInRange": true,
+        "animatedHaveBones": true,
+        "perModelMsUnder3000": true
+      },
+      "ms": 799
     }
   }
 }

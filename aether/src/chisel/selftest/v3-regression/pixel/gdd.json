@@ -1,0 +1,96 @@
+{
+  "version": "GDD/0.3",
+  "artStyle": "pixel",
+  "models": [
+    {
+      "role": "hero",
+      "name": "pixel-blaster",
+      "style": "像素步枪",
+      "sizeHint": [
+        26,
+        9,
+        5
+      ],
+      "animated": true
+    },
+    {
+      "role": "prop",
+      "name": "pixel-turret",
+      "style": "像素炮塔",
+      "sizeHint": [
+        30,
+        26,
+        30
+      ],
+      "animated": true
+    },
+    {
+      "role": "prop",
+      "name": "pixel-pickaxe",
+      "style": "像素镐",
+      "sizeHint": [
+        22,
+        30,
+        10
+      ],
+      "animated": false
+    },
+    {
+      "role": "landmark",
+      "name": "pixel-castle",
+      "style": "像素城堡",
+      "sizeHint": [
+        42,
+        40,
+        42
+      ],
+      "animated": false
+    }
+  ],
+  "inkModels": [
+    {
+      "role": "hero",
+      "name": "bronze-furnace",
+      "style": "丹炉",
+      "sizeHint": [
+        28,
+        35,
+        28
+      ],
+      "animated": true
+    },
+    {
+      "role": "hero",
+      "name": "crane",
+      "style": "仙鹤",
+      "sizeHint": [
+        38,
+        48,
+        22
+      ],
+      "animated": true
+    },
+    {
+      "role": "landmark",
+      "name": "sword-stele",
+      "style": "石碑",
+      "sizeHint": [
+        22,
+        44,
+        13
+      ],
+      "animated": true
+    },
+    {
+      "role": "landmark",
+      "name": "sky-boat",
+      "style": "云舟",
+      "sizeHint": [
+        52,
+        28,
+        20
+      ],
+      "animated": true
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "version": "N17ModelStatusV4/0.1",
+  "subject": "雪原信标塔",
+  "pass": true,
+  "score": 10,
+  "gates": {
+    "palette": true,
+    "usedColors": true,
+    "rects": true,
+    "texels": true,
+    "pass": true
+  },
+  "structure": {
+    "silhouetteIoU": {
+      "front": 0.215,
+      "left": 0.217
+    },
+    "silhouetteOk": true,
+    "boundsFill": [
+      1,
+      1,
+      1
+    ],
+    "boundsOk": true,
+    "animOk": true,
+    "animations": 1
+  },
+  "judgeScore": null,
+  "distilled": "雪原信标塔"
+}

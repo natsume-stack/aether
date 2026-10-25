@@ -1,0 +1,101 @@
+{
+  "version": "CriticSummary/0.3",
+  "artStyle": "pixel",
+  "models": 4,
+  "gates": {
+    "minPalette": 28,
+    "minUsedColors": 12,
+    "minRects": 160,
+    "minTexels": 1200
+  },
+  "acceptance": {
+    "allGatesPass": true,
+    "silhouetteSingleRate": 1,
+    "floatingAfterRepair": 0,
+    "entropyInRange": true,
+    "boundsFillInRange": true,
+    "animatedHaveBones": true,
+    "perModelMsUnder3000": true
+  },
+  "repairCase": null,
+  "summary": [
+    {
+      "style": "pixel-rifle",
+      "score": 10,
+      "scoreBefore": 10,
+      "entropy": 3.568,
+      "silhouetteSingle": true,
+      "floatingAfter": 0,
+      "fillMin": 1,
+      "gates": {
+        "palette": true,
+        "usedColors": true,
+        "rects": true,
+        "texels": true,
+        "pass": true
+      },
+      "repaired": false,
+      "ms": 106,
+      "pass": true
+    },
+    {
+      "style": "pixel-turret",
+      "score": 10,
+      "scoreBefore": 10,
+      "entropy": 3.358,
+      "silhouetteSingle": true,
+      "floatingAfter": 0,
+      "fillMin": 1,
+      "gates": {
+        "palette": true,
+        "usedColors": true,
+        "rects": true,
+        "texels": true,
+        "pass": true
+      },
+      "repaired": false,
+      "ms": 179,
+      "pass": true
+    },
+    {
+      "style": "pixel-pickaxe",
+      "score": 10,
+      "scoreBefore": 10,
+      "entropy": 3.289,
+      "silhouetteSingle": true,
+      "floatingAfter": 0,
+      "fillMin": 1,
+      "gates": {
+        "palette": true,
+        "usedColors": true,
+        "rects": true,
+        "texels": true,
+        "pass": true
+      },
+      "repaired": false,
+      "ms": 75,
+      "pass": true
+    },
+    {
+      "style": "pixel-castle",
+      "score": 10,
+      "scoreBefore": 10,
+      "entropy": 2.399,
+      "silhouetteSingle": true,
+      "floatingAfter": 0,
+      "fillMin": 1,
+      "gates": {
+        "palette": true,
+        "usedColors": true,
+        "rects": true,
+        "texels": true,
+        "pass": true
+      },
+      "repaired": false,
+      "ms": 418,
+      "pass": true
+    }
+  ],
+  "allPass": true,
+  "ms": 780
+}

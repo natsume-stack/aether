@@ -1,0 +1,1 @@
+{"version":7,"projectName":"pixel-rifle","bounds":[26,9,5],"motionList":[{"id":"recoil","name":"Recoil Idle","duration":2}],"useCustomBounds":true,"customBounds":{"size":[26,9,5],"offset":[0,0,0]},"renderBoxOffset":[0,0,0],"dataHash":"QmULJvG6Ju6oeyMkPi84onyPmp7XEh8AaNJzVFjm9KMHaG"}

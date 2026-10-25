@@ -1,0 +1,119 @@
+{
+  "version": "ModelReport/0.3-sculpt-v3",
+  "artStyle": "pixel",
+  "style": "pixel-rifle",
+  "role": "hero",
+  "requested": {
+    "name": "pixel-blaster",
+    "sizeHint": [
+      26,
+      9,
+      5
+    ],
+    "animated": true
+  },
+  "program": {
+    "key": "pixel-rifle",
+    "natural": [
+      26,
+      10,
+      8
+    ],
+    "fitted": true
+  },
+  "bounds": {
+    "size": [
+      26,
+      9,
+      5
+    ],
+    "fill": [
+      1,
+      1,
+      1
+    ]
+  },
+  "critic": {
+    "before": {
+      "score": 10,
+      "issues": [],
+      "entropy": 3.568,
+      "silhouette": {
+        "occupancy": 0.59,
+        "bbox": [
+          26,
+          9
+        ],
+        "components": 1,
+        "componentsArea": [
+          138
+        ],
+        "mainRatio": 1,
+        "singleMain": true
+      },
+      "floatingClusters": 0,
+      "edgeNoise": 0.208
+    },
+    "after": {
+      "score": 10,
+      "issues": [],
+      "entropy": 3.568,
+      "silhouette": {
+        "occupancy": 0.59,
+        "bbox": [
+          26,
+          9
+        ],
+        "components": 1,
+        "componentsArea": [
+          138
+        ],
+        "mainRatio": 1,
+        "singleMain": true
+      },
+      "floatingClusters": 0,
+      "edgeNoise": 0.208
+    },
+    "repaired": false,
+    "rounds": []
+  },
+  "stats": {
+    "version": 7,
+    "texels": 1368,
+    "usedColors": 17,
+    "rects": 76,
+    "palette": 31,
+    "meshes": 1
+  },
+  "gates": {
+    "palette": true,
+    "usedColors": true,
+    "rects": true,
+    "texels": true,
+    "pass": true
+  },
+  "structures": {
+    "boundsOk": true,
+    "animOk": true,
+    "animated": true,
+    "animations": 1,
+    "bones": 1
+  },
+  "hashes": {
+    "project": "QmSdQqadzXTJk6xfgfuhZxLtxLtUmHDiPbXpWNXxhxpVXb",
+    "modelData": "QmULJvG6Ju6oeyMkPi84onyPmp7XEh8AaNJzVFjm9KMHaG"
+  },
+  "bytes": {
+    "project": 1557,
+    "modelData": 2616,
+    "bundle": 7948
+  },
+  "palette": 31,
+  "groups": [
+    {
+      "id": "rifle_body",
+      "filled": 572
+    }
+  ],
+  "ms": 106
+}

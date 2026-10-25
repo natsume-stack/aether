@@ -1,0 +1,436 @@
+{
+  "version": "ModelBrief/1.0",
+  "subject": "仙鹤",
+  "style": "ink",
+  "subjectType": "creature",
+  "mood": [
+    "清逸",
+    "灵动"
+  ],
+  "animated": true,
+  "sizeHint": [
+    38,
+    44,
+    30
+  ],
+  "parts": [
+    {
+      "id": "crane_body",
+      "role": "body",
+      "position": [
+        12,
+        16,
+        8
+      ],
+      "size": [
+        16,
+        12,
+        12
+      ],
+      "shape": {
+        "primitives": [
+          {
+            "op": "ell",
+            "center": [
+              8,
+              6,
+              6
+            ],
+            "r": [
+              8,
+              5,
+              5.5
+            ]
+          }
+        ]
+      },
+      "paint": {
+        "hex": "#e8e4da",
+        "steps": 7,
+        "vRange": [
+          0.78,
+          1.12
+        ],
+        "rampT": "height",
+        "noise": 0.08,
+        "edge": {
+          "lighten": 0.12,
+          "n": 5
+        }
+      }
+    },
+    {
+      "id": "crane_neck",
+      "role": "attachment",
+      "position": [
+        22,
+        24,
+        11
+      ],
+      "size": [
+        12,
+        16,
+        6
+      ],
+      "shape": {
+        "primitives": [
+          {
+            "op": "tube",
+            "bezier": true,
+            "points": [
+              [
+                1,
+                2,
+                3
+              ],
+              [
+                5,
+                6,
+                3
+              ],
+              [
+                9,
+                12,
+                3
+              ],
+              [
+                11,
+                15,
+                3
+              ]
+            ],
+            "rFrom": 2.2,
+            "rTo": 1.2
+          }
+        ]
+      },
+      "paint": {
+        "hex": "#efece4",
+        "steps": 6,
+        "vRange": [
+          0.8,
+          1.12
+        ],
+        "rampT": "height",
+        "noise": 0.06,
+        "edge": {
+          "lighten": 0.12,
+          "n": 5
+        }
+      }
+    },
+    {
+      "id": "crane_beak",
+      "role": "detail",
+      "position": [
+        33,
+        38,
+        12
+      ],
+      "size": [
+        6,
+        3,
+        3
+      ],
+      "shape": {
+        "primitives": [
+          {
+            "op": "capsule",
+            "a": [
+              0,
+              1,
+              1
+            ],
+            "b": [
+              5,
+              1.4,
+              1
+            ],
+            "r": 0.9
+          }
+        ]
+      },
+      "paint": {
+        "hex": "#c8873c",
+        "steps": 4,
+        "vRange": [
+          0.7,
+          1.05
+        ],
+        "rampT": "height",
+        "noise": 0.05
+      }
+    },
+    {
+      "id": "crane_wing_l",
+      "role": "attachment",
+      "position": [
+        10,
+        24,
+        0
+      ],
+      "size": [
+        14,
+        8,
+        10
+      ],
+      "bone": "bone_wing_l",
+      "shape": {
+        "primitives": [
+          {
+            "op": "ell",
+            "center": [
+              7,
+              4,
+              5
+            ],
+            "r": [
+              7,
+              1.6,
+              5
+            ]
+          }
+        ]
+      },
+      "paint": {
+        "hex": "#dcd7cb",
+        "steps": 6,
+        "vRange": [
+          0.72,
+          1.06
+        ],
+        "rampT": "height",
+        "noise": 0.1,
+        "edge": {
+          "lighten": 0.14,
+          "n": 5
+        }
+      }
+    },
+    {
+      "id": "crane_wing_r",
+      "role": "attachment",
+      "position": [
+        10,
+        24,
+        20
+      ],
+      "size": [
+        14,
+        8,
+        10
+      ],
+      "bone": "bone_wing_r",
+      "shape": {
+        "primitives": [
+          {
+            "op": "ell",
+            "center": [
+              7,
+              4,
+              5
+            ],
+            "r": [
+              7,
+              1.6,
+              5
+            ]
+          }
+        ]
+      },
+      "paint": {
+        "hex": "#dcd7cb",
+        "steps": 6,
+        "vRange": [
+          0.72,
+          1.06
+        ],
+        "rampT": "height",
+        "noise": 0.1,
+        "edge": {
+          "lighten": 0.14,
+          "n": 5
+        }
+      }
+    },
+    {
+      "id": "crane_tail",
+      "role": "attachment",
+      "position": [
+        2,
+        18,
+        9
+      ],
+      "size": [
+        10,
+        6,
+        8
+      ],
+      "shape": {
+        "primitives": [
+          {
+            "op": "ell",
+            "center": [
+              5,
+              3,
+              4
+            ],
+            "r": [
+              5,
+              1.8,
+              3.6
+            ]
+          }
+        ]
+      },
+      "paint": {
+        "hex": "#4a4a52",
+        "steps": 5,
+        "vRange": [
+          0.55,
+          0.95
+        ],
+        "rampT": "depth",
+        "noise": 0.1
+      }
+    },
+    {
+      "id": "crane_leg_l",
+      "role": "attachment",
+      "position": [
+        14,
+        2,
+        12
+      ],
+      "size": [
+        3,
+        16,
+        3
+      ],
+      "shape": {
+        "primitives": [
+          {
+            "op": "capsule",
+            "a": [
+              1.5,
+              16,
+              1.5
+            ],
+            "b": [
+              1.5,
+              0.5,
+              1.5
+            ],
+            "r": 0.8
+          }
+        ]
+      },
+      "paint": {
+        "hex": "#8a7a5c",
+        "steps": 4,
+        "vRange": [
+          0.6,
+          1
+        ],
+        "rampT": "height",
+        "noise": 0.06
+      }
+    },
+    {
+      "id": "crane_leg_r",
+      "role": "attachment",
+      "position": [
+        20,
+        2,
+        12
+      ],
+      "size": [
+        3,
+        16,
+        3
+      ],
+      "shape": {
+        "primitives": [
+          {
+            "op": "capsule",
+            "a": [
+              1.5,
+              16,
+              1.5
+            ],
+            "b": [
+              1.5,
+              0.5,
+              1.5
+            ],
+            "r": 0.8
+          }
+        ]
+      },
+      "paint": {
+        "hex": "#8a7a5c",
+        "steps": 4,
+        "vRange": [
+          0.6,
+          1
+        ],
+        "rampT": "height",
+        "noise": 0.06
+      }
+    }
+  ],
+  "bones": [
+    {
+      "id": "bone_body",
+      "name": "Body",
+      "position": [
+        20,
+        20,
+        14
+      ]
+    },
+    {
+      "id": "bone_wing_l",
+      "name": "WingL",
+      "position": [
+        16,
+        27,
+        6
+      ]
+    },
+    {
+      "id": "bone_wing_r",
+      "name": "WingR",
+      "position": [
+        16,
+        27,
+        22
+      ]
+    }
+  ],
+  "animations": [
+    {
+      "id": "flap",
+      "type": "sway",
+      "bone": "bone_wing_l",
+      "amplitude": 3,
+      "period": 1.8
+    },
+    {
+      "id": "flap_r",
+      "type": "sway",
+      "bone": "bone_wing_r",
+      "amplitude": 3,
+      "period": 1.8
+    },
+    {
+      "id": "hover",
+      "type": "float",
+      "bone": "bone_body",
+      "amplitude": 2,
+      "period": 2.6
+    }
+  ],
+  "_distilledFrom": "src\\chisel\\selftest\\model-v4\\仙鹤",
+  "_score": 10
+}

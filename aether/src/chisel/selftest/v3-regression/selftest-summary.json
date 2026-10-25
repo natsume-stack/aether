@@ -1,0 +1,19 @@
+{
+  "pixel": true,
+  "ink": true,
+  "models": 8,
+  "acceptance": {
+    "gates": true,
+    "silhouetteSingleRate": 1,
+    "floatingAfterRepair": 0,
+    "entropyInRange": true,
+    "boundsFill": true,
+    "msUnder3000": true
+  },
+  "repairCase": {
+    "before": 4,
+    "after": 8.5,
+    "floatBefore": 1,
+    "floatAfter": 0
+  }
+}

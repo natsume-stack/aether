@@ -385,8 +385,61 @@ function generateOnce(gdd, seed, attempt) {
   }
 
   /* ---- 水文：梯度下降追踪河流 ---- */
-  const riverCount = gdd.terrain.rivers;
+  // 尺寸缩放：256² 等效面积系数——大地图水系/湖/次级地标必须随面积增长，
+  // 否则构成密度被稀释（MapBench terrain 柱会扣）。
+  const areaFactor = clamp(Math.sqrt((W * H) / (256 * 256)), 1, 2.5);
+  const riverCount = gdd.terrain.rivers + (areaFactor >= 1.5 ? 1 : 0) + (areaFactor >= 2.2 ? 1 : 0);
   const rivers = traceRivers(heightmap, W, H, waterMask, zoneCoreMask, waterLevel, riverCount, rng, (seed + 5501) | 0);
+  if (areaFactor >= 1.8 && gdd.terrain.water.bodies > 0) {
+    const spot = pickLakeSpot(heightmap, W, H, waterLevel, zones, rng);
+    if (spot) {
+      stampLake(heightmap, W, H, waterMask, spot[0], spot[1], 6 + rng() * Math.min(10, Math.max(W, H) * 0.03), waterLevel);
+      lakes.push({ id: `lake_${lakes.length + 1}`, pos: [Math.round(spot[0]), Math.round(spot[1])], radius: 8, scaled: true });
+    }
+  }
+  if (areaFactor >= 1.5 && landmarks.length >= 1) {
+    const spot = pickLandmarkSpot(heightmap, W, H, zones, waterLevel, rng, '次峰');
+    if (spot) {
+      stampLandmark(heightmap, W, H, spot[0], spot[1], 'peak', Math.max(W, H), rng, waterLevel);
+      landmarks.push({ id: `lm_${landmarks.length + 1}`, name: '次峰', kind: 'peak', scaled: true, pos: [Math.round(spot[0]), Math.round(spot[1]), Math.round(heightmap[Math.round(spot[1]) * W + Math.round(spot[0])])] });
+    }
+  }
+
+  /* ---- 地貌精修（ThermalErosion-lite + 水线台地）： cliffs→碎石坡、硬岸→缓滩 ---- */
+  {
+    const talus = 1.8;
+    for (let iter = 0; iter < 2; iter += 1) {
+      const delta = new Float32Array(W * H);
+      for (let y = 1; y < H - 1; y += 1) {
+        for (let x = 1; x < W - 1; x += 1) {
+          const i = y * W + x;
+          if (zoneCoreMask[i]) continue;
+          const h = heightmap[i];
+          for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+            const j = (y + dy) * W + (x + dx);
+            const diff = h - heightmap[j];
+            if (diff > talus) {
+              const move = (diff - talus) * 0.25;
+              delta[i] -= move;
+              delta[j] += move;
+            }
+          }
+        }
+      }
+      for (let i = 0; i < W * H; i += 1) heightmap[i] += delta[i];
+    }
+    // 水线台地：临水陆地压向 waterLevel+0.6，形成可读的滩涂过渡带
+    for (let y = 1; y < H - 1; y += 1) {
+      for (let x = 1; x < W - 1; x += 1) {
+        const i = y * W + x;
+        if (zoneCoreMask[i]) continue;
+        const h = heightmap[i];
+        if (h <= waterLevel || h > waterLevel + 1.4) continue;
+        const nearWater = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => heightmap[(y + dy) * W + (x + dx)] <= waterLevel);
+        if (nearWater) heightmap[i] = waterLevel + 0.6 + (h - waterLevel) * 0.3;
+      }
+    }
+  }
 
   /* ---- 路网：代价场 A* ---- */
   const pois = resolvePois(gdd, zones, heightmap, W);
@@ -1150,19 +1203,38 @@ function computeMetrics(plan, gdd, anchors) {
  * buildTerrainPlan(gdd, options?) → TerrainPlan
  * options.maxAttempts：metrics 不达标时换 seed 扰动重试的轮数上限（默认 3）。
  */
+/**
+ * 复合质量分（无违约时也分高下，best-of-N 选优用）：
+ * 陆地占比越靠近 [0.45,0.75] 中点越好、zone 坡度越小越好、POI 连通率加权最高。
+ */
+function planQualityScore(plan) {
+  const m = plan.metrics;
+  const land = m.landRatio ?? 0.5;
+  const landScore = 100 - Math.abs(land - 0.6) * 250; // 0.6 为区间中点
+  const slopeScore = 100 - (m.zoneSlopeMean ?? 0) * 200;
+  const connScore = (m.poiConnectivity ?? 0) * 100;
+  const biomeScore = Math.min(100, (m.biomeCount ?? 0) * 25);
+  const adjacencyScore = Math.min(100, (m.biomeAdjacencyRate ?? 0) * 100);
+  return landScore * 0.3 + slopeScore * 0.2 + connScore * 0.3 + biomeScore * 0.1 + adjacencyScore * 0.1;
+}
+
 export function buildTerrainPlan(gddInput, options = {}) {
   const t0 = Date.now();
   const gdd = normalizeGdd(gddInput);
   const maxAttempts = clamp(options.maxAttempts ?? 3, 1, 5);
   let best = null;
+  let bestScore = -Infinity;
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     const seed = (gdd.seed + attempt * 7919) >>> 0;
     const plan = generateOnce(gdd, seed, attempt);
-    if (!best || plan.metrics.violations.length < best.metrics.violations.length) best = plan;
-    if (plan.metrics.passed) {
+    // 选优：先比违约数（硬闸），同分比复合质量分（软指标）——
+    // 全达标时也能挑出"更居中"的地形，而不是停在第一个侥幸达标者。
+    const score = plan.metrics.violations.length * 1000 + planQualityScore(plan);
+    if (!best || score > bestScore) {
       best = plan;
-      break;
+      bestScore = score;
     }
+    if (plan.metrics.passed) break;
   }
   best.metrics.elapsedMs = Date.now() - t0;
   best.version = PLAN_VERSION;

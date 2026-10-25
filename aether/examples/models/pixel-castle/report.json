@@ -1,0 +1,119 @@
+{
+  "version": "ModelReport/0.3-sculpt-v3",
+  "artStyle": "pixel",
+  "style": "pixel-castle",
+  "role": "landmark",
+  "requested": {
+    "name": "pixel-castle",
+    "sizeHint": [
+      42,
+      40,
+      42
+    ],
+    "animated": false
+  },
+  "program": {
+    "key": "pixel-castle",
+    "natural": [
+      42,
+      40,
+      42
+    ],
+    "fitted": true
+  },
+  "bounds": {
+    "size": [
+      42,
+      40,
+      42
+    ],
+    "fill": [
+      1,
+      1,
+      1
+    ]
+  },
+  "critic": {
+    "before": {
+      "score": 10,
+      "issues": [],
+      "entropy": 2.399,
+      "silhouette": {
+        "occupancy": 0.821,
+        "bbox": [
+          42,
+          40
+        ],
+        "components": 1,
+        "componentsArea": [
+          1380
+        ],
+        "mainRatio": 1,
+        "singleMain": true
+      },
+      "floatingClusters": 0,
+      "edgeNoise": 0.025
+    },
+    "after": {
+      "score": 10,
+      "issues": [],
+      "entropy": 2.399,
+      "silhouette": {
+        "occupancy": 0.821,
+        "bbox": [
+          42,
+          40
+        ],
+        "components": 1,
+        "componentsArea": [
+          1380
+        ],
+        "mainRatio": 1,
+        "singleMain": true
+      },
+      "floatingClusters": 0,
+      "edgeNoise": 0.025
+    },
+    "repaired": false,
+    "rounds": []
+  },
+  "stats": {
+    "version": 7,
+    "texels": 13456,
+    "usedColors": 23,
+    "rects": 2520,
+    "palette": 41,
+    "meshes": 1
+  },
+  "gates": {
+    "palette": true,
+    "usedColors": true,
+    "rects": true,
+    "texels": true,
+    "pass": true
+  },
+  "structures": {
+    "boundsOk": true,
+    "animOk": true,
+    "animated": false,
+    "animations": 0,
+    "bones": 0
+  },
+  "hashes": {
+    "project": "QmdZ7UC1yZN42D52frw6TsMAfwicL78Rb2rt74UAU5S2de",
+    "modelData": "QmQzSN5LWzfZK8i2tjqYSmLNrJubzkSAQ2dgDQug2P5kGW"
+  },
+  "bytes": {
+    "project": 28589,
+    "modelData": 39659,
+    "bundle": 37003
+  },
+  "palette": 41,
+  "groups": [
+    {
+      "id": "castle_body",
+      "filled": 46907
+    }
+  ],
+  "ms": 513
+}

@@ -1,0 +1,113 @@
+{
+  "version": "ModelReport/0.4-brief-v4",
+  "subject": "雪原信标塔",
+  "style": "pixel",
+  "requested": {
+    "sizeHint": [
+      20,
+      34,
+      20
+    ],
+    "animated": true
+  },
+  "composed": {
+    "parts": [
+      {
+        "id": "beacon_spire",
+        "filled": 2816
+      },
+      {
+        "id": "beacon_flame",
+        "filled": 363
+      },
+      {
+        "id": "weld_2_21_30",
+        "filled": 3
+      },
+      {
+        "id": "weld_3_12_29",
+        "filled": 3
+      },
+      {
+        "id": "weld_4_12_29",
+        "filled": 3
+      },
+      {
+        "id": "weld_5_4_30",
+        "filled": 3
+      }
+    ],
+    "naturalBefore": [
+      14,
+      34,
+      14
+    ]
+  },
+  "critic": {
+    "before": {
+      "score": 4,
+      "issues": [
+        "floating-clusters(4)"
+      ]
+    },
+    "after": {
+      "score": 10,
+      "issues": [],
+      "entropy": 3.239,
+      "floating": 0
+    },
+    "repaired": true,
+    "rounds": [
+      {
+        "round": 1,
+        "actions": [
+          "weld(bridged=4,removed=0)"
+        ]
+      }
+    ]
+  },
+  "structure": {
+    "silhouetteIoU": {
+      "front": 0.215,
+      "left": 0.217
+    },
+    "silhouetteOk": true,
+    "boundsFill": [
+      1,
+      1,
+      1
+    ],
+    "boundsOk": true,
+    "animOk": true,
+    "animations": 1
+  },
+  "stats": {
+    "version": 7,
+    "texels": 3080,
+    "usedColors": 11,
+    "rects": 832,
+    "palette": 17,
+    "meshes": 6
+  },
+  "gates": {
+    "palette": true,
+    "usedColors": true,
+    "rects": true,
+    "texels": true,
+    "pass": true
+  },
+  "pass": true,
+  "judge": null,
+  "views": {
+    "front": "src\\chisel\\selftest\\model-v4\\雪原信标塔\\views\\view-front.png",
+    "back": "src\\chisel\\selftest\\model-v4\\雪原信标塔\\views\\view-back.png",
+    "left": "src\\chisel\\selftest\\model-v4\\雪原信标塔\\views\\view-left.png",
+    "right": "src\\chisel\\selftest\\model-v4\\雪原信标塔\\views\\view-right.png",
+    "iso": "src\\chisel\\selftest\\model-v4\\雪原信标塔\\model\\model-preview.png"
+  },
+  "hashes": {
+    "project": "QmfWXvXNkWpdFdQCgsTe4JPphp9tXhLKBA3k8E5qPbnFiK",
+    "modelData": "QmWgYVzReL38wsh4PYTN7sN7nkQYWv54s26kGRrdgxgLy2"
+  },
+  "ms": 130
+}

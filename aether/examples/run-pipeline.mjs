@@ -37,7 +37,7 @@ for (const [pid, layout] of Object.entries(layouts)) {
 // 3) 地形（模块就绪则接入）
 try {
   const { buildTerrainPlan, exportPlanJson } = await import('../src/gaia/terrain-engine.mjs');
-  const { renderTopDown, renderIsometric } = await import('../../terrain-render.mjs');
+  const { renderTopDown, renderIsometric } = await import('../src/gaia/terrain-render.mjs');
   const plan = buildTerrainPlan(gdd);
   fs.mkdirSync(path.join(OUT, 'terrain'), { recursive: true });
   fs.writeFileSync(path.join(OUT, 'terrain', 'topdown.png'), renderTopDown(plan, { scale: 1 }));

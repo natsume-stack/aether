@@ -1,0 +1,33 @@
+{
+  "defect": "crane_wing_l position y +14 (detached island)",
+  "before": {
+    "score": 4,
+    "issues": [
+      "silhouette-fragments(2)",
+      "floating-clusters(1)",
+      "bounds-overflow(1.24)"
+    ],
+    "floatingClusters": 1,
+    "silhouetteComponents": 2
+  },
+  "after": {
+    "score": 8.5,
+    "issues": [
+      "bounds-overflow(1.24)"
+    ],
+    "floatingClusters": 0,
+    "silhouetteComponents": 1
+  },
+  "rounds": [
+    {
+      "round": 1,
+      "actions": [
+        "weld(bridged=1,removed=0)"
+      ]
+    },
+    {
+      "round": 2,
+      "actions": []
+    }
+  ]
+}

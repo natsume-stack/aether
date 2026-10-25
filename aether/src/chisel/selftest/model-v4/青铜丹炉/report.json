@@ -1,0 +1,107 @@
+{
+  "version": "ModelReport/0.4-brief-v4",
+  "subject": "青铜丹炉",
+  "style": "ink",
+  "requested": {
+    "sizeHint": [
+      28,
+      35,
+      28
+    ],
+    "animated": true
+  },
+  "composed": {
+    "parts": [
+      {
+        "id": "furnace_body",
+        "filled": 1491
+      },
+      {
+        "id": "furnace_ear_l",
+        "filled": 216
+      },
+      {
+        "id": "furnace_ear_r",
+        "filled": 216
+      },
+      {
+        "id": "furnace_fire",
+        "filled": 838
+      },
+      {
+        "id": "weld_4_7_18",
+        "filled": 16
+      }
+    ],
+    "naturalBefore": [
+      28,
+      27,
+      18
+    ]
+  },
+  "critic": {
+    "before": {
+      "score": 5.5,
+      "issues": [
+        "silhouette-fragments(2)",
+        "floating-clusters(1)"
+      ]
+    },
+    "after": {
+      "score": 10,
+      "issues": [],
+      "entropy": 3.567,
+      "floating": 0
+    },
+    "repaired": true,
+    "rounds": [
+      {
+        "round": 1,
+        "actions": [
+          "weld(bridged=1,removed=0)"
+        ]
+      }
+    ]
+  },
+  "structure": {
+    "silhouetteIoU": {},
+    "silhouetteOk": true,
+    "boundsFill": [
+      1,
+      1,
+      0.893
+    ],
+    "boundsOk": true,
+    "animOk": true,
+    "animations": 1
+  },
+  "stats": {
+    "version": 7,
+    "texels": 2652,
+    "usedColors": 18,
+    "rects": 798,
+    "palette": 30,
+    "meshes": 5
+  },
+  "gates": {
+    "palette": true,
+    "usedColors": true,
+    "rects": true,
+    "texels": true,
+    "pass": true
+  },
+  "pass": true,
+  "judge": null,
+  "views": {
+    "front": "src\\chisel\\selftest\\model-v4\\青铜丹炉\\views\\view-front.png",
+    "back": "src\\chisel\\selftest\\model-v4\\青铜丹炉\\views\\view-back.png",
+    "left": "src\\chisel\\selftest\\model-v4\\青铜丹炉\\views\\view-left.png",
+    "right": "src\\chisel\\selftest\\model-v4\\青铜丹炉\\views\\view-right.png",
+    "iso": "src\\chisel\\selftest\\model-v4\\青铜丹炉\\model\\model-preview.png"
+  },
+  "hashes": {
+    "project": "QmVpxn4pD7FbjER5j2YqojQbd9L97eNBMV1TVTaPJ39Gdk",
+    "modelData": "QmPEH7t6NvEJ453tvebKigic68PfAA1P5SsGjevqQrc8ZK"
+  },
+  "ms": 238
+}

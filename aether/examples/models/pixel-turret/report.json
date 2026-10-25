@@ -1,0 +1,123 @@
+{
+  "version": "ModelReport/0.3-sculpt-v3",
+  "artStyle": "pixel",
+  "style": "pixel-turret",
+  "role": "landmark",
+  "requested": {
+    "name": "pixel-turret",
+    "sizeHint": [
+      30,
+      26,
+      30
+    ],
+    "animated": true
+  },
+  "program": {
+    "key": "pixel-turret",
+    "natural": [
+      30,
+      26,
+      30
+    ],
+    "fitted": true
+  },
+  "bounds": {
+    "size": [
+      30,
+      26,
+      30
+    ],
+    "fill": [
+      1,
+      1,
+      1
+    ]
+  },
+  "critic": {
+    "before": {
+      "score": 10,
+      "issues": [],
+      "entropy": 3.358,
+      "silhouette": {
+        "occupancy": 0.563,
+        "bbox": [
+          30,
+          26
+        ],
+        "components": 1,
+        "componentsArea": [
+          439
+        ],
+        "mainRatio": 1,
+        "singleMain": true
+      },
+      "floatingClusters": 0,
+      "edgeNoise": 0.082
+    },
+    "after": {
+      "score": 10,
+      "issues": [],
+      "entropy": 3.358,
+      "silhouette": {
+        "occupancy": 0.563,
+        "bbox": [
+          30,
+          26
+        ],
+        "components": 1,
+        "componentsArea": [
+          439
+        ],
+        "mainRatio": 1,
+        "singleMain": true
+      },
+      "floatingClusters": 0,
+      "edgeNoise": 0.082
+    },
+    "repaired": false,
+    "rounds": []
+  },
+  "stats": {
+    "version": 7,
+    "texels": 3080,
+    "usedColors": 16,
+    "rects": 674,
+    "palette": 30,
+    "meshes": 2
+  },
+  "gates": {
+    "palette": true,
+    "usedColors": true,
+    "rects": true,
+    "texels": true,
+    "pass": true
+  },
+  "structures": {
+    "boundsOk": true,
+    "animOk": true,
+    "animated": true,
+    "animations": 1,
+    "bones": 1
+  },
+  "hashes": {
+    "project": "QmZP5z8Zt13txm6xeRf6hCo4r4V78KTMPp3Cit13rypYL6",
+    "modelData": "Qmb4ie59UGu17jF9qPKRboquk2xZwR9UuKp4mKm2aBema8"
+  },
+  "bytes": {
+    "project": 6446,
+    "modelData": 10570,
+    "bundle": 17591
+  },
+  "palette": 30,
+  "groups": [
+    {
+      "id": "turret_base",
+      "filled": 4540
+    },
+    {
+      "id": "turret_head",
+      "filled": 2526
+    }
+  ],
+  "ms": 128
+}

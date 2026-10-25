@@ -1,0 +1,127 @@
+{
+  "version": "ModelReport/0.3-sculpt-v3",
+  "artStyle": "ink",
+  "style": "ink-crane",
+  "role": "hero",
+  "requested": {
+    "name": "crane",
+    "sizeHint": [
+      38,
+      48,
+      22
+    ],
+    "animated": true
+  },
+  "program": {
+    "key": "ink-crane",
+    "natural": [
+      38,
+      48,
+      22
+    ],
+    "fitted": true
+  },
+  "bounds": {
+    "size": [
+      38,
+      48,
+      23
+    ],
+    "fill": [
+      1,
+      1,
+      0.909
+    ]
+  },
+  "critic": {
+    "before": {
+      "score": 10,
+      "issues": [],
+      "entropy": 3.253,
+      "silhouette": {
+        "occupancy": 0.383,
+        "bbox": [
+          38,
+          48
+        ],
+        "components": 1,
+        "componentsArea": [
+          699
+        ],
+        "mainRatio": 1,
+        "singleMain": true
+      },
+      "floatingClusters": 0,
+      "edgeNoise": 0.052
+    },
+    "after": {
+      "score": 10,
+      "issues": [],
+      "entropy": 3.253,
+      "silhouette": {
+        "occupancy": 0.383,
+        "bbox": [
+          38,
+          48
+        ],
+        "components": 1,
+        "componentsArea": [
+          699
+        ],
+        "mainRatio": 1,
+        "singleMain": true
+      },
+      "floatingClusters": 0,
+      "edgeNoise": 0.052
+    },
+    "repaired": false,
+    "rounds": []
+  },
+  "stats": {
+    "version": 7,
+    "texels": 4225,
+    "usedColors": 21,
+    "rects": 1411,
+    "palette": 33,
+    "meshes": 3
+  },
+  "gates": {
+    "palette": true,
+    "usedColors": true,
+    "rects": true,
+    "texels": true,
+    "pass": true
+  },
+  "structures": {
+    "boundsOk": true,
+    "animOk": true,
+    "animated": true,
+    "animations": 1,
+    "bones": 2
+  },
+  "hashes": {
+    "project": "QmYeo78Eqxj7dCZHu3DChfnUKSmqL268Zxbbo3CwDopiWZ",
+    "modelData": "QmPfU4szjQ3hR9QNcFeNLepxvFkqWwnnrPSGWfp39fhZ3P"
+  },
+  "bytes": {
+    "project": 6177,
+    "modelData": 19361,
+    "bundle": 17528
+  },
+  "palette": 33,
+  "groups": [
+    {
+      "id": "crane_body",
+      "filled": 4300
+    },
+    {
+      "id": "crane_wing_l",
+      "filled": 1876
+    },
+    {
+      "id": "crane_wing_r",
+      "filled": 1876
+    }
+  ],
+  "ms": 205
+}

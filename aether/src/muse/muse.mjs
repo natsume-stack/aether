@@ -6,6 +6,7 @@
  * 全程确定性（种子化），输出下游三模块（terrain-engine / ui-theme-kit / model-sculpt）
  * 共同消费的 GDD JSON。校验由 gdd-validate.mjs 守门。
  */
+import fsSync from 'node:fs';
 
 /* ================= 类型学知识库 ================= */
 export const GenreKB = {
@@ -267,6 +268,56 @@ function matchGenre(input) {
   return null;
 }
 
+/* ================= KB 外置与自由意图 ================= */
+/**
+ * 外置知识库：src/muse/genre-kb-extra.json（数组，元素与 GenreKB 值同构 +
+ * `name` 字段）。新题材不再改代码——LLM/人按 schema 产出条目，过校验即入 KB。
+ * 校验失败的条目跳过并 warn，绝不阻塞主流程。
+ */
+const KB_EXTRA_PATH = new URL('./genre-kb-extra.json', import.meta.url);
+try {
+  if (fsSync.existsSync(KB_EXTRA_PATH)) {
+    const extras = JSON.parse(fsSync.readFileSync(KB_EXTRA_PATH, 'utf8'));
+    for (const entry of Array.isArray(extras) ? extras : []) {
+      const name = String(entry?.name || '').trim();
+      if (!name || GenreKB[name]) continue;
+      const required = ['match', 'zoneRecipe', 'spatialPattern', 'poiKinds'];
+      if (!required.every((k) => entry[k])) {
+        console.warn(`[muse] genre-kb-extra 条目 "${name}" 缺字段（${required.join('/')}），跳过`);
+        continue;
+      }
+      GenreKB[name] = { ...entry };
+    }
+  }
+} catch (error) {
+  console.warn(`[muse] genre-kb-extra.json 读取失败（忽略）: ${error.message}`);
+}
+
+/**
+ * 自由意图 → 最贴近类型：先关键词直配（matchGenre），再 token 重叠打分
+ * （match + themeKeywords + 类型名）。返回 { genre, score } 或 null。
+ * 供 NL 需求先落类型再传 overrides 给 generateGDD。
+ */
+export function resolveGenre(input) {
+  const text = String(input || '').toLowerCase().trim();
+  if (!text) return null;
+  const direct = matchGenre(text);
+  if (direct) return { genre: direct, score: 1 };
+  const tokens = text.split(/[^\p{L}\p{N}]+/u).filter((t) => t.length >= 2);
+  if (!tokens.length) return null;
+  let best = null;
+  for (const [name, kb] of Object.entries(GenreKB)) {
+    const haystack = [...kb.match, ...kb.themeKeywords, name].map((m) => m.toLowerCase());
+    let hits = 0;
+    for (const token of tokens) {
+      if (haystack.some((h) => h.includes(token) || token.includes(h))) hits += 1;
+    }
+    const score = hits / tokens.length;
+    if (score > 0 && (!best || score > best.score)) best = { genre: name, score: Number(score.toFixed(3)) };
+  }
+  return best;
+}
+
 /* ================= 空间规划器 ================= */
 function planZones({ kb, W, H, teams, rng }) {
   const zones = [];
@@ -399,7 +450,17 @@ function relaxZones(zones, W, H) {
     for (let i = 0; i < zones.length; i += 1) {
       for (let j = i + 1; j < zones.length; j += 1) {
         const a = zones[i], b = zones[j];
-        const dx = b.center[0] - a.center[0], dy = b.center[1] - a.center[1];
+        let dx = b.center[0] - a.center[0], dy = b.center[1] - a.center[1];
+        // 中心重合（同角色多 zone 常见）：推开方向无定义会让松弛器永远空转。
+        // 用黄金角按索引确定性取方向，把两中心沿该向各推 need/2。
+        if (!dx && !dy) {
+          const ang = (i * 2.399 + j * 1.047) % (Math.PI * 2);
+          const dist = ((a.radius + b.radius) * 0.86) / 2 + 1;
+          a.center = [Math.round(a.center[0] - Math.cos(ang) * dist), Math.round(a.center[1] - Math.sin(ang) * dist)];
+          b.center = [Math.round(b.center[0] + Math.cos(ang) * dist), Math.round(b.center[1] + Math.sin(ang) * dist)];
+          worst = true;
+          continue;
+        }
         const d = Math.hypot(dx, dy) || 1;
         const need = (a.radius + b.radius) * 0.86;
         if (d < need) {

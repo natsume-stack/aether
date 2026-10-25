@@ -1,0 +1,27 @@
+{
+  "version": "N17ModelStatusV4/0.1",
+  "subject": "青铜丹炉",
+  "pass": true,
+  "score": 10,
+  "gates": {
+    "palette": true,
+    "usedColors": true,
+    "rects": true,
+    "texels": true,
+    "pass": true
+  },
+  "structure": {
+    "silhouetteIoU": {},
+    "silhouetteOk": true,
+    "boundsFill": [
+      1,
+      1,
+      0.893
+    ],
+    "boundsOk": true,
+    "animOk": true,
+    "animations": 1
+  },
+  "judgeScore": null,
+  "distilled": "青铜丹炉"
+}

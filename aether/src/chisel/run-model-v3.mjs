@@ -50,10 +50,10 @@ function base58(bytes) {
   for (const byte of bytes) { if (byte !== 0) break; text = `1${text}`; }
   return text;
 }
-const cid = (data) => base58(Buffer.concat([Buffer.from([0x12, 0x20]), crypto.createHash('sha256').update(data).digest()]));
+export const cid = (data) => base58(Buffer.concat([Buffer.from([0x12, 0x20]), crypto.createHash('sha256').update(data).digest()]));
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 
-function encodeView(view, dims) {
+export function encodeView(view, dims) {
   const stream = new MuWriteStream(12);
   stream.writeInt32(dims[0]);
   stream.writeInt32(dims[1]);
@@ -62,7 +62,7 @@ function encodeView(view, dims) {
   return Array.from(stream.bytes());
 }
 
-function nodeJson({ id, name, type, parentId, position = [0, 0, 0], childrenIds = [], voxelId = '' }) {
+export function nodeJson({ id, name, type, parentId, position = [0, 0, 0], childrenIds = [], voxelId = '' }) {
   return {
     type, alpha: 1, boneId: '', childrenIds, euler: [0, 0, 0], flip: [0, 0, 0], id, name,
     parentId, parentScaleMat3: [1, 0, 0, 0, 1, 0, 0, 0, 1], pivot: [0, 0, 0], position,
@@ -70,7 +70,7 @@ function nodeJson({ id, name, type, parentId, position = [0, 0, 0], childrenIds 
   };
 }
 
-function modelBounds(groups) {
+export function modelBounds(groups) {
   const min = [Infinity, Infinity, Infinity];
   const max = [-Infinity, -Infinity, -Infinity];
   for (const g of groups) {
@@ -87,7 +87,7 @@ function modelBounds(groups) {
 }
 
 /** project v10 JSON（VOXA 编辑器可打开） */
-function buildProjectJson(model) {
+export function buildProjectJson(model) {
   const bounds = modelBounds(model.groups);
   const rootOffset = bounds.min;
   const bones = model.bones || [];
@@ -168,7 +168,7 @@ function buildProjectJson(model) {
 }
 
 /** model-data v7 JSON（运行时渲染数据） */
-function buildModelDataJson(model, mesherResult, bounds) {
+export function buildModelDataJson(model, mesherResult, bounds) {
   const rootOffset = bounds.min;
   const { meshes } = mesherResult;
   const paletteList = model.palette.items.map((it) => it.rgb);
@@ -230,7 +230,7 @@ function buildModelDataJson(model, mesherResult, bounds) {
   return { animations, meshes, nodes, texture };
 }
 
-async function writeBundle({ projectSchema, modelSchema, meta, previewPng, outFile }) {
+export async function writeBundle({ projectSchema, modelSchema, meta, previewPng, outFile }) {
   const projectBytes = Buffer.from(vp.projectSchemaToBytes(projectSchema));
   const dataBytes = Buffer.from(vp.modelSchemaToBytes(modelSchema));
   const metaBytes = Buffer.from(JSON.stringify({ ...meta, dataHash: cid(dataBytes) }));
@@ -253,7 +253,7 @@ async function writeBundle({ projectSchema, modelSchema, meta, previewPng, outFi
   return { bundle, projectBytes, dataBytes, metaBytes };
 }
 
-function statsOf(modelDataBytes) {
+export function statsOf(modelDataBytes) {
   const decoded = vp.modelBytesToSchema(new Uint8Array(modelDataBytes));
   const s = decoded.schema;
   const texels = (s.texture.data || []).length;
@@ -263,7 +263,7 @@ function statsOf(modelDataBytes) {
   return { version: decoded.version, texels, usedColors: used, rects, palette: (s.texture.palette || []).length, meshes: (s.meshes || []).length };
 }
 
-function gateCheck(st, { surface = null, dims = null } = {}) {
+export function gateCheck(st, { surface = null, dims = null } = {}) {
   // 面片门禁按表面积缩放：大模型要求 ≥160；小道具改为密度门槛（×0.085 且 ≥48）防"整块方块"。
   // 薄板/细长类（最小维 ≤10）两大面重复计数虚高 → 有效面积 = 2*L*H + 半周×厚，与大模型同一密度标尺
   const d = dims || [99, 99, 99];
@@ -281,7 +281,7 @@ function gateCheck(st, { surface = null, dims = null } = {}) {
 }
 
 /** 伪 plan（软渲染预览输入） */
-function pseudoProject(model) {
+export function pseudoProject(model) {
   const voxels = {};
   for (const g of model.groups) {
     const view = g.sculptor.toView();

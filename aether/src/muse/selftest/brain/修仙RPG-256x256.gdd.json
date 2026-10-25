@@ -415,14 +415,14 @@
     },
     {
       "role": "landmark",
-      "name": "ink-pagoda",
-      "style": "问心塔",
+      "name": "ink-stele",
+      "style": "问心剑碑",
       "sizeHint": [
         22,
         44,
-        22
+        13
       ],
-      "animated": false
+      "animated": true
     },
     {
       "role": "landmark",

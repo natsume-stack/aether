@@ -1,0 +1,36 @@
+{
+  "version": "MapBench/1.0",
+  "grade": 96.2,
+  "letter": "S",
+  "verdict": "顶尖",
+  "pillars": {
+    "structure": {
+      "score": 97,
+      "weight": 0.2,
+      "issues": []
+    },
+    "terrain": {
+      "score": 87,
+      "weight": 0.25,
+      "issues": []
+    },
+    "ui": {
+      "score": 100,
+      "weight": 0.15,
+      "issues": []
+    },
+    "models": {
+      "score": 100,
+      "weight": 0.25,
+      "issues": []
+    },
+    "cohesion": {
+      "score": 100,
+      "weight": 0.15,
+      "issues": []
+    }
+  },
+  "blockers": [],
+  "source": "examples/pipeline-report.json",
+  "at": "2026-10-25T06:36:10.362Z"
+}

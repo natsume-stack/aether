@@ -1,0 +1,27 @@
+{
+  "version": "N17ModelStatusV4/0.1",
+  "subject": "仙鹤",
+  "pass": true,
+  "score": 10,
+  "gates": {
+    "palette": true,
+    "usedColors": true,
+    "rects": true,
+    "texels": true,
+    "pass": true
+  },
+  "structure": {
+    "silhouetteIoU": {},
+    "silhouetteOk": true,
+    "boundsFill": [
+      0.974,
+      0.909,
+      1
+    ],
+    "boundsOk": true,
+    "animOk": true,
+    "animations": 3
+  },
+  "judgeScore": null,
+  "distilled": "仙鹤"
+}

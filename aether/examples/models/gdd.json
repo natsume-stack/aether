@@ -1,0 +1,570 @@
+{
+  "version": "GDD/0.1",
+  "id": "像素战争-512x512",
+  "name": "像素战争·像素",
+  "genre": "像素战争",
+  "themeKeywords": [
+    "像素",
+    "方块",
+    "复古",
+    "竞技"
+  ],
+  "artStyle": "pixel",
+  "mapSize": [
+    512,
+    512
+  ],
+  "heightBudget": 64,
+  "seed": 20261025,
+  "players": {
+    "count": 16,
+    "teams": 4
+  },
+  "loop": {
+    "phases": [
+      "采集资源",
+      "升级装备",
+      "团战推进",
+      "摧毁核心"
+    ],
+    "economy": [
+      "矿石",
+      "木材",
+      "金币"
+    ],
+    "winConditions": [
+      "摧毁敌方水晶",
+      "积分领先"
+    ]
+  },
+  "zones": [
+    {
+      "id": "z0",
+      "role": "spawn",
+      "name": "红方营地",
+      "center": [
+        256,
+        97
+      ],
+      "radius": 41,
+      "elevationHint": "plateau-10",
+      "biome": "出生平原",
+      "priority": 1,
+      "adjacency": [
+        "z_hub"
+      ],
+      "gameplayNotes": "红方 出生+核心",
+      "team": 0
+    },
+    {
+      "id": "z1",
+      "role": "spawn",
+      "name": "蓝方营地",
+      "center": [
+        415,
+        256
+      ],
+      "radius": 41,
+      "elevationHint": "plateau-10",
+      "biome": "出生平原",
+      "priority": 1,
+      "adjacency": [
+        "z_hub"
+      ],
+      "gameplayNotes": "蓝方 出生+核心",
+      "team": 1
+    },
+    {
+      "id": "z2",
+      "role": "spawn",
+      "name": "绿方营地",
+      "center": [
+        256,
+        415
+      ],
+      "radius": 41,
+      "elevationHint": "plateau-10",
+      "biome": "出生平原",
+      "priority": 1,
+      "adjacency": [
+        "z_hub"
+      ],
+      "gameplayNotes": "绿方 出生+核心",
+      "team": 2
+    },
+    {
+      "id": "z3",
+      "role": "spawn",
+      "name": "黄方营地",
+      "center": [
+        97,
+        256
+      ],
+      "radius": 41,
+      "elevationHint": "plateau-10",
+      "biome": "出生平原",
+      "priority": 1,
+      "adjacency": [
+        "z_hub"
+      ],
+      "gameplayNotes": "黄方 出生+核心",
+      "team": 3
+    },
+    {
+      "id": "z4",
+      "role": "resource",
+      "name": "红方矿脉区",
+      "center": [
+        256,
+        159
+      ],
+      "radius": 31,
+      "elevationHint": "hill",
+      "biome": "矿洞丘陵",
+      "priority": 3,
+      "adjacency": [
+        "z0"
+      ],
+      "gameplayNotes": "红方 资源",
+      "team": 0
+    },
+    {
+      "id": "z5",
+      "role": "resource",
+      "name": "蓝方矿脉区",
+      "center": [
+        353,
+        256
+      ],
+      "radius": 31,
+      "elevationHint": "hill",
+      "biome": "矿洞丘陵",
+      "priority": 3,
+      "adjacency": [
+        "z1"
+      ],
+      "gameplayNotes": "蓝方 资源",
+      "team": 1
+    },
+    {
+      "id": "z6",
+      "role": "resource",
+      "name": "绿方矿脉区",
+      "center": [
+        256,
+        353
+      ],
+      "radius": 31,
+      "elevationHint": "hill",
+      "biome": "矿洞丘陵",
+      "priority": 3,
+      "adjacency": [
+        "z2"
+      ],
+      "gameplayNotes": "绿方 资源",
+      "team": 2
+    },
+    {
+      "id": "z7",
+      "role": "resource",
+      "name": "黄方矿脉区",
+      "center": [
+        159,
+        256
+      ],
+      "radius": 31,
+      "elevationHint": "hill",
+      "biome": "矿洞丘陵",
+      "priority": 3,
+      "adjacency": [
+        "z3"
+      ],
+      "gameplayNotes": "黄方 资源",
+      "team": 3
+    },
+    {
+      "id": "z8",
+      "role": "arena",
+      "name": "中央战场",
+      "center": [
+        256,
+        256
+      ],
+      "radius": 62,
+      "elevationHint": "bowl+4",
+      "biome": "焦土平原",
+      "priority": 2,
+      "adjacency": [
+        "z9"
+      ],
+      "gameplayNotes": "中立"
+    },
+    {
+      "id": "z9",
+      "role": "shop",
+      "name": "中立集市",
+      "center": [
+        318,
+        318
+      ],
+      "radius": 26,
+      "elevationHint": "flat",
+      "biome": "石板广场",
+      "priority": 2,
+      "adjacency": [
+        "z5"
+      ],
+      "gameplayNotes": "中立"
+    }
+  ],
+  "poiGraph": {
+    "nodes": [
+      {
+        "id": "p_z0",
+        "zone": "z0",
+        "pos": [
+          256,
+          0,
+          97
+        ],
+        "kind": "bed"
+      },
+      {
+        "id": "p_z1",
+        "zone": "z1",
+        "pos": [
+          415,
+          0,
+          256
+        ],
+        "kind": "bed"
+      },
+      {
+        "id": "p_z2",
+        "zone": "z2",
+        "pos": [
+          256,
+          0,
+          415
+        ],
+        "kind": "bed"
+      },
+      {
+        "id": "p_z3",
+        "zone": "z3",
+        "pos": [
+          97,
+          0,
+          256
+        ],
+        "kind": "bed"
+      },
+      {
+        "id": "p_z4",
+        "zone": "z4",
+        "pos": [
+          256,
+          0,
+          159
+        ],
+        "kind": "ore"
+      },
+      {
+        "id": "p_z5",
+        "zone": "z5",
+        "pos": [
+          353,
+          0,
+          256
+        ],
+        "kind": "ore"
+      },
+      {
+        "id": "p_z6",
+        "zone": "z6",
+        "pos": [
+          256,
+          0,
+          353
+        ],
+        "kind": "ore"
+      },
+      {
+        "id": "p_z7",
+        "zone": "z7",
+        "pos": [
+          159,
+          0,
+          256
+        ],
+        "kind": "ore"
+      },
+      {
+        "id": "p_z8",
+        "zone": "z8",
+        "pos": [
+          256,
+          0,
+          256
+        ],
+        "kind": "core"
+      },
+      {
+        "id": "p_z9",
+        "zone": "z9",
+        "pos": [
+          318,
+          0,
+          318
+        ],
+        "kind": "shop"
+      },
+      {
+        "id": "p_z9_npc",
+        "zone": "z9",
+        "pos": [
+          321,
+          0,
+          321
+        ],
+        "kind": "shopkeeper"
+      }
+    ],
+    "edges": [
+      {
+        "a": "p_z4",
+        "b": "p_z0",
+        "kind": "path"
+      },
+      {
+        "a": "p_z5",
+        "b": "p_z1",
+        "kind": "path"
+      },
+      {
+        "a": "p_z6",
+        "b": "p_z2",
+        "kind": "path"
+      },
+      {
+        "a": "p_z7",
+        "b": "p_z3",
+        "kind": "path"
+      },
+      {
+        "a": "p_z8",
+        "b": "p_z9",
+        "kind": "path"
+      },
+      {
+        "a": "p_z9",
+        "b": "p_z5",
+        "kind": "path"
+      },
+      {
+        "a": "p_z0",
+        "b": "p_z1",
+        "kind": "portal"
+      },
+      {
+        "a": "p_z0",
+        "b": "p_z2",
+        "kind": "portal"
+      },
+      {
+        "a": "p_z0",
+        "b": "p_z3",
+        "kind": "portal"
+      }
+    ]
+  },
+  "terrain": {
+    "continentProfile": "island-ring",
+    "rivers": 1,
+    "landmarkSilhouettes": [
+      "中央火山口"
+    ],
+    "traversal": "walk",
+    "biomePalette": [
+      {
+        "biome": "出生平原",
+        "blocks": {
+          "top": "grass",
+          "sub": "dirt",
+          "base": "stone"
+        },
+        "density": 0.20120341211557388
+      },
+      {
+        "biome": "矿洞丘陵",
+        "blocks": {
+          "top": "stone",
+          "sub": "stone",
+          "base": "stone"
+        },
+        "density": 0.2308057669736445
+      },
+      {
+        "biome": "焦土平原",
+        "blocks": {
+          "top": "dark_dirt",
+          "sub": "dirt",
+          "base": "stone"
+        },
+        "density": 0.2829878946603276
+      },
+      {
+        "biome": "石板广场",
+        "blocks": {
+          "top": "light_sand",
+          "sub": "dirt",
+          "base": "stone"
+        },
+        "density": 0.3290866190521047
+      }
+    ],
+    "water": {
+      "level": 8,
+      "bodies": 2
+    }
+  },
+  "ui": {
+    "screens": [
+      {
+        "id": "hud",
+        "purpose": "战斗主界面"
+      },
+      {
+        "id": "shop",
+        "purpose": "商店弹窗"
+      }
+    ],
+    "components": [
+      {
+        "kind": "hotbar",
+        "bindings": {}
+      },
+      {
+        "kind": "hearts",
+        "bindings": {}
+      },
+      {
+        "kind": "armorBar",
+        "bindings": {}
+      },
+      {
+        "kind": "hunger",
+        "bindings": {}
+      },
+      {
+        "kind": "xpBar",
+        "bindings": {}
+      },
+      {
+        "kind": "nameplate",
+        "bindings": {}
+      },
+      {
+        "kind": "killfeed",
+        "bindings": {}
+      },
+      {
+        "kind": "minimapFrame",
+        "bindings": {}
+      },
+      {
+        "kind": "scoreboard",
+        "bindings": {}
+      },
+      {
+        "kind": "timer",
+        "bindings": {}
+      },
+      {
+        "kind": "teamScore",
+        "bindings": {}
+      },
+      {
+        "kind": "crosshair",
+        "bindings": {}
+      },
+      {
+        "kind": "buffRow",
+        "bindings": {}
+      },
+      {
+        "kind": "ammoCounter",
+        "bindings": {}
+      },
+      {
+        "kind": "shopGrid",
+        "bindings": {}
+      },
+      {
+        "kind": "bossbar",
+        "bindings": {}
+      }
+    ],
+    "density": "medium",
+    "criticalInfo": [
+      "hotbar",
+      "hearts",
+      "armorBar"
+    ]
+  },
+  "models": [
+    {
+      "role": "hero",
+      "name": "pixel-blaster",
+      "style": "像素步枪",
+      "sizeHint": [
+        26,
+        9,
+        5
+      ],
+      "animated": true
+    },
+    {
+      "role": "landmark",
+      "name": "pixel-castle",
+      "style": "像素城堡",
+      "sizeHint": [
+        42,
+        40,
+        42
+      ],
+      "animated": false
+    },
+    {
+      "role": "prop",
+      "name": "pixel-pickaxe",
+      "style": "像素矿镐",
+      "sizeHint": [
+        22,
+        30,
+        10
+      ],
+      "animated": false
+    },
+    {
+      "role": "landmark",
+      "name": "pixel-turret",
+      "style": "水晶守卫炮塔",
+      "sizeHint": [
+        30,
+        26,
+        30
+      ],
+      "animated": true
+    }
+  ],
+  "fun": {
+    "scores": {
+      "clarity": 100,
+      "pacing": 87,
+      "balance": 100,
+      "depth": 99
+    },
+    "notes": []
+  }
+}

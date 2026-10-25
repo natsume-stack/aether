@@ -1,0 +1,127 @@
+{
+  "version": "ModelReport/0.3-sculpt-v3",
+  "artStyle": "ink",
+  "style": "ink-boat",
+  "role": "landmark",
+  "requested": {
+    "name": "sky-boat",
+    "sizeHint": [
+      52,
+      28,
+      20
+    ],
+    "animated": true
+  },
+  "program": {
+    "key": "ink-boat",
+    "natural": [
+      52,
+      28,
+      20
+    ],
+    "fitted": true
+  },
+  "bounds": {
+    "size": [
+      52,
+      28,
+      20
+    ],
+    "fill": [
+      1,
+      1.036,
+      1
+    ]
+  },
+  "critic": {
+    "before": {
+      "score": 8.5,
+      "issues": [],
+      "entropy": 3.515,
+      "silhouette": {
+        "occupancy": 0.737,
+        "bbox": [
+          52,
+          29
+        ],
+        "components": 1,
+        "componentsArea": [
+          1112
+        ],
+        "mainRatio": 1,
+        "singleMain": true
+      },
+      "floatingClusters": 0,
+      "edgeNoise": 0.106
+    },
+    "after": {
+      "score": 8.5,
+      "issues": [],
+      "entropy": 3.515,
+      "silhouette": {
+        "occupancy": 0.737,
+        "bbox": [
+          52,
+          29
+        ],
+        "components": 1,
+        "componentsArea": [
+          1112
+        ],
+        "mainRatio": 1,
+        "singleMain": true
+      },
+      "floatingClusters": 0,
+      "edgeNoise": 0.106
+    },
+    "repaired": false,
+    "rounds": []
+  },
+  "stats": {
+    "version": 7,
+    "texels": 11130,
+    "usedColors": 30,
+    "rects": 1309,
+    "palette": 41,
+    "meshes": 3
+  },
+  "gates": {
+    "palette": true,
+    "usedColors": true,
+    "rects": true,
+    "texels": true,
+    "pass": true
+  },
+  "structures": {
+    "boundsOk": true,
+    "animOk": true,
+    "animated": true,
+    "animations": 1,
+    "bones": 2
+  },
+  "hashes": {
+    "project": "Qmb5aBZNsHJZxdor7JPC76NjxpbGjSYAbpRBHxUbgLuHeS",
+    "modelData": "QmTJ4zzhymWHU4Zoaji95GKvSuQTuye1vX1ptGouWxdeV7"
+  },
+  "bytes": {
+    "project": 6583,
+    "modelData": 25081,
+    "bundle": 23316
+  },
+  "palette": 41,
+  "groups": [
+    {
+      "id": "boat_hull",
+      "filled": 5093
+    },
+    {
+      "id": "boat_sail",
+      "filled": 338
+    },
+    {
+      "id": "boat_cloud",
+      "filled": 5854
+    }
+  ],
+  "ms": 162
+}

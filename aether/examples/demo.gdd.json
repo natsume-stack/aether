@@ -518,51 +518,42 @@
       "name": "pixel-blaster",
       "style": "像素步枪",
       "sizeHint": [
-        22,
-        8,
-        6
+        26,
+        9,
+        5
       ],
-      "animated": false
+      "animated": true
     },
     {
       "role": "landmark",
       "name": "pixel-castle",
       "style": "像素城堡",
       "sizeHint": [
+        42,
         40,
-        40,
-        40
+        42
       ],
       "animated": false
     },
     {
       "role": "prop",
-      "name": "pixel-shop-stall",
-      "style": "像素货摊",
+      "name": "pixel-pickaxe",
+      "style": "像素矿镐",
       "sizeHint": [
-        20,
-        14,
-        14
-      ]
-    },
-    {
-      "role": "prop",
-      "name": "pixel-ore-vein",
-      "style": "像素矿脉",
-      "sizeHint": [
-        12,
-        10,
-        12
-      ]
+        22,
+        30,
+        10
+      ],
+      "animated": false
     },
     {
       "role": "landmark",
-      "name": "pixel-crystal",
-      "style": "像素水晶",
+      "name": "pixel-turret",
+      "style": "水晶守卫炮塔",
       "sizeHint": [
-        14,
-        22,
-        14
+        30,
+        26,
+        30
       ],
       "animated": true
     }
