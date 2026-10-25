@@ -47,4 +47,5 @@ muse.generateGDD(类型/尺寸/种子)
 
 ## 版史
 
+- v0.2.0 · 2026-10-25 · 四引擎全链路贯通（像素战争 512×512：GDD→HUD→地形→模型 全指标 PASS）。chisel v3：24 流派程序 + critic 自评 + autoRepair + 统一密度门禁；gaia：验收 9/10；muse↔chisel 产能对表
 - v0.1.0 · 2026-10-25 · muse + prism 完成自测；gaia/chisel v3 在途（chisel v2 核心已就位）
