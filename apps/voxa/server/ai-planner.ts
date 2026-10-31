@@ -11,6 +11,211 @@ export type VoxaReasoning = 'off' | 'low' | 'medium' | 'high';
 const kinds = new Set(['paint', 'erase', 'paint_path', 'fill_box', 'set_color', 'trim', 'part_patch', 'part_create', 'part_select', 'part_delete', 'part_group', 'part_move', 'palette_add', 'workspace_resize']);
 const PLAN_TIMEOUT_MS = 180_000;
 
+const KIND_ALIASES: Record<string, string> = {
+  createpart: 'part_create', partcreate: 'part_create', add_part: 'part_create', new_part: 'part_create',
+  selectpart: 'part_select', partselect: 'part_select',
+  deletepart: 'part_delete', partdelete: 'part_delete', remove_part: 'part_delete', partremove: 'part_delete',
+  groupparts: 'part_group', partgroup: 'part_group', group_parts: 'part_group',
+  movepart: 'part_move', partmove: 'part_move', move_part: 'part_move',
+  patchpart: 'part_patch', partpatch: 'part_patch', patch_part: 'part_patch',
+  paintvoxel: 'paint', paint_voxel: 'paint', place: 'paint', setvoxel: 'paint',
+  remove: 'erase', erase_voxel: 'erase',
+  path: 'paint_path', paintpath: 'paint_path', paint_path: 'paint_path', line: 'paint_path',
+  fill: 'fill_box', fillbox: 'fill_box', box_fill: 'fill_box', boxfill: 'fill_box',
+  setcolor: 'set_color', color: 'set_color',
+  trimempty: 'trim', trim_empty: 'trim',
+  paletteadd: 'palette_add', add_color: 'palette_add', addcolor: 'palette_add', palette: 'palette_add',
+  resize: 'workspace_resize', resizeworkspace: 'workspace_resize', workspace: 'workspace_resize',
+};
+
+const COMMAND_FIELDS = new Set([
+  'kind', 'tool', 'cmd', 'command', 'type', 'action', 'tool_name', 'toolName', 'functionName',
+  'args', 'arguments', 'input', 'parameters', 'params', 'tool_input', 'action_input',
+  'function', 'fn', 'tool_call', 'toolCall', 'functionCall', 'function_call', 'call', 'id', 'status',
+]);
+const NOISE_TYPES = new Set(['message', 'reasoning', 'output_text', 'reasoning_text', 'text', 'content']);
+
+function normalizeKind(value: unknown) {
+  const raw = String(value ?? '').trim();
+  if (kinds.has(raw)) return raw;
+  const key = raw.toLowerCase().replace(/[\s-]+/g, '_');
+  if (kinds.has(key)) return key;
+  return KIND_ALIASES[key] || KIND_ALIASES[key.replace(/_/g, '')] || key;
+}
+
+function parseArgs(value: unknown): Record<string, unknown> | undefined {
+  if (value && typeof value === 'object' && !Array.isArray(value)) return value as Record<string, unknown>;
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed as Record<string, unknown>;
+    } catch {
+      return undefined;
+    }
+  }
+  return undefined;
+}
+
+function isNoiseRow(row: Record<string, unknown>) {
+  return NOISE_TYPES.has(String(row.type ?? '').toLowerCase());
+}
+
+function normalizeArgs(kind: string, args: Record<string, unknown>) {
+  const value = { ...args };
+  if (['paint', 'erase', 'paint_path', 'fill_box'].includes(kind)) {
+    if (value.at === undefined) {
+      const at = value.position ?? value.pos ?? value.coordinate ?? value.point;
+      if (Array.isArray(at)) value.at = at;
+    }
+    if (value.colorId === undefined && value.color !== undefined) value.colorId = value.color;
+    if (value.points === undefined && Array.isArray(value.path)) value.points = value.path;
+    if (value.from === undefined && Array.isArray(value.start)) value.from = value.start;
+    if (value.to === undefined && Array.isArray(value.end)) value.to = value.end;
+  }
+  if (kind === 'palette_add' && value.alias === undefined && typeof value.name === 'string' && value.name.startsWith('$')) value.alias = value.name;
+  return value;
+}
+
+/**
+ * Real gateways emit several command shapes:
+ * {kind,args}, {cmd,...flat}, {tool,...flat}, {"paint":{...}} (DeepSeek stream),
+ * Anthropic {type:"tool_use",name,input}, OpenAI {type:"function",function:{name,arguments}},
+ * Responses {type:"function_call",name,arguments}, Gemini {functionCall:{name,args}}.
+ */
+export function coerceCommand(row: unknown): VoxaAiCommand | undefined {
+  if (typeof row === 'string') {
+    const kind = normalizeKind(row);
+    return kinds.has(kind) ? {kind, args: {}} : undefined;
+  }
+  if (!row || typeof row !== 'object' || Array.isArray(row)) return undefined;
+  const item = row as Record<string, unknown>;
+  const keys = Object.keys(item);
+
+  if (keys.length === 1) {
+    const kind = normalizeKind(keys[0]);
+    if (kinds.has(kind)) {
+      const value = item[keys[0]];
+      const parsed = parseArgs(value);
+      if (parsed) return {kind, args: normalizeArgs(kind, parsed)};
+      if (value && typeof value === 'object' && !Array.isArray(value)) return {kind, args: normalizeArgs(kind, value as Record<string, unknown>)};
+      if (value === undefined || value === null) return {kind, args: {}};
+      return undefined;
+    }
+  }
+
+  const fnRaw = item.function ?? item.fn;
+  const fn = fnRaw && typeof fnRaw === 'object' && !Array.isArray(fnRaw) ? fnRaw as Record<string, unknown> : undefined;
+  const callRaw = item.tool_call ?? item.toolCall ?? item.functionCall ?? item.function_call ?? item.call;
+  const call = callRaw && typeof callRaw === 'object' && !Array.isArray(callRaw) ? callRaw as Record<string, unknown> : undefined;
+
+  let rawKind: unknown;
+  const candidates = [
+    item.kind, item.tool, item.cmd, item.command, item.action,
+    item.tool_name, item.toolName, item.functionName,
+    typeof fnRaw === 'string' ? fnRaw : undefined,
+    fn?.name, call?.name, call?.tool, item.name,
+  ];
+  for (const candidate of candidates) {
+    if (candidate !== undefined && candidate !== null && String(candidate).trim()) { rawKind = candidate; break; }
+  }
+  let kind = normalizeKind(rawKind);
+  if (!kinds.has(kind)) {
+    const typed = normalizeKind(item.type ?? call?.type ?? '');
+    if (kinds.has(typed)) kind = typed;
+  }
+  if (!kinds.has(kind)) {
+    for (const key of keys) {
+      const candidate = normalizeKind(key);
+      if (!kinds.has(candidate)) continue;
+      const value = item[key];
+      const parsed = parseArgs(value);
+      if (parsed) return {kind: candidate, args: normalizeArgs(candidate, parsed)};
+      if (value && typeof value === 'object' && !Array.isArray(value)) return {kind: candidate, args: normalizeArgs(candidate, value as Record<string, unknown>)};
+      break;
+    }
+    return undefined;
+  }
+
+  const kindFromName = rawKind === item.name || rawKind === fn?.name || rawKind === call?.name || rawKind === call?.tool;
+  const nested = item.args ?? item.arguments ?? item.input ?? item.parameters ?? item.params
+    ?? item.tool_input ?? item.action_input ?? fn?.arguments ?? fn?.args ?? call?.args ?? call?.input ?? call?.arguments;
+  const hasNested = nested !== undefined;
+  let args = parseArgs(nested);
+  if (!args) {
+    if (hasNested) return undefined;
+    args = {};
+    for (const [key, value] of Object.entries(item)) {
+      if (COMMAND_FIELDS.has(key)) continue;
+      if (key === 'name' && kindFromName) continue;
+      args[key] = value;
+    }
+  }
+  return {kind, args: normalizeArgs(kind, args)};
+}
+
+export function coercePlanValue(value: unknown): VoxaAiPlan & { rejected: number; rejectedKinds: string[] } {
+  let message = '';
+  let rows: unknown[] = [];
+  let done: boolean | undefined;
+
+  if (Array.isArray(value)) {
+    rows = value;
+  } else if (value && typeof value === 'object') {
+    let plan = value as Record<string, unknown>;
+    if (plan.plan && typeof plan.plan === 'object') {
+      const nested = coercePlanValue(plan.plan);
+      if (nested.commands.length || nested.rejected) {
+        return { ...nested, message: nested.message || (typeof plan.message === 'string' ? plan.message : '') };
+      }
+      plan = plan.plan as Record<string, unknown>;
+    }
+    message = typeof plan.message === 'string' ? plan.message
+      : typeof plan.reply === 'string' ? plan.reply
+        : typeof plan.text === 'string' ? plan.text : '';
+    const arrayKeys = ['commands', 'actions', 'steps', 'tool_calls', 'toolCalls', 'function_calls', 'functionCalls', 'calls', 'operations', 'output', 'content'];
+    for (const key of arrayKeys) {
+      if (Array.isArray(plan[key])) { rows = plan[key] as unknown[]; break; }
+    }
+    if (!rows.length) {
+      for (const key of ['commands', 'command', 'action', 'tool_call', 'toolCall', 'function_call', 'functionCall', 'call']) {
+        const candidate = plan[key];
+        if (candidate && typeof candidate === 'object' && !Array.isArray(candidate)) { rows = [candidate]; break; }
+      }
+    }
+    if (typeof plan.done === 'boolean') done = plan.done;
+    else if (typeof plan.finished === 'boolean') done = plan.finished;
+    else if (typeof plan.complete === 'boolean') done = plan.complete;
+    else if (typeof plan.isDone === 'boolean') done = plan.isDone;
+  }
+
+  if (rows.length > 32) throw new Error('Invalid model plan');
+  const commands: VoxaAiCommand[] = [];
+  const rejectedKinds: string[] = [];
+  let considered = 0;
+  for (const row of rows) {
+    const object = row && typeof row === 'object' && !Array.isArray(row) ? row as Record<string, unknown> : undefined;
+    if (object && isNoiseRow(object)) continue;
+    considered += 1;
+    const command = coerceCommand(row);
+    if (command) {
+      commands.push(command);
+      continue;
+    }
+    const label = object
+      ? object.kind ?? object.tool ?? object.cmd ?? object.command ?? object.name ?? `keys:${Object.keys(object).slice(0, 5).join('|')}`
+      : typeof row;
+    rejectedKinds.push(String(label).slice(0, 60));
+  }
+  if (commands.length > 32) throw new Error('Invalid model plan');
+  return {
+    message: message || (commands.length ? `已生成 ${commands.length} 项修改。` : '没有需要执行的修改。'),
+    commands,
+    done: done === true || (commands.length === 0 && considered === 0),
+    rejected: considered - commands.length,
+    rejectedKinds,
+  };
+}
+
 export function validateVoxaAiPlan(value: unknown): VoxaAiPlan {
   if (!value || typeof value !== 'object') throw new Error('Invalid model plan');
   const plan = value as Record<string, unknown>;
@@ -91,9 +296,11 @@ export async function authorizeVoxaAiWrite(req: NextApiRequest, res: NextApiResp
   return internal('/api/player-ai-internal/execution',input.runId?{userId,runId:input.runId,event:{phase:input.phase || 'before',action:input.action || 'voxa-batch',snapshot:input.snapshot || ''}}:{userId,scope:`voxa:${String(modelId)}`,mode:input.mode==='review'?'review':'autonomous',providerId:input.providerId,model:input.model},req,res);
 }
 
-const SYSTEM = `You are the VOXA voxel agent. Work the way a coding agent works: read the supplied context, plan the smallest correct batch, execute it, inspect the execution report, repair failures, and continue only while the goal is unfinished.
+export const SYSTEM = `You are the VOXA voxel agent. Work the way a coding agent works: read the supplied context, plan the smallest correct batch, execute it, inspect the execution report, repair failures, and continue only while the goal is unfinished.
 
 Return ONLY a JSON object: {"commands":[...],"message":"reply in the user language","done":false}.
+- Use exactly {"kind":"part_create","args":{"alias":"$body"}} for every command. Do not use cmd/tool/single-key wrappers.
+- Example: {"commands":[{"kind":"part_create","args":{"alias":"$body","name":"Bat"}},{"kind":"paint","args":{"at":[7,7,7],"colorId":1}}],"message":"已创建","done":false}
 - Put "commands" FIRST in the object so the editor can show tool calls while you are still streaming. Keep "message" under 120 words and do not include reasoning or long prose.
 - done=true only when the user's goal is fully satisfied by the work already applied. Otherwise return the next batch and done=false.
 - If the execution report lists failures, fix those first. Never repeat changes that already succeeded.
@@ -162,19 +369,19 @@ function headersFor(provider: any) {
 function bodyFor(prepared: Prepared, stream: boolean) {
   const {provider, messages, prompt, history, model, reasoning} = prepared;
   if (provider.protocol === 'chat-completions') {
-    const body: Record<string, unknown> = {model, messages: [{role: 'system', content: SYSTEM}, ...messages], max_tokens: 4096, stream};
+    const body: Record<string, unknown> = {model, messages: [{role: 'system', content: SYSTEM}, ...messages], max_tokens: reasoning === 'off' ? 8192 : 12288, stream};
     if (reasoning !== 'off') body.reasoning_effort = reasoning;
     return body;
   }
   if (provider.protocol === 'responses') {
     const transcript = history.map((row) => `[${row.role}] ${row.content}`).join('\n\n');
-    const body: Record<string, unknown> = {model, instructions: SYSTEM, input: transcript ? `${transcript}\n\n${prompt}` : prompt, max_output_tokens: 4096};
+    const body: Record<string, unknown> = {model, instructions: SYSTEM, input: transcript ? `${transcript}\n\n${prompt}` : prompt, max_output_tokens: reasoning === 'off' ? 12288 : 16384};
     if (stream) body.stream = true;
     if (reasoning !== 'off') body.reasoning = {effort: reasoning};
     return body;
   }
   if (provider.protocol === 'anthropic-messages') {
-    const body: Record<string, unknown> = {model, system: SYSTEM, messages, max_tokens: reasoning === 'off' ? 4096 : 8192};
+    const body: Record<string, unknown> = {model, system: SYSTEM, messages, max_tokens: reasoning === 'off' ? 8192 : 12288};
     if (stream) body.stream = true;
     if (reasoning !== 'off') body.thinking = {type: 'enabled', budget_tokens: reasoning === 'low' ? 1024 : reasoning === 'medium' ? 2048 : 4096};
     return body;
@@ -226,9 +433,8 @@ function completeCommands(raw: string): VoxaAiCommand[] {
       if (depth === 0 && objStart >= 0) {
         try {
           const value = JSON.parse(raw.slice(objStart, index + 1));
-          if (value && kinds.has(String(value.kind)) && value.args && typeof value.args === 'object' && !Array.isArray(value.args)) {
-            out.push({kind: String(value.kind), args: value.args});
-          }
+          const command = coerceCommand(value);
+          if (command) out.push(command);
         } catch {
           // Partial or malformed object: wait for more bytes.
         }
@@ -279,13 +485,21 @@ export async function generateVoxaAiPlan(req: NextApiRequest, res: NextApiRespon
     const usage = usageOf(provider, data);
     inputTokens = usage.input; outputTokens = usage.output;
     const text = contentText(provider, data);
+    if (provider.protocol === 'responses' && data?.status === 'incomplete' && !String(text || '').trim()) {
+      throw new Error(`模型未返回正文（${data?.incomplete_details?.reason || 'incomplete'}）：思考耗尽输出预算，请提高输出上限或换非推理模型`);
+    }
+    if (provider.protocol === 'chat-completions' && data?.choices?.[0]?.finish_reason === 'length' && !String(text || '').trim()) {
+      throw new Error('模型只返回了思考内容：输出预算耗尽，请提高输出上限或换非推理模型');
+    }
     if (typeof text !== 'string' || !text.trim() || text.length > 250000) throw new Error('AI provider returned invalid content');
     const clean = text.trim().replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
     let value: unknown;
     try { value = JSON.parse(clean); } catch { completed = true; return {message: text, commands: [], done: true}; }
-    const plan = validateVoxaAiPlan(value);
+    const plan = coercePlanValue(value);
+    if (plan.commands.length === 0 && plan.rejected > 0) throw new Error(`模型返回的命令格式不受支持：${plan.rejectedKinds.join(', ')}`);
+    console.info('[voxa-ai] plan parsed', { commands: plan.commands.length, rejected: plan.rejected });
     completed = true;
-    return plan;
+    return { message: plan.message, commands: plan.commands, done: plan.done };
   } finally {
     clearTimeout(timer); res.off('close', cancel);
     console.info('[voxa-ai] plan finished', {completed, elapsedMs: Date.now() - started, inputTokens, outputTokens});
@@ -337,6 +551,7 @@ export async function streamVoxaAiPlan(req: NextApiRequest, res: NextApiResponse
     let text = '';
     let emitted = 0;
     let firstByteMs = 0;
+    let incompleteReason = '';
     const emitCommands = (raw: string) => {
       const list = completeCommands(raw);
       while (emitted < list.length) {
@@ -365,6 +580,9 @@ export async function streamVoxaAiPlan(req: NextApiRequest, res: NextApiResponse
           if (payloadText === '[DONE]') { finished = true; break; }
           let payload: any;
           try { payload = JSON.parse(payloadText); } catch { continue; }
+          if (payload?.type === 'response.incomplete' || payload?.type === 'response.failed') {
+            incompleteReason = payload?.response?.incomplete_details?.reason || payload?.response?.error?.message || payload?.error?.message || String(payload.type);
+          }
           const delta = deltaText(provider, payload);
           if (delta) {
             text += delta;
@@ -397,7 +615,7 @@ export async function streamVoxaAiPlan(req: NextApiRequest, res: NextApiResponse
       emitCommands(text);
     }
     send({type: 'phase', phase: 'parsing'});
-    if (!text.trim() || text.length > 250000) throw new Error('AI provider returned invalid content');
+    if (!text.trim() || text.length > 250000) throw new Error(incompleteReason ? `模型未返回正文（${incompleteReason}）：思考耗尽输出预算，请提高输出上限或换非推理模型` : 'AI provider returned invalid content');
     const clean = text.trim().replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
     let value: unknown;
     try { value = JSON.parse(clean); } catch {
@@ -405,10 +623,11 @@ export async function streamVoxaAiPlan(req: NextApiRequest, res: NextApiResponse
       send({type: 'plan', message: text, commands: [], done: true});
       return;
     }
-    const plan = validateVoxaAiPlan(value);
+    const plan = coercePlanValue(value);
+    if (plan.commands.length === 0 && plan.rejected > 0) throw new Error(`模型返回的命令格式不受支持：${plan.rejectedKinds.join(', ')}`);
     completed = true;
-    console.info('[voxa-ai] stream done', {firstByteMs, totalMs: Date.now() - started, chars: text.length, commands: plan.commands.length, inputTokens, outputTokens});
-    send({type: 'plan', ...plan});
+    console.info('[voxa-ai] stream done', {firstByteMs, totalMs: Date.now() - started, chars: text.length, commands: plan.commands.length, rejected: plan.rejected, rejectedKinds: plan.rejectedKinds.slice(0, 6), inputTokens, outputTokens});
+    send({type: 'plan', message: plan.message, commands: plan.commands, done: plan.done});
   } catch (error) {
     const message = error instanceof Error ? error.message : 'AI request failed';
     console.info('[voxa-ai] stream failed', {elapsedMs: Date.now() - started, message: message.slice(0, 120)});

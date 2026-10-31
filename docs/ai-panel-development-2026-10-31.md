@@ -112,3 +112,12 @@ Source of truth: /home/natsume/box3-dev/repo/box3-local-engine, branch dev/serve
   - 客户端不再等待“保存偏好”完成才发请求；上下文构建记录耗时与字节数（`[voxa-panel] context`）。
   - 分阶段显示：读取模型上下文 → 准备请求 → 等待模型响应（含已用秒数）→ 生成 → 校验；流式 `command` 事件逐条显示工具卡片。
   - 服务端记录 `[voxa-ai] stream start/done/failed`（上下文大小、首字节、总耗时、token），便于判断慢在网关还是模型。
+
+## 多协议命令兼容与推理预算（2026-10-31 第五轮）
+
+真实 DeepSeek 测试暴露了两类问题：
+
+- **输出预算**：DeepSeek Responses 是推理模型，2048 输出预算会被 `reasoning_text` 全部耗尽并返回 `response.incomplete`，正文为空。现调整为 Chat 8192/12288、Responses 12288/16384、Anthropic 8192/12288（按思考强度），并对 `incomplete`、`finish_reason=length` 给出明确错误。
+- **命令格式**：同一模型在不同接口会返回 `{"kind","args"}`、`{"cmd",...扁平}`、`{"paint":{...}}` 单键对象；另有 Anthropic `tool_use`、OpenAI `tool_calls/function_call`、Gemini `functionCall`。现统一归一化为 `{kind,args}`，无法识别的条目才计入 rejected，并在错误中列出原始 key/kind，便于定位。
+
+验证：`apps/voxa/scripts/check-agent-plan-coercion.ts` 覆盖全部上述结构；真实 DeepSeek 流式蝙蝠测试 14s 返回 23 条命令、rejected=0；流式先到工具调用再出完整计划。
