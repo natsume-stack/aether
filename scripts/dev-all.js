@@ -31,6 +31,7 @@ const PORTS = {
     play: port('BOX_DEV_PLAY_PORT', 3121),
     playRuntime: port('BOX_DEV_PLAY_RUNTIME_PORT', 9966),
     editRuntime: port('BOX_DEV_EDIT_RUNTIME_PORT', 9967),
+    admin: port('BOX_DEV_ADMIN_PORT', 8000),
 };
 
 // Where the dev stack is reachable from. Defaults keep the classic loopback
@@ -270,7 +271,12 @@ try {
         );
         start('player-admin', process.execPath, [executable, 'dev'], {
             cwd: adminRoot,
-            env: { PORT: '8000', PLAYER_ADMIN_DEV_API_URL: 'http://127.0.0.1:3124' },
+            env: {
+            PORT: String(PORTS.admin),
+            // The Umi dev proxy must reach the dev player-service, not a co-hosted
+            // production stack on 3124.
+            PLAYER_ADMIN_DEV_API_URL: loopback(PORTS.playerService),
+        },
         });
     }
 
@@ -283,7 +289,7 @@ try {
     console.log('  Player Service http://127.0.0.1:3124/');
     console.log('  Auth Portal    http://127.0.0.1:3125/');
     if (includeAdmin) {
-        console.log('  Player Admin   http://127.0.0.1:8000/');
+        console.log(`  Player Admin   http://127.0.0.1:${PORTS.admin}/`);
     }
     console.log(
         '\n按 Ctrl-C 停止源码服务。默认不会启动或停止 Docker 基础服务；需要时使用 rush dev --infra。',
