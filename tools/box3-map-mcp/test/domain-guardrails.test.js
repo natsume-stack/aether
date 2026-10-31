@@ -161,6 +161,45 @@ test('terrain_revert refuses an undo token it cannot parse instead of guessing',
 
 // --------------------------------------------------------------- ENTITY ----
 
+test('terrain_blocks exposes the map catalog, resolves names/palettes and refuses unknown names', async (t) => {
+  const { ok, fails } = await harness(t)
+  const catalog = await ok('terrain_blocks', { mapId: MAP, action: 'catalog' })
+  assert.equal(catalog.total, 4)
+  assert.equal(catalog.categories.nature, 2)
+  assert.equal(catalog.blocks.find((block) => block.name === 'grass').id, 3)
+  assert.equal(catalog.blocks.find((block) => block.name === 'water').fluid, true)
+
+  const search = await ok('terrain_blocks', { mapId: MAP, action: 'search', query: 'grass' })
+  assert.equal(search.matchCount, 1)
+  assert.equal(search.matches[0].id, 3)
+
+  const get = await ok('terrain_blocks', { mapId: MAP, action: 'get', key: '红砖' })
+  assert.equal(get.block.id, 7)
+  assert.equal(get.block.category, 'structure')
+
+  const palette = await ok('terrain_blocks', {
+    mapId: MAP,
+    action: 'palette',
+    palette: { ground: 'grass', wall: '红砖', liquid: 5 },
+    strict: true,
+  })
+  assert.equal(palette.complete, true)
+  assert.deepEqual(palette.ids, { ground: 3, wall: 7, liquid: 5 })
+
+  await fails('terrain_blocks', { mapId: MAP, action: 'get', key: 'does_not_exist' }, 'UNKNOWN_BLOCK_ALIAS')
+
+  // terrain_apply accepts the same name and the engine resolves it.
+  const info = await ok('terrain_info', { mapId: MAP })
+  const applied = await ok('terrain_apply', {
+    mapId: MAP,
+    region: { min: [1, 1, 1], max: [1, 1, 1] },
+    block: 'grass',
+    expectedRevision: info.revision,
+  })
+  assert.equal(applied.block, 3)
+  assert.equal(applied.changed, 1)
+})
+
 test('entity_create places entities, chains the revision and states the persistence rule', async (t) => {
   const { ok } = await harness(t, { models: { cube: { modelId: 7 } } })
   const listed = await ok('entity_list', { mapId: MAP })
@@ -362,7 +401,7 @@ test('the script runtime domain reports the engine router gap instead of pretend
   const error = await fails('script_list_runtime', { mapId: MAP }, 'ENGINE_TOOL_NOT_MOUNTED')
   assert.equal(error.retryable, false)
   assert.match(error.hint, /script_write/)
-  assert.equal(error.detail.available.length, 17, 'headless 路由只挂 17 个（无 createScriptTools）')
+  assert.equal(error.detail.available.length, 21, 'headless 路由只挂 21 个（无 createScriptTools，含 4 个方块目录工具）')
 
   await fails('script_read_runtime', { mapId: MAP, fileId: 'f1' }, 'ENGINE_TOOL_NOT_MOUNTED')
   await fails(

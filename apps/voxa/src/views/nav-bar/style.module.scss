@@ -166,6 +166,15 @@ $navBarMargin: 8px;
       height: 16px;
     }
 
+    .editLock {
+      @include t.h12;
+      max-width: 110px;
+      overflow: hidden;
+      color: c.$textWhiteSecondary;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
     .button {
       font-weight: 400;
       font-size: 14px;

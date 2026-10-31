@@ -153,6 +153,6 @@ function watchNewFiles(logger, directory, onChange) {
         .on('add', (path) => {
         onChange(path).catch((e) => logger.error(e));
     })
-        .on('error', (error) => logger.error(error));
+        .on('error', (error) => logger.error(error instanceof Error ? error : new Error(String(error))));
 }
 //# sourceMappingURL=upload-dir.js.map

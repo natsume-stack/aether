@@ -5,6 +5,11 @@ import {
   getModel,
   updateModelInfo,
 } from '../../../../server/local-voxa-store';
+import {
+  clearEditLock,
+  getEditLock,
+  normalizeEditLockActor,
+} from '../../../../server/local-voxa-edit-lock';
 import { setLocalCors } from '../../../../server/local-cors';
 import {
   requireVoxaModelAccess,
@@ -24,6 +29,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const model = getModel(id);
     return model ? res.status(200).json(model) : res.status(404).end();
   }
+  if (req.method === 'PUT' || req.method === 'DELETE') {
+    const lock = getEditLock(id);
+    const actor = normalizeEditLockActor(req.body?.actor);
+    if (lock.locked && lock.actor !== actor) {
+      return res.status(409).json({
+        code: 'EDIT_LOCKED',
+        message: `模型正在由 ${lock.actor} 编辑`,
+        editLock: lock,
+      });
+    }
+  }
   if (req.method === 'PUT') {
     if (!await requireVoxaModelManagement(req, res)) return;
     const updated = await updateModelInfo(id, {
@@ -35,6 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === 'DELETE') {
     if (!await requireVoxaModelManagement(req, res)) return;
     const deleted = await deleteModel(id);
+    if (deleted) clearEditLock(id);
     return res.status(deleted ? 200 : 404).json(deleted);
   }
   return res.status(405).end();

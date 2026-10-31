@@ -466,6 +466,7 @@ export default function ProjectsPage({
         closeExport={() => setExportProgress(null)}
         closeImport={() => setImportProgress(null)}
         closePublish={() => publisher.setPublishProgress(null)}
+        cancelImport={transfer.cancelImport}
       />
       <footer className={styles.creatorFooter}>
         <span>

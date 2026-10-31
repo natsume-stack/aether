@@ -50,6 +50,10 @@ const AUTHORING_TOOLS = [
   'terrainRead',
   'terrainApply',
   'terrainRevert',
+  'blockCatalog',
+  'getBlock',
+  'resolvePalette',
+  'searchBlocks',
   'uiTreeRead',
   'uiNodeAdd',
   'uiNodeRemove',
@@ -57,6 +61,21 @@ const AUTHORING_TOOLS = [
 /** Declared on the router but without `execute` (entity-tools.ts:676-683). */
 const NO_EXECUTE = new Set(['addModelToProject'])
 const MOUNTED = [...AUTHORING_TOOLS, ...ENTITY_TOOLS]
+
+/** Minimal block table mirroring the shape the real engine blockCatalog returns. */
+const BLOCK_CATALOG = [
+  { id: 0, name: 'air', aliases: ['air'], category: 'default', valid: true, solid: false, fluid: false, collision: false, texture: [0, 0, 0, 0, 0, 0], textureFrames: [1, 1, 1, 1, 1, 1], rotation: { bits: 2, supported: true }, visualTags: [] },
+  { id: 3, name: 'grass', aliases: ['grass', '草'], category: 'nature', valid: true, solid: true, fluid: false, collision: true, texture: [1, 1, 1, 1, 1, 1], textureFrames: [1, 1, 1, 1, 1, 1], rotation: { bits: 2, supported: true }, visualTags: ['nature'] },
+  { id: 5, name: 'water', aliases: ['water', '水'], category: 'nature', valid: true, solid: false, fluid: true, collision: false, texture: [2, 2, 2, 2, 2, 2], textureFrames: [1, 1, 1, 1, 1, 1], rotation: { bits: 2, supported: true }, visualTags: ['fluid', 'liquid'] },
+  { id: 7, name: 'red_brick', aliases: ['red_brick', '红砖'], category: 'structure', valid: true, solid: true, fluid: false, collision: true, texture: [3, 3, 3, 3, 3, 3], textureFrames: [1, 1, 1, 1, 1, 1], rotation: { bits: 2, supported: true }, visualTags: ['structure'] },
+]
+
+function findMockBlocks(key) {
+  if (typeof key === 'number') return BLOCK_CATALOG.filter((block) => block.id === key)
+  const wanted = String(key || '').trim().toLowerCase()
+  if (!wanted) return []
+  return BLOCK_CATALOG.filter((block) => block.name === wanted || block.aliases.includes(wanted))
+}
 
 function digest(parts) {
   return createHash('sha256').update(parts.join('|'), 'utf8').digest('hex').slice(0, 16)
@@ -150,6 +169,64 @@ export function createAuthoringSim(options = {}) {
         },
       }
     },
+    blockCatalog: ({ category, offset = 0, limit = 100 } = {}) => {
+      const filtered = category ? BLOCK_CATALOG.filter((block) => block.category === category) : BLOCK_CATALOG
+      const page = filtered.slice(offset, offset + limit)
+      const categories = {}
+      for (const block of BLOCK_CATALOG) categories[block.category] = (categories[block.category] || 0) + 1
+      return {
+        status: 200,
+        body: { success: true, total: filtered.length, tableSize: 8, categories, offset, returned: page.length, nextOffset: null, blocks: page },
+      }
+    },
+    getBlock: ({ key }) => {
+      const matches = findMockBlocks(key)
+      if (matches.length === 1) return { status: 200, body: { success: true, block: matches[0] } }
+      return refused('UNKNOWN_BLOCK_ALIAS', `"${key}" 不在本图 block 表中。`, {
+        key,
+        ambiguous: matches.length > 1,
+        candidates: matches.map((block) => ({ id: block.id, name: block.name })),
+      })
+    },
+    searchBlocks: ({ query = '', category, offset = 0, limit = 40 } = {}) => {
+      const q = query.trim().toLowerCase()
+      const matches = BLOCK_CATALOG.filter((block) => {
+        if (category && block.category !== category) return false
+        if (!q) return true
+        return block.name.includes(q) || block.aliases.some((alias) => alias.includes(q))
+      })
+      const page = matches.slice(offset, offset + limit)
+      return {
+        status: 200,
+        body: { success: true, total: BLOCK_CATALOG.length, tableSize: 8, matchCount: matches.length, offset, returned: page.length, nextOffset: null, resolved: null, matches: page },
+      }
+    },
+    resolvePalette: ({ palette, strict = false }) => {
+      const ids = {}
+      const resolved = {}
+      const missing = []
+      for (const [role, key] of Object.entries(palette || {})) {
+        const [entry] = findMockBlocks(key)
+        if (!entry) missing.push({ role, key, reason: 'unknown' })
+        else {
+          ids[role] = entry.id
+          resolved[role] = { requested: key, id: entry.id, name: entry.name, category: entry.category }
+        }
+      }
+      const complete = missing.length === 0
+      return {
+        status: 200,
+        body: {
+          success: strict ? complete : true,
+          complete,
+          ...(strict && !complete ? { code: 'UNKNOWN_BLOCK_ALIAS', error: 'palette 有角色未解析' } : {}),
+          ids,
+          resolved,
+          missing,
+          paletteSize: Object.keys(palette || {}).length,
+        },
+      }
+    },
     terrainApply: ({ region, block, rotation, expectedRevision, allowWhileRunning = false, dryRun = false }) => {
       const current = terrainRevision()
       // ORDER copied from map-authoring-tools.ts:263-280 — revision first.
@@ -176,7 +253,11 @@ export function createAuthoringSim(options = {}) {
       if (cells.length > MAX_TERRAIN_CELLS) {
         return { status: 200, body: { success: false, code: 'TOO_LARGE', error: 'region exceeds 500000 cells' } }
       }
-      const b = encodeBlock(block, rotation)
+      const resolvedBlock = typeof block === 'string' ? findMockBlocks(block)[0] : undefined
+      if (typeof block === 'string' && !resolvedBlock) {
+        return refused('UNKNOWN_BLOCK_ALIAS', `"${block}" 不在本图 block 表中。`, { key: block })
+      }
+      const b = encodeBlock(resolvedBlock ? resolvedBlock.id : block, rotation)
       const changes = []
       for (const [x, y, z] of cells) {
         const key = `${x},${y},${z}`
@@ -319,8 +400,8 @@ export function createAuthoringSim(options = {}) {
       if (!args.region || badTriple(args.region.min) || badTriple(args.region.max)) {
         issues.push({ path: ['region'], code: 'custom', message: 'region.min / region.max must be integer tuples of length 3' })
       }
-      if (name === 'terrainApply' && !Number.isInteger(args.block)) {
-        issues.push({ path: ['block'], code: 'invalid_type', message: 'block must be an integer' })
+      if (name === 'terrainApply' && typeof args.block !== 'number' && typeof args.block !== 'string') {
+        issues.push({ path: ['block'], code: 'invalid_type', message: 'block must be an integer or block name' })
       }
       if (name === 'terrainApply' && typeof args.expectedRevision !== 'string') {
         issues.push({ path: ['expectedRevision'], code: 'invalid_type', message: 'expectedRevision is required' })

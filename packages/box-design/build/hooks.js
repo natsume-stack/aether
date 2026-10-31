@@ -1,4 +1,4 @@
-import { memo, useState, useMemo, useRef, useCallback, useEffect } from 'react';
+import { memo, useRef, useCallback, useMemo, useEffect, useState } from 'react';
 import { clamp } from 'ramda';
 
 const DEFAULT_DELAY = 500;

@@ -81,7 +81,7 @@ test('tools/list advertises the eight read tools plus the merged write face', as
   const declared = [
     ...requiredReadTools,
     'script_write', 'script_typecheck', 'contract_describe', 'map_revision',
-    'terrain_info', 'terrain_read', 'terrain_apply', 'terrain_revert',
+    'terrain_info', 'terrain_blocks', 'terrain_read', 'terrain_apply', 'terrain_revert',
     'entity_list', 'entity_create', 'entity_update', 'entity_move', 'entity_delete', 'entity_copy',
     'model_list', 'model_search_public', 'model_add_to_project',
     'ui_tree_read', 'ui_node_add', 'ui_node_remove',

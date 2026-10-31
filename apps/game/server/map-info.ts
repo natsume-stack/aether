@@ -55,15 +55,19 @@ export async function getMapContentInfo(
   if (!ServerConfig.isLocalGameServer) {
     throw new Error('BOX3 Local Engine requires the local project catalog');
   }
-  const localWorld = process.env.BOX_PLAY_LIBRARY_PATH
-    ? findPlayWorld(containerName)
-    : undefined;
-  if (process.env.BOX_PLAY_LIBRARY_PATH && !localWorld) {
-    throw new Error(`Play world does not exist: ${containerName}`);
-  }
+  // Edit mode opens an unpublished local project; only playing needs a
+  // published play-world bundle. Requiring one here made every local map
+  // without a release fail with "Play world does not exist" before the editor
+  // could even start.
   const localProject = process.env.BOX_DEPLOYMENT_MODE === 'creator'
     ? getLocalProjectManager().getProject(containerName)
     : undefined;
+  const localWorld = process.env.BOX_PLAY_LIBRARY_PATH
+    ? findPlayWorld(containerName)
+    : undefined;
+  if (process.env.BOX_PLAY_LIBRARY_PATH && !localWorld && !localProject) {
+    throw new Error(`Play world does not exist: ${containerName}`);
+  }
   const identity = localProject || localWorld;
   return {
     contentId: 0,

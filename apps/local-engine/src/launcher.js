@@ -1479,7 +1479,13 @@ async function main() {
         },
     });
 
-    await waitFor(`http://127.0.0.1:${webPort}/api/health-check`);
+    // A cold Next dev build of the editor route can occupy the single Node
+    // process for minutes, which makes /api/health-check answer slower than
+    // the 1s per-attempt budget. The old 120-attempt cap then killed the whole
+    // stack mid-compile. Wait on a wall-clock deadline instead.
+    await waitFor(`http://127.0.0.1:${webPort}/api/health-check`, {
+        timeoutMs: process.env.BOX_WEB_START_TIMEOUT_MS || '600000',
+    });
 
     // Keep only the requested Creator/Play maps resident. Starting every map in
     // a large library only to populate a cache makes service startup compete

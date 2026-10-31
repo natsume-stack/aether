@@ -10,6 +10,7 @@ import React, {
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { hideAdmin, showAdmin, useAdmin } from 'src/entry/admin-ui';
+import { startAgentLive } from '~/client/edit/agent-live/agent-live-client';
 import { LangType } from '~/apis/createra';
 import { useEdit } from '~/client/edit/edit-context';
 import type { ClientStateType } from '~/client/edit/edit-schema';
@@ -23,6 +24,8 @@ import { clientConfig } from '~/config/client';
 import { RootState } from '~/redux/edit';
 import { setSeedState } from '~/redux/edit/seeds';
 import { ArenaEditorUIContext } from '../../editor-ui-context';
+import { AiActivityPanel } from '../ai-activity';
+import { AgentActivePanel } from '../agent-active';
 import { Settings } from '../center-panel/settings';
 import { UITreeContext, useUITreeContextValue } from '../game-ui/hooks';
 import { NavBar } from '../nav-bar';
@@ -71,6 +74,24 @@ export const EditorUIComponent = React.memo((props: EditorUIProps) => {
   const [transformType, setTransformType] = useState<TransformType>(
     TransformType.Normal,
   );
+
+  // The editor is already started when this component mounts; attach the live
+  // agent channel to this tab so commands run through the same client APIs the
+  // human uses (and the human can watch them happen).
+  useEffect(() => {
+    if (!isLocalEngine) return;
+    // Local-only handle so an end-to-end check can perform a *human* edit
+    // through the same transaction the toolbar uses (not through the agent
+    // channel), which is what proves human/AI actions stay distinguishable.
+    (window as any).__box3DevEditor = editor;
+    const stop = startAgentLive(editor);
+    return () => {
+      if ((window as any).__box3DevEditor === editor) {
+        delete (window as any).__box3DevEditor;
+      }
+      stop();
+    };
+  }, [editor, isLocalEngine]);
 
   // permissions和isGuest相关的判定
   const isGuest = useMemo(() => {
@@ -186,6 +207,8 @@ export const EditorUIComponent = React.memo((props: EditorUIProps) => {
               </ResizablePanel>
             </ResizablePanelGroup>
             <Settings setLocale={props.setLocale} />
+            {isLocalEngine && <AiActivityPanel />}
+            {isLocalEngine && <AgentActivePanel />}
             {voxaData.isShow && <VoxaPanel />}
             {renameOptions && <ScriptRenameModal />}
             {removeId && <ScriptRemoveModal />}

@@ -3,6 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { DEFAULT_PROJECT_NAME } from '../defs';
 import { DEFAULT_ZOOM_WIDTH } from '../views/motions/hierarchy-timelines/const';
 import type { UserInfo } from '../interface';
+import type { EditLockInfo } from '../utils/edit-lock';
 
 export enum AppMode {
   Animator,
@@ -151,6 +152,10 @@ export type AppState = {
    */
   sourceMapId: number;
   /**
+   * External edit lock (CLI / another tab). `null` means unknown or unlocked.
+   */
+  editLock: EditLockInfo | null;
+  /**
    * 部件节点的透明度缓存，用于数据统计判断是否
    * - 静态模式下，拖拽修改透明度前，缓存节点的透明度
    * - 切换到动画模式时，缓存节点透明度
@@ -192,6 +197,7 @@ const initialState: AppState = {
   },
   editType: EditType.Normal,
   sourceMapId: 0,
+  editLock: null,
   profilerEnabled: false,
 };
 
@@ -266,6 +272,9 @@ export const appSlice = createSlice({
     setSourceMapId(state, action: PayloadAction<number>) {
       state.sourceMapId = action.payload;
     },
+    setEditLock(state, action: PayloadAction<EditLockInfo | null>) {
+      state.editLock = action.payload;
+    },
     setNodeAlphaCache(
       state,
       action: PayloadAction<NodeAlphaCache | undefined>,
@@ -300,6 +309,7 @@ export const {
   setUserInfo,
   setEditType,
   setSourceMapId,
+  setEditLock,
   setNodeAlphaCache,
   setProfilerEnabled,
 } = appSlice.actions;

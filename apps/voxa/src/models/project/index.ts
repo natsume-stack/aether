@@ -60,6 +60,7 @@ import {
 } from '../../redux/palette-slice';
 import { store } from '../../redux/store';
 import { voxelShapeToObjSize, SerializedVec3 } from '../../utils/math';
+import { getEditActor } from '../../utils/edit-lock';
 import type { AnimatorApp } from '../animator-app';
 import type { EditingHistory } from '../editing-history';
 import type {
@@ -818,6 +819,9 @@ export class ProjectManager {
 
       const saveParam = {
         modelId: id || undefined,
+        // Echo the editor session's lock actor so autosave is not rejected as
+        // an external writer while this tab owns the model.
+        actor: getEditActor(),
         animated: !!projectResult.projectData.animations.length,
         modelFileHash,
         modelProjectFileHash: projectResult.hash,

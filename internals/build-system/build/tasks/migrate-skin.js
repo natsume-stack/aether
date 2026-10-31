@@ -44,26 +44,20 @@ const migrateS3Skin = (bs, hash, metaData) => __awaiter(void 0, void 0, void 0, 
     const newMetaData = {
         version: voxa_project_1.VOXA_SKIN_VERSION,
     };
-    const migrationList = [];
-    Object.keys(bodyParts).forEach((partName) => {
+    const migrationList = Object.keys(bodyParts).map((partName) => __awaiter(void 0, void 0, void 0, function* () {
         const hash = bodyParts[partName];
         if (!hash) {
             return;
         }
-        const partMigration = new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-            const bytes = yield bs.retrieveContentFromS3(hash);
-            const schema = yield (0, voxa_project_1.migrateSkin)(bytes);
-            if (!schema) {
-                reject(`Failed to migrate a part to latest version, ${hash}`);
-                return;
-            }
-            const latestBytes = (0, voxa_project_1.bodyPartSchemaToBytes)(schema);
-            const dataHash = yield bs.storeContentToS3(latestBytes);
-            newMetaData[partName] = dataHash;
-            resolve();
-        }));
-        migrationList.push(partMigration);
-    });
+        const bytes = yield bs.retrieveContentFromS3(hash);
+        const schema = yield (0, voxa_project_1.migrateSkin)(bytes);
+        if (!schema) {
+            throw new Error(`Failed to migrate a part to latest version, ${hash}`);
+        }
+        const latestBytes = (0, voxa_project_1.bodyPartSchemaToBytes)(schema);
+        const dataHash = yield bs.storeContentToS3(latestBytes);
+        newMetaData[partName] = dataHash;
+    }));
     yield Promise.all(migrationList);
     const latestMetaBytes = new Uint8Array(Buffer.from(JSON.stringify(newMetaData), 'utf8'));
     return yield bs.storeContentToS3(latestMetaBytes);

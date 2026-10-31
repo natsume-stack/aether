@@ -18,6 +18,7 @@ import { EditServerState } from '../edit-server-schema';
 import { EditReplicaServer } from '../replica/replica-server';
 import { createEntityTools, createScriptTools } from './entity-tools';
 import { createMapAuthoringTools } from './map-authoring-tools';
+import { coordinateAuthoring } from './authoring-tools';
 
 /**
  * LLM 生成选项
@@ -297,11 +298,11 @@ When writing scripts, strictly follow these API definitions.
       this.logger,
     );
 
-    this.tools = {
+    this.tools = coordinateAuthoring(this.state, {
       ...entityTools,
       ...scriptTools,
       ...mapAuthoringTools,
-    };
+    }) as typeof this.tools;
 
     // 配置协议消息处理器
     this.protocol.configure({

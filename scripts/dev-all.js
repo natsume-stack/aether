@@ -20,6 +20,19 @@ if (fs.existsSync(path.join(repoRoot, '.env')) && typeof process.loadEnvFile ===
     process.loadEnvFile(path.join(repoRoot, '.env'));
 }
 
+// Ports are overridable so a second (dev) stack can run next to a deployment on
+// the same host. Read after .env is loaded: the file itself may define them.
+const port = (name, fallback) => Number(process.env[name] || fallback);
+const PORTS = {
+    playerService: port('BOX_DEV_PLAYER_SERVICE_PORT', 3124),
+    creator: port('BOX_DEV_CREATOR_PORT', 3127),
+    voxa: port('BOX_DEV_VOXA_PORT', 3123),
+    portal: port('BOX_DEV_PORTAL_PORT', 3125),
+    play: port('BOX_DEV_PLAY_PORT', 3121),
+    playRuntime: port('BOX_DEV_PLAY_RUNTIME_PORT', 9966),
+    editRuntime: port('BOX_DEV_EDIT_RUNTIME_PORT', 9967),
+};
+
 const sharedEnv = createDevelopmentEnvironment({
     repoRoot,
     inheritedEnv: process.env,
@@ -142,7 +155,7 @@ try {
     start(
         'player-service',
         process.execPath,
-        ['-r', 'ts-node/register', 'server/dev-server/index.ts', '--http', '--port', '3124'],
+        ['-r', 'ts-node/register', 'server/dev-server/index.ts', '--http', '--port', String(PORTS.playerService)],
         {
             cwd: gameRoot,
             env: {
@@ -163,9 +176,9 @@ try {
         [path.join(localEngineRoot, 'src/launcher.js'), '--creator'],
         {
             env: {
-                BOX_WEB_PORT: '3127',
-                BOX_PLAY_RUNTIME_PORT: '9966',
-                BOX_EDIT_RUNTIME_PORT: '9967',
+                BOX_WEB_PORT: String(PORTS.creator),
+                BOX_PLAY_RUNTIME_PORT: String(PORTS.playRuntime),
+                BOX_EDIT_RUNTIME_PORT: String(PORTS.editRuntime),
                 NEXT_DIST_DIR: '.next-creator',
                 NEXT_TSCONFIG_PATH: '.tsconfig.dev-creator.json',
                 BOX_DEPLOYMENT_MODE: 'creator',
@@ -176,9 +189,9 @@ try {
     if (!creatorOnly) {
         start('play', process.execPath, [path.join(localEngineRoot, 'src/launcher.js'), '--play'], {
             env: {
-                BOX_WEB_PORT: '3121',
-                BOX_PLAY_RUNTIME_PORT: '9971',
-                BOX_EDIT_RUNTIME_PORT: '9972',
+                BOX_WEB_PORT: String(PORTS.play),
+                BOX_PLAY_RUNTIME_PORT: String(PORTS.playRuntime + 5),
+                BOX_EDIT_RUNTIME_PORT: String(PORTS.editRuntime + 5),
                 NEXT_DIST_DIR: '.next-play',
                 NEXT_TSCONFIG_PATH: '.tsconfig.dev-play.json',
                 BOX_DEPLOYMENT_MODE: 'play',
@@ -187,12 +200,12 @@ try {
     }
 
     const nextExecutable = require.resolve('next/dist/bin/next', { paths: [voxaRoot] });
-    start('voxa', process.execPath, [nextExecutable, 'dev', '-p', '3123'], {
+    start('voxa', process.execPath, [nextExecutable, 'dev', '-p', String(PORTS.voxa)], {
         cwd: voxaRoot,
         env: {
-            BOX_PLAYER_SERVICE_INTERNAL_URL: 'http://127.0.0.1:3124',
+            BOX_PLAYER_SERVICE_INTERNAL_URL: `http://127.0.0.1:${PORTS.playerService}`,
             NEXT_DIST_DIR: '.next-voxa',
-            PORT: '3123',
+            PORT: String(PORTS.voxa),
         },
     });
 
@@ -204,11 +217,11 @@ try {
             cwd: portalRoot,
             env: {
                 HOST: '127.0.0.1',
-                PORT: '3125',
-                AUTH_DEMO_PLAYER_SERVICE_URL: 'http://127.0.0.1:3124',
-                AUTH_DEMO_PUBLIC_URL: 'http://127.0.0.1:3125',
-                AUTH_DEMO_CREATOR_URL: 'http://127.0.0.1:3127',
-                AUTH_DEMO_PLAY_URL: 'http://127.0.0.1:3121',
+                PORT: String(PORTS.portal),
+                AUTH_DEMO_PLAYER_SERVICE_URL: `http://127.0.0.1:${PORTS.playerService}`,
+                AUTH_DEMO_PUBLIC_URL: `http://127.0.0.1:${PORTS.portal}`,
+                AUTH_DEMO_CREATOR_URL: `http://127.0.0.1:${PORTS.creator}`,
+                AUTH_DEMO_PLAY_URL: `http://127.0.0.1:${PORTS.play}`,
                 AUTH_DEMO_API_KEY: sharedEnv.BOX_PLAYER_AUTH_API_KEY,
                 AUTH_DEMO_REGISTRATION_ENABLED: 'true',
             },

@@ -5,8 +5,10 @@ import type { Logger } from 'pino';
 import { z } from 'zod';
 import type { EditServerState } from '../edit-server-schema';
 import type { EditReplicaServer } from '../replica/replica-server';
-import { createEntityTools } from './entity-tools';
+import { createEntityTools, createScriptTools } from './entity-tools';
+import type { CodeEditorServerController } from '../code-editor/code-editor-server-controller';
 import { createMapAuthoringTools } from './map-authoring-tools';
+import { coordinateAuthoring } from './authoring-tools';
 
 /**
  * Loopback-only HTTP router that exposes the engine-side AI authoring tools
@@ -60,6 +62,7 @@ export type AiToolRouteSpec = {
   state: EditServerState;
   gameId: number;
   logger: Logger;
+  codeEditorController: CodeEditorServerController;
 };
 
 function sendJson(
@@ -72,10 +75,15 @@ function sendJson(
 }
 
 export function createAiToolRouteHandler(spec: AiToolRouteSpec) {
+  const { listScripts, readScript, scriptPreview, scriptCheck } = createScriptTools(spec.state, spec.codeEditorController, spec.logger);
   // Same bundle the AiServer wires for the editor AI panel (minus script
   // tools, see the header comment). Built once per runtime process; the tools
   // are thin closures over the live replica/state, exactly as in AiServer.
-  const tools = {
+  const tools = coordinateAuthoring(spec.state, {
+    listScripts,
+    readScript,
+    scriptPreview,
+    scriptCheck,
     ...createMapAuthoringTools(
       spec.replica,
       spec.state,
@@ -88,7 +96,7 @@ export function createAiToolRouteHandler(spec: AiToolRouteSpec) {
       spec.gameId,
       spec.logger,
     ),
-  } as unknown as Record<string, HttpTool>;
+  }) as unknown as Record<string, HttpTool>;
   const toolNames = Object.keys(tools);
 
   return async function aiToolRoute(
@@ -185,7 +193,7 @@ export function createAiToolRouteHandler(spec: AiToolRouteSpec) {
     try {
       spec.logger.info({ gameId: spec.gameId, tool: name }, '[internal/ai-tool] invoke');
       const result = await toolDef.execute(parsed.data, {
-        toolCallId: `http-${randomUUID()}`,
+        toolCallId: typeof body.operationId === 'string' ? body.operationId : `http-${randomUUID()}`,
         messages: [],
       });
       // Keep the refusal codes diagnosable at the HTTP layer as well as in
@@ -202,7 +210,13 @@ export function createAiToolRouteHandler(spec: AiToolRouteSpec) {
         { gameId: spec.gameId, tool: name, error },
         '[internal/ai-tool] execute failed',
       );
-      sendJson(res, 500, { code: 'TOOL_EXECUTION_FAILED', message });
+      const code = (error as Error & { code?: string }).code || 'TOOL_EXECUTION_FAILED';
+      const status = ['OPERATION_ID_REUSED', 'REVISION_CONFLICT', 'PREVIEW_RUNNING', 'SCRIPT_LOCK_REQUIRED', 'SCRIPT_BUSY'].includes(code) ? 409
+        : ['INVALID_OPERATION_ID', 'TOOL_ARGS_INVALID', 'INVALID_PROPOSAL', 'UNSUPPORTED_PROPOSAL_TOOL', 'PROPOSAL_REFUSED', 'INVALID_SCRIPT_PATCH', 'OVERLAPPING_SCRIPT_EDITS', 'SCRIPT_TOO_LARGE', 'SCRIPT_CHECK_FAILED'].includes(code) ? 400
+        : ['SCRIPT_CHECK_UNAVAILABLE', 'SCRIPT_CHECK_TIMEOUT', 'SCRIPT_CHECK_BUDGET'].includes(code) ? 503
+        : code === 'SCRIPT_CHECK_BUSY' ? 429
+        : ['OPERATION_CAPACITY', 'PROPOSAL_CAPACITY'].includes(code) ? 429 : 500;
+      sendJson(res, status, { code, message });
     }
   };
 }

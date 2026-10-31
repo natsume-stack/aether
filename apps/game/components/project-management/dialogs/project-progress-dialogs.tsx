@@ -11,6 +11,7 @@ type Props = {
   closeExport: () => void;
   closeImport: () => void;
   closePublish: () => void;
+  cancelImport: () => void;
 };
 
 const terminal = (phase: string) => phase === 'done' || phase === 'error';
@@ -74,7 +75,9 @@ export function ProjectProgressDialogs(props: Props) {
                 ))}</ul>
               </div>
             ) : null}
-            {terminal(imported.phase) ? <button className={styles.exportCloseButton} type="button" onClick={props.closeImport}>{imported.phase === 'done' ? '完成' : '关闭'}</button> : null}
+            {terminal(imported.phase)
+              ? <button className={styles.exportCloseButton} type="button" onClick={props.closeImport}>{imported.phase === 'done' ? '完成' : '关闭'}</button>
+              : <button className={styles.exportCloseButton} type="button" onClick={props.cancelImport}>取消导入</button>}
           </section>
         </div>
       ) : null}

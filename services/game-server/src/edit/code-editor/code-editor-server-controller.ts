@@ -8,6 +8,7 @@ import {
 } from '@box/schema/code-editor/code-editor-common-state';
 import { EditServerState } from '../edit-server-schema';
 import { v4 } from 'uuid';
+import { localScriptIdentity } from './local-script-identity';
 import {
   ContentServer,
   OssCdnPath,
@@ -418,7 +419,10 @@ export class CodeEditorServerController {
       : fileList.reduce((a, e) => Math.max(a, e.order), 0);
 
     const file: FileState = {
-      fileId: id || v4(),
+      // Ordinary local scripts are serialized by asset name, not editor UUID.
+      // A fresh random ID on every load invalidates durable inverse revisions
+      // even when every saved script is byte-for-byte unchanged.
+      fileId: id || (getConfigSync()?.method === 'local' ? localScriptIdentity(name) : v4()),
       text: text,
       name: name,
       order: order !== undefined ? order : highest_order + 1,
@@ -772,8 +776,11 @@ export class CodeEditorServerController {
   }
 
   public async saveScripts() {
-    return Promise.all(
-      this._fileList().map(async (file) => {
+    // Text CRDT callbacks update the editor cache on a later timer. A save
+    // immediately following an agent edit must capture the authoritative store.
+    const files = this.fileDictReplica.state() as typeof FileDictRDA.stateSchema.identity;
+    try { return await Promise.all(
+      Object.values(files).map(async (file) => {
         const { name, text, isClient, isShare, fileId } = file;
         const data = Buffer.from(text);
         const hash = await this._state.buildSystem.storeContentToS3(data, {
@@ -791,6 +798,6 @@ export class CodeEditorServerController {
           fileId,
         };
       }),
-    );
+    ); } finally { FileDictRDA.stateSchema.free(files); }
   }
 }

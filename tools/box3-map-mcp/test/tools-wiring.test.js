@@ -22,7 +22,9 @@ import { seedProject, startMockEngine } from '../mock/engine.js'
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '..', '..', '..')
 
-/** The 22 engine AI tools, transcribed from the engine source with line numbers. */
+/** Legacy 26-tool surface. New authoring/review factories have separate coverage;
+ * this table does not claim to enumerate every runtime tool.
+ */
 const ENGINE_SOURCE_FILES = {
   'services/game-server/src/edit/ai/entity-tools.ts': [
     'listScripts', 'readScript', 'updateScript', 'createScript', 'deleteScript',
@@ -30,7 +32,9 @@ const ENGINE_SOURCE_FILES = {
     'copyEntities', 'getProjectModels', 'searchPublicModels', 'addModelToProject', 'createEntityFromModel',
   ],
   'services/game-server/src/edit/ai/map-authoring-tools.ts': [
-    'terrainInfo', 'terrainRead', 'terrainApply', 'terrainRevert', 'uiTreeRead', 'uiNodeAdd', 'uiNodeRemove',
+    'terrainInfo', 'terrainRead', 'terrainApply', 'terrainRevert',
+    'blockCatalog', 'getBlock', 'resolvePalette', 'searchBlocks',
+    'uiTreeRead', 'uiNodeAdd', 'uiNodeRemove',
   ],
 }
 
@@ -71,12 +75,12 @@ async function engineHarness(t, options = {}) {
   return { engine, ctx, handle: createHandler(ctx) }
 }
 
-test('the merged face is 12 base tools + 25 domain tools = 37, with no duplicates', () => {
+test('the merged face is 12 base tools + 26 domain tools = 38, with no duplicates', () => {
   const ctx = authoringCtx()
   const all = buildTools(ctx)
   const base = buildBaseTools(ctx)
   assert.equal(base.length, 12, '切片 A 的 12 个工具一个都不能少')
-  assert.equal(all.length, 37)
+  assert.equal(all.length, 38)
   assert.equal(new Set(all.map((tool) => tool.name)).size, all.length)
   assert.deepEqual(
     Object.keys(ENGINE_TOOL_FOR_MCP_TOOL).filter((name) => !all.some((tool) => tool.name === name)),
@@ -85,15 +89,15 @@ test('the merged face is 12 base tools + 25 domain tools = 37, with no duplicate
   )
 })
 
-test('every engine AI tool is reachable through a named MCP tool (22/22)', () => {
+test('every legacy engine AI tool is reachable through a named MCP tool (26/26)', () => {
   const ctx = authoringCtx()
   const advertised = new Set(names(ctx))
-  assert.equal(ENGINE_AI_TOOLS.length, 22)
+  assert.equal(ENGINE_AI_TOOLS.length, 26)
   const missing = ENGINE_AI_TOOLS.filter((row) => !advertised.has(row.mcpTool)).map((row) => `${row.engineTool}->${row.mcpTool}`)
   assert.deepEqual(missing, [])
-  // The catalog tool's own dependency table has to name all 22 as well,
+  // The catalog tool's own dependency table has to name all 26 as well,
   // otherwise map_tool_catalog would report a false "all mounted".
-  assert.equal(new Set(Object.values(ENGINE_TOOLS_USED)).size, 22)
+  assert.equal(new Set(Object.values(ENGINE_TOOLS_USED)).size, 26)
 })
 
 /**
@@ -101,19 +105,25 @@ test('every engine AI tool is reachable through a named MCP tool (22/22)', () =>
  * repository's documents: the two factory files are parsed for `X: tool({`, and
  * the result must equal the table the MCP advertises against.
  */
-test('the 22-tool table matches the engine source of truth', () => {
+test('the legacy 26-tool table matches its engine factory declarations', () => {
   const fromSource = []
   for (const [relative, expected] of Object.entries(ENGINE_SOURCE_FILES)) {
     const file = path.join(REPO_ROOT, relative)
     if (!fs.existsSync(file)) {
-      assert.fail(`找不到引擎工具源文件 ${relative}：无法验证 22 工具覆盖面（需要完整仓库树或 BOX_ENGINE_REPO_ROOT）`)
+      assert.fail(`找不到引擎工具源文件 ${relative}：无法验证 26 工具覆盖面（需要完整仓库树或 BOX_ENGINE_REPO_ROOT）`)
     }
     const text = fs.readFileSync(file, 'utf8')
-    const found = [...text.matchAll(/^\s{4}([A-Za-z]+): tool\(\{/gm)].map((match) => match[1])
+    const declared = [...text.matchAll(/^\s{4}([A-Za-z]+): tool\(\{/gm)].map((match) => match[1])
+    // New coordinated authoring readers are tested by actual runtime factory
+    // integration. This table advertises the unchanged legacy MCP coverage only.
+    const coordinatedReaders = relative.endsWith('/entity-tools.ts') ? ['entityContext']
+      : relative.endsWith('/map-authoring-tools.ts') ? ['uiContext'] : []
+    assert.deepEqual(declared.filter(name => coordinatedReaders.includes(name)), coordinatedReaders)
+    const found = declared.filter(name => !coordinatedReaders.includes(name))
     assert.deepEqual(found, expected, `${relative} 里的 tool() 名单与测试内转录不一致（引擎加了/改名了工具）`)
     fromSource.push(...found)
   }
-  assert.equal(fromSource.length, 22)
+  assert.equal(fromSource.length, 26)
   assert.deepEqual(
     [...new Set(fromSource)].sort(),
     ENGINE_AI_TOOLS.map((row) => row.engineTool).sort(),
@@ -140,7 +150,7 @@ test('the read-only profile drops exactly the writers and keeps every reader', (
   assert.equal(writers.length, 16, '15 个域写工具 + script_write')
   assert.deepEqual(writers.filter((name) => name !== 'script_write').sort(), [...WRITE_TOOL_NAMES].sort())
   const readonly = buildTools(authoringCtx({ BOX_MCP_PROFILE: 'readonly' }))
-  assert.equal(readonly.length, 21)
+  assert.equal(readonly.length, 22)
   for (const name of writers) assert.ok(!readonly.some((tool) => tool.name === name), `${name} 不该出现在只读面`)
   for (const tool of readonly) assert.equal(tool.annotations.readOnlyHint, true, `${tool.name} 是写工具却进了只读面`)
   assert.deepEqual(
@@ -259,7 +269,7 @@ test('every writer states the persistence / preview ordering it is bound by', ()
 test('the engine-tool table marks exactly the 5 script tools as unreachable headless', () => {
   const headless = ENGINE_AI_TOOLS.filter((row) => row.headless).map((row) => row.engineTool)
   const mounted = ENGINE_AI_TOOLS.filter((row) => !row.headless).map((row) => row.engineTool)
-  assert.equal(headless.length, 17)
+  assert.equal(headless.length, 21)
   assert.deepEqual(mounted.sort(), ['createScript', 'deleteScript', 'listScripts', 'readScript', 'updateScript'])
 })
 

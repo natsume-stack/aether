@@ -6,7 +6,7 @@ import {
 import type { ParsedError } from '@box/schema/debugger-console/schema';
 import { EventBus } from '@box/utils/event';
 import { ChildProcess, fork } from 'child_process';
-import { extname, join } from 'path';
+import { extname } from 'path';
 import { Logger } from 'pino';
 import type { ScriptServer } from '../type';
 import { IvmpScriptSocketClient } from './ivmp-script-socket-client';
@@ -51,11 +51,16 @@ export class IvmpScriptSocketServer implements ScriptServer {
   }
 
   private createChildProcess() {
+    // Resolve through the active loader: source mode must pick up the .ts
+    // entry (and register SWC for the worker), while a built image must pick
+    // up the .js entry. An extensionless path made `extname()` empty and the
+    // fork failed with MODULE_NOT_FOUND before any map could open.
+    const entryPath = require.resolve('./ivmp-process-entry');
     const childProcess = fork(
-      join(__dirname, './ivmp-process-entry'),
+      entryPath,
       undefined,
       {
-        execArgv: scriptWorkerExecArgv(join(__dirname, './ivmp-process-entry')),
+        execArgv: scriptWorkerExecArgv(entryPath),
         stdio: 'inherit',
         serialization: 'advanced',
         env: Object.assign({}, process.env, {

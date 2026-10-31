@@ -24,6 +24,8 @@ import { EditorMobileExclusiveUI } from '../../edit-mobile-ui';
 import { LeftNavModeEnum, MouseRectType } from 'src/views/edit/defs';
 import { GameUIMenu } from '../../game-ui/menu';
 import { GameUIContextMenu } from '../../game-ui/context-menu';
+import { AgentPresence } from '../../agent-presence';
+import { clientConfig } from 'src/config/client';
 
 import style from './index.module.scss';
 
@@ -121,6 +123,7 @@ export function MainContent(props: MainContentProps) {
         className={style.canvasContainer}
         style={{ width: '100%', height: '100%' }}
       ></div>
+      {clientConfig.isLocalGameServer && <AgentPresence />}
       {!isRunning && (
         <Seeds3DContainer
           transformType={transformType}

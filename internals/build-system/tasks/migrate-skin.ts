@@ -39,23 +39,19 @@ const migrateS3Skin = async (
     version: VOXA_SKIN_VERSION,
   };
 
-  const migrationList: Promise<void>[] = [];
-
-  Object.keys(bodyParts).forEach((partName) => {
+  const migrationList = Object.keys(bodyParts).map(async (partName) => {
     const hash = bodyParts[partName];
 
     if (!hash) {
       return;
     }
 
-    const partMigration = new Promise<void>(async (resolve, reject) => {
       const bytes = await bs.retrieveContentFromS3(hash);
 
       const schema = await migrateBodyPart(bytes);
 
       if (!schema) {
-        reject(`Failed to migrate a part to latest version, ${hash}`);
-        return;
+        throw new Error(`Failed to migrate a part to latest version, ${hash}`);
       }
 
       const latestBytes = bodyPartSchemaToBytes(schema);
@@ -64,10 +60,6 @@ const migrateS3Skin = async (
 
       newMetaData[partName] = dataHash;
 
-      resolve();
-    });
-
-    migrationList.push(partMigration);
   });
 
   await Promise.all(migrationList);

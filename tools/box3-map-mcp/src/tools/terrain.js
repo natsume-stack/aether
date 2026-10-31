@@ -30,6 +30,17 @@ const regionSchema = {
   additionalProperties: false,
 }
 
+/** Block name/alias or numeric type id; the engine resolves names against its own blockIndex. */
+const blockKeySchema = {
+  anyOf: [
+    { type: 'integer', minimum: 0, maximum: 65535 },
+    { type: 'string', minLength: 1, maxLength: 64 },
+  ],
+  description:
+    '体素类型：优先传本图块名/别名（如 "grass"、"stone_brick_01"、"红砖"），也可以传数字 id（低 14 位）。' +
+    '名字由引擎从本图 blockIndex 解析；解析不到会返回 UNKNOWN_BLOCK_ALIAS，不会静默变成空气。',
+}
+
 const readAnnotations = (title) => ({
   title,
   readOnlyHint: true,
@@ -80,6 +91,91 @@ export function buildTerrainTools(ctx) {
       },
     },
     {
+      name: 'terrain_blocks',
+      description:
+        '查本图方块表（blockCatalog / searchBlocks / getBlock / resolvePalette 的统一入口）。' +
+        '导入图的 id 与内置表可能不同，写地形前先用 action:"catalog" 或 action:"search" 拿名字，' +
+        '再用 action:"get" 精确确认单个块，或用 action:"palette" 一次解析 role→块名。' +
+        '返回含 id/name/aliases/category/solid/fluid/collision/texture/rotation/visualTags；' +
+        '未知或歧义名字会报 UNKNOWN_BLOCK_ALIAS，不会 fallback 到空气。副作用：无。',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          mapId: { type: 'string', minLength: 1, maxLength: 63 },
+          action: {
+            type: 'string',
+            enum: ['catalog', 'search', 'get', 'palette'],
+            description: 'catalog=列全表；search=按名字/别名/标签搜；get=精确解析一个；palette=批量解析 role→块',
+          },
+          query: { type: 'string', description: 'action=search 时的名字/别名/标签查询' },
+          key: blockKeySchema,
+          palette: {
+            type: 'object',
+            description: 'action=palette 时的 role -> 块名/别名/数字 id',
+            additionalProperties: {
+              anyOf: [
+                { type: 'integer', minimum: 0, maximum: 65535 },
+                { type: 'string', minLength: 1, maxLength: 64 },
+              ],
+            },
+          },
+          category: {
+            type: 'string',
+            description: 'catalog/search 的分类过滤：default|symbol|number|letter|color|nature|structure|light|food|element',
+          },
+          strict: { type: 'boolean', description: 'action=palette 时任一角色未解析就整体失败' },
+          includeInvalid: { type: 'boolean', description: 'catalog 是否也返回占位槽（默认 false）' },
+          offset: { type: 'integer', minimum: 0, description: '分页偏移，默认 0' },
+          limit: { type: 'integer', minimum: 1, maximum: 500, description: '分页大小，默认 40' },
+        },
+        required: ['mapId', 'action'],
+        additionalProperties: false,
+      },
+      annotations: readAnnotations('查本图方块表'),
+      scope: 'loopback internal（只读）',
+      handler: async (args) => {
+        let result
+        if (args.action === 'catalog') {
+          result = await callEngineTool(ctx, args.mapId, 'blockCatalog', {
+            category: args.category,
+            includeInvalid: args.includeInvalid,
+            offset: args.offset,
+            limit: args.limit ?? 100,
+          })
+        } else if (args.action === 'search') {
+          result = await callEngineTool(ctx, args.mapId, 'searchBlocks', {
+            query: args.query,
+            category: args.category,
+            offset: args.offset,
+            limit: args.limit ?? 40,
+          })
+        } else if (args.action === 'get') {
+          result = await callEngineTool(ctx, args.mapId, 'getBlock', { key: args.key })
+        } else if (args.action === 'palette') {
+          result = await callEngineTool(ctx, args.mapId, 'resolvePalette', {
+            palette: args.palette || {},
+            strict: args.strict,
+          })
+        } else {
+          fail({
+            code: 'UNKNOWN_ACTION',
+            message: `terrain_blocks 不支持 action=${args.action}`,
+            retry: false,
+            hint: 'action 只支持 catalog / search / get / palette。',
+          })
+        }
+        return {
+          ...result,
+          next:
+            args.action === 'catalog' || args.action === 'search'
+              ? '拿到名字后直接把它传给 terrain_apply/terrain_heightmap/structure_* 的 block 参数；不必再记数字 id。'
+              : args.action === 'get'
+                ? `解析到 ${result && result.block ? `${result.block.name} (${result.block.id})` : '失败'}；可把它传给写工具。`
+                : `已解析 ${Object.keys((result && result.ids) || {}).length} 个角色；未解析角色见 missing[]。`,
+        }
+      },
+    },
+    {
       name: 'terrain_read',
       description:
         '读一块 region 的体素（返回每格打包后的 uint16：低 14 位类型 id，高 2 位旋转）+ 当前 revision。' +
@@ -115,7 +211,11 @@ export function buildTerrainTools(ctx) {
     {
       name: 'terrain_apply',
       description:
-        `地形写：把一个 region 全部刷成同一个 block（可选 rotation）。引擎逐格 setVoxel 并返回 undoToken（回滚用）。` +
+        `地形写：把一个 region 全部刷成同一个 block（可选 rotation）。` +
+        `引擎侧有写入闸门 + 回读校验：block 不在本图块表 → INVALID_BLOCK；voxelState 未就绪 → VOXEL_STATE_NOT_READY；` +
+        `region 最外一层平面 setVoxel 写不进去，会被跳过并计入 rejected；写完逐格回读，mismatch>0 直接报 WRITE_NOT_APPLIED（success:false）。` +
+        `因此 changed/applied 只数"真正写进去并通过回读"的格子，返回的 tally（requested/applied/verified/mismatch/rejected/unchanged）是唯一可信的写入计数；` +
+        `成功时返回 undoToken（回滚用）。` +
         `硬护栏：① 必须带 expectedRevision（terrain_info/terrain_read 的 revision），不一致就 REVISION_CONFLICT 拒绝，绝不覆盖；` +
         `② 本层单次上限 ${BUDGETS.TERRAIN_MAX_CELLS_PER_CALL} 格（按裁剪进 shape 后的实际格数算），引擎自身上限 500000；` +
         `③ 预览在跑时默认拒绝（PREVIEW_RUNNING，依据 replica-server.ts:1602：运行时不记录 voxel chunk hash），除非显式 allowWhileRunning:true 只改内存；` +
@@ -125,13 +225,7 @@ export function buildTerrainTools(ctx) {
         properties: {
           mapId: { type: 'string', minLength: 1, maxLength: 63 },
           region: regionSchema,
-          block: {
-            type: 'integer',
-            minimum: 0,
-            maximum: 65535,
-            description:
-              '要写入的体素类型 id（低 14 位）。传打包 uint16 也接受，但不给 rotation 时高 2 位会被清掉。',
-          },
+          block: blockKeySchema,
           rotation: { type: 'integer', minimum: 0, maximum: 3, description: '可选 2 位旋转' },
           expectedRevision: {
             type: 'string',
@@ -217,10 +311,44 @@ export function buildTerrainTools(ctx) {
           allowWhileRunning: args.allowWhileRunning,
           dryRun: args.dryRun,
         })
+        // callEngineTool already raises WriteGuardError on `success:false`
+        // (_shared.js:253) and the server renders that as isError:true — this
+        // local gate keeps the same guarantee even if that layer changes:
+        // anything the engine does not affirmatively report success is a
+        // failure here, never a laundered success.
+        if (!result || typeof result !== 'object' || result.success !== true) {
+          fail({
+            code: (result && result.code) || 'ENGINE_REFUSED',
+            message:
+              (result && result.error) ||
+              'terrainApply 未返回 success:true，按失败处理（不假设任何格子被写入）',
+            retry: false,
+            hint:
+              '用 terrain_read 回读这块区域的现状再决定下一步；' +
+              '格子的真实写入情况以引擎返回的 applied/verified/readback 为准。',
+            engineResult: result,
+          })
+        }
+        // Pass the engine's write-verification contract through verbatim.
+        // `changed` from the engine is now "cells written AND read back",
+        // never the requested-cell count. `requestedCells` below stays this
+        // layer's own pre-budget number (region ∩ shape) and is labeled as
+        // such so the two are never confused.
+        const tally = {
+          requested: result.requested,
+          applied: result.applied,
+          verified: result.verified,
+          mismatch: result.mismatch,
+          rejected: result.rejected,
+          unchanged: result.unchanged,
+        }
         const undoBytes = Buffer.byteLength(String(result.undoToken || ''), 'utf8')
         return {
           ...result,
           requestedCells: cells,
+          requestedCellsSource:
+            '本层预算计数（region∩shape，写前算的）；权威计数看引擎 tally（requested/applied/verified/mismatch/rejected/unchanged）',
+          tally,
           budgetLimit: BUDGETS.TERRAIN_MAX_CELLS_PER_CALL,
           undoTokenBytes: undoBytes,
           revertHint: result.dryRun
@@ -230,8 +358,16 @@ export function buildTerrainTools(ctx) {
             ? undefined
             : '改动只在内存 replica 里：必须 map_save 才会写进盘上的地图；预览在跑时保存会丢体素 chunk。',
           next: result.dryRun
-            ? `dryRun 通过：改动集 ${result.changed} 格，用 newRevision=${result.newRevision} 直接再调一次（dryRun 去掉）。`
-            : `写后 revision=${result.newRevision}；下一步 map_save（若预览没在跑）。`,
+            ? `dryRun 通过：计划写 ${result.planned} 格（已是目标值 ${result.unchanged} 格、` +
+              `最外层平面不可写 ${result.rejected} 格），用 newRevision=${result.newRevision} 直接再调一次（dryRun 去掉）。`
+            : result.noop
+              ? `no-op：${result.unchanged} 格本就是目标值` +
+                (result.rejected ? `，${result.rejected} 格落在 setVoxel 不可写的最外层平面` : '') +
+                `，什么都没写；无需 map_save。`
+              : `写后 revision=${result.newRevision}；本次实写 ${result.applied} 格，` +
+                `回读校验 ${result.verified}/${(result.readback && result.readback.sampled) || 0} 格通过` +
+                (result.rejected ? `（另有 ${result.rejected} 格在最外层平面被引擎拒绝）` : '') +
+                '；下一步 map_save（若预览没在跑）。',
         }
       },
     },
@@ -291,12 +427,43 @@ export function buildTerrainTools(ctx) {
         const result = await callEngineTool(ctx, args.mapId, 'terrainRevert', {
           undoToken: args.undoToken,
         })
+        // Same gate as terrain_apply: a revert the engine did not affirmatively
+        // confirm (readback mismatch > 0, VOXEL_STATE_NOT_READY, …) surfaces as
+        // isError:true to the MCP caller, never as a completed rollback.
+        if (!result || typeof result !== 'object' || result.success !== true) {
+          fail({
+            code: (result && result.code) || 'ENGINE_REFUSED',
+            message:
+              (result && result.error) ||
+              'terrainRevert 未返回 success:true，按失败处理（不假设任何格子被还原）',
+            retry: false,
+            hint:
+              '回滚未确认：用 terrain_read 核对这块区域现状；' +
+              '还原情况以引擎返回的 restored/applied/verified/mismatch 为准。',
+            engineResult: result,
+          })
+        }
+        // Engine-side verification contract passed through verbatim; `restored`
+        // is now "cells restored AND read back", not "cells we asked for".
+        const tally = {
+          requested: result.requested,
+          applied: result.applied,
+          verified: result.verified,
+          mismatch: result.mismatch,
+          rejected: result.rejected,
+          unchanged: result.unchanged,
+        }
         return {
           ...result,
+          tally,
           restoredRatio: `${result.restored}/${parsed.length}`,
-          revisionBefore: before.revision,
+          revisionBefore: result.revisionBefore ?? before.revision,
           persistHint: '回滚只在内存里：还要 map_save 才写回盘。',
-          next: `已恢复 ${result.restored} 格，当前 revision=${result.newRevision}；核对用 terrain_read，落盘用 map_save。`,
+          next: result.noop
+            ? 'undoToken 为空或所有格子本就已还原：没有需要回滚的内容。'
+            : `已恢复 ${result.restored} 格（回读校验 ${result.verified}/${(result.readback && result.readback.sampled) || 0} 格通过` +
+              (result.rejected ? `，${result.rejected} 格因不可写/非法 block 被跳过` : '') +
+              `），当前 revision=${result.newRevision}；核对用 terrain_read，落盘用 map_save。`,
         }
       },
     },
