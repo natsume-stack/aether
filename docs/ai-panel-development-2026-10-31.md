@@ -47,3 +47,30 @@ Commands: game-server tsc; check-ai-execution-policy.ts; check-ai-provider-isola
 ## Runtime
 
 Source of truth: /home/natsume/box3-dev/repo/box3-local-engine, branch dev/server-2026-10-31. Use box3-dev user systemd unit; do not touch production ports 3121–3127. Restart rebuilds dependencies. Admin AI view: ?view=ai-providers. Creator and VOXA use their existing public origins.
+
+## 本轮验收记录（2026-10-31 晚）
+
+提交 `2a906ab feat(ai): add execution ledger, shared channels, publication rollback and VOXA editor permission`（已推送 `dev/server-2026-10-31`）。
+
+已实测通过：
+
+- 生产构建（严格类型检查，`ignoreBuildErrors: false`）：Creator `apps/game`、VOXA `apps/voxa` 均构建成功；使用隔离产物目录 `.next-ai-build`，未覆盖线上 `.next`。
+- 类型检查：`services/game-server`、`apps/player-admin`、`apps/game -p tsconfig.runtime.json`、`apps/voxa` 全量 `tsc --noEmit` 均 0 错误。
+- 权限端到端（真实账号流程，临时账号已删除）：
+  1) 新玩家未授权 → VOXA 页面 403，提示开通“VOXA 编辑器”；
+  2) 后台 PATCH 授予 `voxa.edit` → VOXA 页面 200；
+  3) 仅 `models.manage` → 403（管理权不再等同编辑权）；
+  4) 撤销后立即 403；匿名访问 401；`voxa.edit + models.manage` → 200。
+- AI 回归：provider 隔离/共享与撤销、密钥轮换、执行台账（分布式并发/配额/kill switch/租约过期/终态不可重放）、发布回滚（CAS/路径校验/独占锁/不可重放）、消息校验（内联图片、拒绝远程 URL/SVG/非法角色）、provider 网关与 HTTP 传输（私网拒绝、重定向拒绝、流取消）、地形/实体/UI/计划事务、VOXA 模型库作用域与工程包。
+- API 契约：`api:generate` 生成 192 路由 / 259 操作，`api:check` 与 `api:build` 通过。
+
+未纳入自动回归（需真实素材/模型，非代码失败）：
+
+- `apps/voxa/scripts/check-edit-lock.ts` 需要开发环境存在至少一个模型（当前 `VOXA_DATA_PATH` 为空库）。
+- `apps/voxa/scripts/check-agent-model-context.ts` 依赖 `_corpus/model-continuation/夜翼蝙蝠-局部材质续作.voxaproject`，服务器上没有该样本。
+- 两者均未连接生产服务；执行前务必显式设置 `VOXA_CHECK_URL=http://127.0.0.1:13123`，脚本默认 3001 端口不属于开发栈。
+
+已知限制：
+
+- 回归脚本调用方式有环境差异：`apps/game/scripts/check-ai-providers.ts` 不能加载 `.env`（开发 `.env` 打开了 `AI_PROVIDER_ALLOW_PRIVATE`，会改变 URL 策略断言）；`services/game-server/scripts/check-*.ts` 需 `TS_NODE_TRANSPILE_ONLY=true` 与 `TS_NODE_COMPILER_OPTIONS={"preserveConstEnums":true,"isolatedModules":false}`，否则 ts-node 报 TS5091。
+- 整项目删除仍未开放给 AI（仅保留可回滚的实体/UI/脚本/地形删除与发布回滚）。
