@@ -184,18 +184,21 @@ export function VoxaAiPanel() {
       request<{ preferences: Record<string, { providerId: string; model: string; autonomy: 'review' | 'autonomous' }> }>('/api/player-ai/preferences'),
     ]);
     if (!mounted.current) return;
-    setProviders(catalog.providers);
-    const enabled = catalog.providers.filter((item) => item.enabled);
+    const ordered = [...catalog.providers].sort((left, right) => (left.owner === 'user' ? 0 : 1) - (right.owner === 'user' ? 0 : 1));
+    setProviders(ordered);
+    const enabled = ordered.filter((item) => item.enabled);
+    const own = enabled.filter((item) => item.owner === 'user');
+    const preferred = own.length ? own : enabled;
     const preference = preferences.preferences['voxa.model'];
     setProviderId((current) => {
       if (current && enabled.some((item) => item.id === current)) return current;
       if (preference?.providerId && enabled.some((item) => item.id === preference.providerId)) return preference.providerId;
-      return enabled[0]?.id || '';
+      return preferred[0]?.id || '';
     });
     setModel((current) => {
       if (current) return current;
       if (preference?.model) return preference.model;
-      const fallback = enabled.find((item) => item.id === preference?.providerId) || enabled[0];
+      const fallback = preferred.find((item) => item.id === preference?.providerId) || preferred[0];
       return fallback?.defaultModel || fallback?.models[0]?.id || '';
     });
     if (preference?.autonomy) setAutonomy(preference.autonomy);
@@ -545,7 +548,7 @@ export function VoxaAiPanel() {
                                 const failures = results.filter((item) => !item.ok);
                                 if (!failures.length && !message.done) setNote('本批已完成，可继续下一步');
                                 if (failures.length) setNote('部分命令失败，可让 AI 修复');
-                              }).finally(() => setBusy(false));
+                              }).catch((error) => setNote((error as Error).message || '执行失败')).finally(() => setBusy(false));
                             }}>批准并执行</button>
                             <button className={styles.ghost} disabled={busy} onClick={() => patchMessage(message.id, { phase: 'cancelled', tools: [] })}>放弃</button>
                           </div>

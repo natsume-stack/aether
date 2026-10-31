@@ -76,7 +76,7 @@ export function defaultSelection(
 ): AiSelection {
   providers = providers.filter(provider => provider.enabled);
   const savedProvider = providers.find((provider) => provider.id === preference?.providerId);
-  const provider = savedProvider || providers[0];
+  const provider = savedProvider || providers.find((item) => item.owner === 'user') || providers[0];
   if (!provider) return { providerId: '', model: 'FAST', autonomy: preference?.autonomy || 'review' };
   const savedModel = provider.models.find((model) => model.id === preference?.model)?.id;
   return {
