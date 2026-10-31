@@ -12,6 +12,7 @@
     "check:authoring-ui": "node -r @swc-node/register scripts/check-ui-transactions.ts",
     "check:authoring-plan": "node -r @swc-node/register scripts/check-plan-transactions.ts",
     "check:authoring-entity-lifecycle": "node -r @swc-node/register scripts/check-entity-lifecycle.ts",
+    "check:authoring-entity-copy": "node -r @swc-node/register scripts/check-entity-copy.ts",
     "dev": "node scripts/dev-launch.js",
     "generate-terrain": "node -r ts-node/register --max-old-space-size=4096 scripts/terrain/generate-terrain.ts",
     "check:postgres-storage": "node -r @swc-node/register scripts/check-postgres-data-storage.ts",

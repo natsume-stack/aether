@@ -44,11 +44,36 @@ type GroupStateLockSnapshot = {
   modifiedMs: number;
 };
 
+/**
+ * Rename a temp file into place, falling back to copy+unlink.
+ *
+ * Windows refuses `rename` over SMB/UNC shares (`\\wsl$\...`, mapped network
+ * drives) with EPERM even though POSIX rename semantics allow replacing an
+ * existing file. That aborted runtime start for any project stored on such a
+ * share. Copying keeps the write correct; the only loss is strict atomicity on
+ * those shares, which they never guaranteed.
+ */
+function replaceFileSync(temporaryPath: string, targetPath: string) {
+  try {
+    fs.renameSync(temporaryPath, targetPath);
+    return;
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code !== 'EPERM' && code !== 'EACCES' && code !== 'EXDEV') throw error;
+  }
+  fs.copyFileSync(temporaryPath, targetPath);
+  try {
+    fs.unlinkSync(temporaryPath);
+  } catch {
+    // Leaving a stray temp file behind is preferable to failing the write.
+  }
+}
+
 function writeStateAtomically(statePath: string, state: object) {
   fs.mkdirSync(path.dirname(statePath), { recursive: true });
   const temporaryPath = `${statePath}.${process.pid}.${Date.now()}.tmp`;
   fs.writeFileSync(temporaryPath, `${JSON.stringify(state, null, 2)}\n`);
-  fs.renameSync(temporaryPath, statePath);
+  replaceFileSync(temporaryPath, statePath);
 }
 
 function copyProjectBlobsToGroup() {
@@ -68,7 +93,7 @@ function copyProjectBlobsToGroup() {
       fs.chmodSync(temporaryPath, 0o644);
       if (fs.existsSync(destination)) continue;
       try {
-        fs.renameSync(temporaryPath, destination);
+        replaceFileSync(temporaryPath, destination);
       } catch (error) {
         // Multiple map runtimes can publish the same immutable hash. The
         // winner has already installed the complete file atomically.
@@ -552,7 +577,7 @@ export function updateLocalProjectModelMetadata(
   fs.mkdirSync(path.dirname(statePath), { recursive: true });
   const temporaryPath = `${statePath}.${process.pid}.tmp`;
   fs.writeFileSync(temporaryPath, `${JSON.stringify(state, null, 2)}\n`);
-  fs.renameSync(temporaryPath, statePath);
+  replaceFileSync(temporaryPath, statePath);
 }
 
 export function updateLocalProjectSkinMetadata(
@@ -575,7 +600,7 @@ export function updateLocalProjectSkinMetadata(
   fs.mkdirSync(path.dirname(statePath), { recursive: true });
   const temporaryPath = `${statePath}.${process.pid}.tmp`;
   fs.writeFileSync(temporaryPath, `${JSON.stringify(state, null, 2)}\n`);
-  fs.renameSync(temporaryPath, statePath);
+  replaceFileSync(temporaryPath, statePath);
 }
 
 /** Persists the editable project root separately from content-addressed blobs. */
@@ -624,7 +649,7 @@ export function persistLocalProjectState(
       2,
     )}\n`,
   );
-  fs.renameSync(temporaryPath, statePath);
+  replaceFileSync(temporaryPath, statePath);
   if (extraProjectHash !== undefined) {
     const current = readLocalProjectState(statePath);
     updateLocalGroupProjectState((group) => {

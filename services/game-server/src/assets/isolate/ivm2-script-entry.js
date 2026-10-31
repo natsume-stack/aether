@@ -86,7 +86,7 @@ function requireSocket () {
 	    MuSocketServerState[MuSocketServerState["INIT"] = 0] = "INIT";
 	    MuSocketServerState[MuSocketServerState["RUNNING"] = 1] = "RUNNING";
 	    MuSocketServerState[MuSocketServerState["SHUTDOWN"] = 2] = "SHUTDOWN";
-	})(MuSocketServerState || (socket.MuSocketServerState = MuSocketServerState = {}));
+	})(MuSocketServerState || (socket.MuSocketServerState = MuSocketServerState = {})); 
 	return socket;
 }
 
@@ -309,7 +309,7 @@ function requireCodec () {
 	        i += bytesPerSequence;
 	    }
 	    return decodeCodePointsArray(res);
-	}
+	} 
 	return codec;
 }
 
@@ -596,7 +596,7 @@ function requireStream () {
 		        this.length = data.byteLength + data.byteOffset;
 		    }
 		}
-		exports$1.MuReadStream = MuReadStream;
+		exports$1.MuReadStream = MuReadStream; 
 	} (stream));
 	return stream;
 }
@@ -689,7 +689,7 @@ function requireStringify () {
 	        return void 0;
 	    }
 	    return result.join('');
-	}
+	} 
 	return stringify;
 }
 
@@ -858,7 +858,7 @@ function requireProtocol () {
 	        this.jsonStr = this.protocolFactories.map((factory)=>factory.jsonStr).join();
 	    }
 	}
-	protocol.MuProtocolFactory = MuProtocolFactory;
+	protocol.MuProtocolFactory = MuProtocolFactory; 
 	return protocol;
 }
 
@@ -879,7 +879,7 @@ function requireLogger$1 () {
 	        console.log(`mudb error: ${x}`);
 	    },
 	    exception: console.error
-	};
+	}; 
 	return logger$1;
 }
 
@@ -1009,6 +1009,10 @@ function requireClient () {
 	                        this.logger.exception(e);
 	                    }
 	                } else {
+	                    if (unreliable || typeof data !== 'string') {
+	                        this.logger.log(`mudb: dropped pre-handshake ${unreliable ? 'unreliable' : 'binary'} frame`);
+	                        return;
+	                    }
 	                    checkProtocolConsistency(data);
 	                    validationPacket = false;
 	                }
@@ -1059,7 +1063,7 @@ function requireClient () {
 	        this._shouldValidateProtocol = !skipProtocolValidation;
 	    }
 	}
-	client.MuClient = MuClient;
+	client.MuClient = MuClient; 
 	return client;
 }
 
@@ -3332,7 +3336,7 @@ function requireStruct$1 () {
 	        this.stats = compiled.stats;
 	    }
 	}
-	struct$1.MuStruct = MuStruct;
+	struct$1.MuStruct = MuStruct; 
 	return struct$1;
 }
 
@@ -3377,7 +3381,7 @@ function require_void () {
 	        };
 	    }
 	}
-	_void.MuVoid = MuVoid;
+	_void.MuVoid = MuVoid; 
 	return _void;
 }
 
@@ -3439,7 +3443,7 @@ function requireBoolean () {
 	        };
 	    }
 	}
-	boolean.MuBoolean = MuBoolean;
+	boolean.MuBoolean = MuBoolean; 
 	return boolean;
 }
 
@@ -3488,7 +3492,7 @@ function require_string () {
 	        };
 	    }
 	}
-	_string.MuString = MuString;
+	_string.MuString = MuString; 
 	return _string;
 }
 
@@ -3519,7 +3523,7 @@ function requireAscii () {
 	        super(identity || '', 'ascii');
 	    }
 	}
-	ascii.MuASCII = MuASCII;
+	ascii.MuASCII = MuASCII; 
 	return ascii;
 }
 
@@ -3553,7 +3557,7 @@ function requireFixedAscii () {
 	        this.length = identity.length;
 	    }
 	}
-	fixedAscii.MuFixedASCII = MuFixedASCII;
+	fixedAscii.MuFixedASCII = MuFixedASCII; 
 	return fixedAscii;
 }
 
@@ -3584,7 +3588,7 @@ function requireUtf8 () {
 	        super(identity || '', 'utf8');
 	    }
 	}
-	utf8.MuUTF8 = MuUTF8;
+	utf8.MuUTF8 = MuUTF8; 
 	return utf8;
 }
 
@@ -3658,7 +3662,7 @@ function require_number () {
 		        };
 		    }
 		}
-		exports$1.MuNumber = MuNumber;
+		exports$1.MuNumber = MuNumber; 
 	} (_number));
 	return _number;
 }
@@ -3689,7 +3693,7 @@ function requireFloat32 () {
 	        super(identity, 'float32');
 	    }
 	}
-	float32.MuFloat32 = MuFloat32;
+	float32.MuFloat32 = MuFloat32; 
 	return float32;
 }
 
@@ -3721,7 +3725,7 @@ function requireFloat64 () {
 	        super(identity, 'float64');
 	    }
 	}
-	float64.MuFloat64 = MuFloat64;
+	float64.MuFloat64 = MuFloat64; 
 	return float64;
 }
 
@@ -3753,7 +3757,7 @@ function requireInt8 () {
 	        super(identity, 'int8');
 	    }
 	}
-	int8.MuInt8 = MuInt8;
+	int8.MuInt8 = MuInt8; 
 	return int8;
 }
 
@@ -3785,7 +3789,7 @@ function requireInt16 () {
 	        super(identity, 'int16');
 	    }
 	}
-	int16.MuInt16 = MuInt16;
+	int16.MuInt16 = MuInt16; 
 	return int16;
 }
 
@@ -3817,7 +3821,7 @@ function requireInt32 () {
 	        super(identity, 'int32');
 	    }
 	}
-	int32.MuInt32 = MuInt32;
+	int32.MuInt32 = MuInt32; 
 	return int32;
 }
 
@@ -3849,7 +3853,7 @@ function requireUint8 () {
 	        super(identity, 'uint8');
 	    }
 	}
-	uint8.MuUint8 = MuUint8;
+	uint8.MuUint8 = MuUint8; 
 	return uint8;
 }
 
@@ -3881,7 +3885,7 @@ function requireUint16 () {
 	        super(identity, 'uint16');
 	    }
 	}
-	uint16.MuUint16 = MuUint16;
+	uint16.MuUint16 = MuUint16; 
 	return uint16;
 }
 
@@ -3913,7 +3917,7 @@ function requireUint32 () {
 	        super(identity, 'uint32');
 	    }
 	}
-	uint32.MuUint32 = MuUint32;
+	uint32.MuUint32 = MuUint32; 
 	return uint32;
 }
 
@@ -3945,7 +3949,7 @@ function requireVarint () {
 	        super(identity, 'varint');
 	    }
 	}
-	varint.MuVarint = MuVarint;
+	varint.MuVarint = MuVarint; 
 	return varint;
 }
 
@@ -3979,7 +3983,7 @@ function requireRvarint () {
 	        super(identity, 'rvarint');
 	    }
 	}
-	rvarint.MuRelativeVarint = MuRelativeVarint;
+	rvarint.MuRelativeVarint = MuRelativeVarint; 
 	return rvarint;
 }
 
@@ -4060,7 +4064,7 @@ function requireQuantizedFloat () {
 	        };
 	    }
 	}
-	quantizedFloat.MuQuantizedFloat = MuQuantizedFloat;
+	quantizedFloat.MuQuantizedFloat = MuQuantizedFloat; 
 	return quantizedFloat;
 }
 
@@ -4094,7 +4098,7 @@ function requireIsPrimitive () {
 	];
 	function isMuPrimitiveType(muType) {
 	    return muPrimitiveTypes.indexOf(muType) > -1;
-	}
+	} 
 	return isPrimitive;
 }
 
@@ -4343,7 +4347,7 @@ function requireArray () {
 	        }
 	    }
 	}
-	array.MuArray = MuArray;
+	array.MuArray = MuArray; 
 	return array;
 }
 
@@ -4472,7 +4476,7 @@ function requireOption () {
 	        };
 	    }
 	}
-	option.MuOption = MuOption;
+	option.MuOption = MuOption; 
 	return option;
 }
 
@@ -4736,7 +4740,7 @@ function requireSortedArray () {
 	        this.fromJSON = arraySchema.fromJSON;
 	    }
 	}
-	sortedArray.MuSortedArray = MuSortedArray;
+	sortedArray.MuSortedArray = MuSortedArray; 
 	return sortedArray;
 }
 
@@ -4887,7 +4891,7 @@ function requireUnion () {
 	        };
 	    }
 	}
-	union.MuUnion = MuUnion;
+	union.MuUnion = MuUnion; 
 	return union;
 }
 
@@ -4983,7 +4987,7 @@ function requireBytes () {
 	        };
 	    }
 	}
-	bytes.MuBytes = MuBytes;
+	bytes.MuBytes = MuBytes; 
 	return bytes;
 }
 
@@ -5255,7 +5259,7 @@ function requireDictionary () {
 	        }
 	    }
 	}
-	dictionary.MuDictionary = MuDictionary;
+	dictionary.MuDictionary = MuDictionary; 
 	return dictionary;
 }
 
@@ -5417,7 +5421,7 @@ function requireVector () {
 	        this._t = new Uint8Array(this.__t.buffer);
 	    }
 	}
-	vector$1.MuVector = MuVector;
+	vector$1.MuVector = MuVector; 
 	return vector$1;
 }
 
@@ -5488,7 +5492,7 @@ function requireDate () {
 	        };
 	    }
 	}
-	date.MuDate = MuDate;
+	date.MuDate = MuDate; 
 	return date;
 }
 
@@ -5621,7 +5625,7 @@ function requireJson () {
 		        };
 		    }
 		}
-		exports$1.MuJSON = MuJSON;
+		exports$1.MuJSON = MuJSON; 
 	} (json));
 	return json;
 }
@@ -5817,7 +5821,7 @@ function requireSchema () {
 		    get: function() {
 		        return json_1.MuJSON;
 		    }
-		});
+		}); 
 	} (schema));
 	return schema;
 }
@@ -12622,7 +12626,7 @@ function requireConstant () {
 	        this.emptyStore = new MuRDAConstantStore(stateSchema.identity);
 	    }
 	}
-	constant$1.MuRDAConstant = MuRDAConstant;
+	constant$1.MuRDAConstant = MuRDAConstant; 
 	return constant$1;
 }
 
@@ -12681,7 +12685,7 @@ function requireRegister () {
 	        this.emptyStore = new MuRDARegisterStore(stateSchema.identity);
 	    }
 	}
-	register.MuRDARegister = MuRDARegister;
+	register.MuRDARegister = MuRDARegister; 
 	return register;
 }
 
@@ -12862,7 +12866,7 @@ function requireStruct () {
 	        };
 	    }
 	}
-	struct.MuRDAStruct = MuRDAStruct;
+	struct.MuRDAStruct = MuRDAStruct; 
 	return struct;
 }
 
@@ -13590,7 +13594,7 @@ function requireMap () {
 	        this.emptyStore = new MuRDAMapStore([]);
 	    }
 	}
-	map.MuRDAMap = MuRDAMap;
+	map.MuRDAMap = MuRDAMap; 
 	return map;
 }
 
@@ -13794,7 +13798,7 @@ function require_id () {
 		        }
 		    }
 		    return i;
-		}
+		} 
 	} (_id));
 	return _id;
 }
@@ -14306,7 +14310,7 @@ function requireList () {
 	        this.emptyStore = new MuRDAListStore([]);
 	    }
 	}
-	list.MuRDAList = MuRDAList;
+	list.MuRDAList = MuRDAList; 
 	return list;
 }
 
@@ -14384,7 +14388,7 @@ function requireRda () {
 		    get: function() {
 		        return list_1.MuRDAListStore;
 		    }
-		});
+		}); 
 	} (rda));
 	return rda;
 }
@@ -21941,7 +21945,7 @@ function requireLogger () {
 		        };
 		    }
 		}
-		exports$1.BufferSink = BufferSink;
+		exports$1.BufferSink = BufferSink; 
 	} (logger));
 	return logger;
 }
@@ -22139,7 +22143,7 @@ function requirePairingHeap () {
 		        p._right = p._parent = exports$1.NIL;
 		        return p;
 		    }
-		}
+		} 
 	} (pairingHeap));
 	return pairingHeap;
 }
@@ -24895,16 +24899,12 @@ class AnticheatScript {
         this.protocol.configure({
             message: {
                 clientMessage: (message)=>{
-                    let allow = true;
-                    let active = true;
-                    let reason = "map-rule";
+                    const decision = new ListenerDecision(log);
                     try {
                         const sample = JSON.parse(message.payload);
                         const target = player(message.playerId);
-                        if (!target || !this.messageListeners.size) {
-                            allow = false;
-                            reason = "player-unavailable";
-                        } else {
+                        if (!target || !this.messageListeners.size) decision.reject('player-unavailable');
+                        else {
                             const event = Object.freeze({
                                 player: target,
                                 protocol: sample.protocol,
@@ -24915,12 +24915,7 @@ class AnticheatScript {
                                     source: 'client-message',
                                     serverTick: sample.serverTick,
                                     mode: sample.mode,
-                                    reject: (value)=>{
-                                        if (active) {
-                                            allow = false;
-                                            reason = typeof value === "string" && value ? value.slice(0, 128) : "map-rule";
-                                        }
-                                    }
+                                    reject: decision.reject
                                 })
                             });
                             this.playerIds.set(event, message.playerId);
@@ -24928,46 +24923,25 @@ class AnticheatScript {
                                 ...this.messageListeners.keys()
                             ]){
                                 if (!this.messageListeners.has(listener)) continue;
-                                try {
-                                    const result = listener(event);
-                                    if (result && typeof result.then === 'function') {
-                                        allow = false;
-                                        reason = "async-listener";
-                                        Promise.resolve(result).catch(log);
-                                        log(new Error('world.anticheat.onMessage 必须同步处理，不能 await'));
-                                    }
-                                } catch (error) {
-                                    allow = false;
-                                    reason = "listener-error";
-                                    log(error);
-                                }
+                                decision.run(()=>listener(event), 'onMessage');
                             }
                         }
                     } catch (error) {
-                        allow = false;
-                        reason = "listener-error";
-                        log(error);
+                        decision.fail(error);
                     } finally{
-                        active = false;
-                        this.protocol.server.message.messageDecision({
+                        this.protocol.server.message.messageDecision(Object.assign({
                             handle: message.handle,
-                            playerId: message.playerId,
-                            allow,
-                            reason: allow ? "" : reason
-                        });
+                            playerId: message.playerId
+                        }, decision.finish()));
                     }
                 },
                 movement: (message)=>{
-                    let allow = true;
-                    let active = true;
-                    let reason = "map-rule";
+                    const decision = new ListenerDecision(log);
                     try {
                         const sample = JSON.parse(message.payload);
                         const target = player(message.playerId);
-                        if (!target || sample.playerId !== message.playerId || !this.listeners.size) {
-                            allow = false;
-                            reason = "player-unavailable";
-                        } else {
+                        if (!target || sample.playerId !== message.playerId || !this.listeners.size) decision.reject('player-unavailable');
+                        else {
                             const event = Object.freeze({
                                 player: target,
                                 from: Object.freeze(Object.assign({}, sample.from)),
@@ -24982,48 +24956,64 @@ class AnticheatScript {
                                     inputTick: sample.inputTick,
                                     serverTick: sample.serverTick,
                                     mode: sample.mode,
-                                    reject: (value)=>{
-                                        if (active) {
-                                            allow = false;
-                                            reason = typeof value === "string" && value ? value.slice(0, 128) : "map-rule";
-                                        }
-                                    }
+                                    reject: decision.reject
                                 })
                             });
                             for (const listener of [
                                 ...this.listeners
                             ]){
-                                try {
-                                    const result = listener(event);
-                                    if (result && typeof result.then === 'function') {
-                                        allow = false;
-                                        reason = "async-listener";
-                                        Promise.resolve(result).catch(log);
-                                        log(new Error('world.anticheat.onMovement 必须同步处理，不能 await'));
-                                    }
-                                } catch (error) {
-                                    allow = false;
-                                    reason = "listener-error";
-                                    log(error);
-                                }
+                                decision.run(()=>listener(event), 'onMovement');
                             }
                         }
                     } catch (error) {
-                        allow = false;
-                        reason = "listener-error";
-                        log(error);
+                        decision.fail(error);
                     } finally{
-                        active = false;
-                        this.protocol.server.message.decision({
+                        this.protocol.server.message.decision(Object.assign({
                             handle: message.handle,
-                            playerId: message.playerId,
-                            allow,
-                            reason: allow ? "" : reason
-                        });
+                            playerId: message.playerId
+                        }, decision.finish()));
                     }
                 }
             }
         });
+    }
+}
+class ListenerDecision {
+    run(listener, channel) {
+        const log = this.log;
+        try {
+            const result = listener();
+            if (result && typeof result.then === 'function') {
+                this.reject('async-listener');
+                Promise.resolve(result).catch(log);
+                log(new Error(`world.anticheat.${channel} 必须同步处理，不能 await`));
+            }
+        } catch (error) {
+            this.fail(error);
+        }
+    }
+    fail(error) {
+        const log = this.log;
+        this.reject('listener-error');
+        log(error);
+    }
+    finish() {
+        this.active = false;
+        return {
+            allow: this.allow,
+            reason: this.allow ? '' : this.reason
+        };
+    }
+    constructor(log){
+        this.log = log;
+        this.active = true;
+        this.allow = true;
+        this.reason = 'map-rule';
+        this.reject = (reason)=>{
+            if (!this.active) return;
+            this.allow = false;
+            this.reason = typeof reason === 'string' && reason ? reason.slice(0, 128) : 'map-rule';
+        };
     }
 }
 function freezeData(value) {
@@ -25870,7 +25860,7 @@ class BindingFactory {
         `);
                 Object.keys(PlayerGamepadSchema.identity).forEach((partName)=>{
                     check.push(`
-            ${path} = ${safePropExpr(scriptGamepad, partName)}
+            ${path} = ${safePropExpr(scriptGamepad, partName)} 
                     || ${safePropExpr(defaultGamepad, partName)};
             ${res} = ${resources}.resolveAsset(${path},GameAssetType.PICTURE);
             if(${res}){

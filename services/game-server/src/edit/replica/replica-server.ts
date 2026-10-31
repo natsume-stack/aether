@@ -1335,6 +1335,42 @@ export class EditReplicaServer {
     );
   }
 
+  /** Content proposals must validate after acquiring the same mutex used by
+   * saves and human project edits. All callbacks are trusted synchronous engine
+   * code: no await, author script evaluation, or stale pre-built transaction.
+   * Readback also happens under the mutex, before another queued edit runs.
+   */
+  public async authoringProjectTransaction<T>(
+    guard: () => void,
+    build: () => (ProjectAction | (() => ProjectAction))[],
+    readback: () => T,
+  ): Promise<T> {
+    await this._projectSemaphore.p();
+    let actions: ProjectAction[] = [];
+    try {
+      guard();
+      const built = build();
+      if (built.length) {
+        // Builders may depend on earlier actions (adding a child under a node
+        // created in the same transaction needs that node to exist first), so a
+        // thunk is expanded right before it is applied, not up front.
+        for (const item of built) {
+          const action = typeof item === 'function' ? item() : item;
+          if (!action) continue;
+          this._state.replica.projectStore.apply(ProjectRDA, action);
+          actions.push(action);
+        }
+        this._setProjectDirty();
+        this._syncLocalProjectModelMembership();
+        this._protocol.broadcast.project(actions);
+      }
+      return readback();
+    } finally {
+      for (const action of actions) ProjectActionSchema.free(action);
+      this._projectSemaphore.v();
+    }
+  }
+
   public permissionTransaction() {
     return new RDATransaction(
       PermissionRDA,

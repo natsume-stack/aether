@@ -75,7 +75,7 @@ export function coordinateAuthoring<T extends Record<string, any>>(state: object
       execute: async args => session.proposeContent('script', args) }),
     authoringProposeEntities: tool({ description: 'Prepare bounded property edits to existing entity IDs with entity/asset CAS, edit-lock protection, exact diff and inverse. Does not add/delete/reparent entities or save.',
       inputSchema: entityPatchSchema, execute: async args => session.proposeContent('entities', args) }),
-    authoringProposeEntityLifecycle: tool({ description: 'Prepare entity creation or leaf deletion with full-node inverse and entity/asset CAS. Refuses subtrees, locked entities and unknown models. Reparenting is not supported. Does not save.',
+    authoringProposeEntityLifecycle: tool({ description: 'Prepare entity creation, leaf copying (full value incl. mesh, optional position offset), leaf deletion or reparenting with full-node inverse and entity/asset CAS. Refuses subtree copies, locked entities and unknown models. Does not save.',
       inputSchema: entityLifecycleSchema, execute: async args => session.proposeContent('entityLifecycle', args) }),
     authoringProposeUi: tool({description:'Prepare existing UI element property edits with authoritative revision, exact schema simulation and durable inverse. Preserves binding names, IDs, kinds, hierarchy and scripts. Does not create/delete/rename nodes or prove visual correctness.',
       inputSchema:uiPatchSchema,execute:async args=>session.proposeContent('ui',args)}),

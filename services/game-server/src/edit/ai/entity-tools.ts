@@ -15,6 +15,15 @@ import { z } from 'zod';
 import { CodeEditorServerController } from '../code-editor/code-editor-server-controller';
 import { EditServerState } from '../edit-server-schema';
 import { EditReplicaServer } from '../replica/replica-server';
+import { scriptRevision } from './script-preview';
+import { createScriptReviewTools } from './script-review-tools';
+import { createScriptContentDomain } from './script-content-domain';
+import { registerAuthoringDomain } from './authoring-tools';
+import { readLiveScripts } from './script-live-state';
+import { localScriptIdentity } from '../code-editor/local-script-identity';
+import { getConfigSync } from '../../../config/server';
+import { createEntityContentDomain, readEntitySnapshot, entitySnapshotRevision } from './entity-content-domain';
+import { createEntityLifecycleDomain } from './entity-lifecycle-domain';
 
 const DEFAULT_SCALE = 1 / 16;
 
@@ -33,13 +42,15 @@ export const createScriptTools = (
   codeEditor: CodeEditorServerController,
   logger: Logger,
 ) => {
+  registerAuthoringDomain(state, 'script', createScriptContentDomain(state, codeEditor));
   return {
+    ...createScriptReviewTools(state, codeEditor),
     listScripts: tool({
       description: 'List all scripts in the project',
       inputSchema: z.object({}),
       execute: async () => {
         logger.info('[AI Tool] Executing listScripts');
-        const files = Object.values(state.codeEditor.fileDict).map((f) => ({
+        const files = readLiveScripts(state, codeEditor).map((f) => ({
           id: f.fileId,
           name: f.name,
           isClient: f.isClient,
@@ -59,7 +70,7 @@ export const createScriptTools = (
       }),
       execute: async ({ fileId }) => {
         logger.info({ fileId }, '[AI Tool] Executing readScript');
-        const file = state.codeEditor.fileDict[fileId];
+        const file = readLiveScripts(state, codeEditor).find(file => file.fileId === fileId);
         if (!file) {
           return { success: false, error: 'File not found' };
         }
@@ -68,6 +79,8 @@ export const createScriptTools = (
           id: file.fileId,
           name: file.name,
           content: file.text,
+          isClient: file.isClient,
+          revision: scriptRevision(file),
         };
       },
     }),
@@ -116,13 +129,9 @@ export const createScriptTools = (
         const textStore = fileStore.value.stores.text;
 
         const actions: (typeof FileDictRDA.actionSchema.identity)[] = [];
-        const rdaAction = codeEditor.fileDictReplica
-          .action()
-          .update(fileId)
-          .text(textStore);
-
         try {
           for (const op of operations) {
+            const rdaAction = codeEditor.fileDictReplica.action().update(fileId).text(textStore);
             if (op.type === 'insert') {
               if (typeof op.text !== 'string') {
                 return {
@@ -188,7 +197,8 @@ export const createScriptTools = (
           }
         }
 
-        const fileId = ((Math.random() * (1 << 30)) >>> 0).toString();
+        const fileId = getConfigSync()?.method === 'local' ? localScriptIdentity(name)
+          : ((Math.random() * (1 << 30)) >>> 0).toString();
         const finalName = name;
 
         const fileList = Object.values(dict);
@@ -250,7 +260,19 @@ export const createEntityTools = (
   gameId: number,
   logger: Logger,
 ) => {
+  registerAuthoringDomain(state, 'entities', createEntityContentDomain(state, replica));
+  registerAuthoringDomain(state, 'entityLifecycle', createEntityLifecycleDomain(state, replica));
   return {
+    entityContext: tool({ description: 'Read bounded existing entity nodes and an authoritative entity/asset revision for local property proposals. No camera required.',
+      inputSchema: z.object({ ids: z.array(z.string()).max(256).optional(), offset: z.number().int().min(0).default(0), limit: z.number().int().min(1).max(256).default(64) }),
+      execute: async ({ ids, offset, limit }) => {
+        const snapshot = readEntitySnapshot(state);
+        const selected = ids ? new Set(ids) : undefined;
+        const entities = Object.values(snapshot.tree).filter((node: any) => node.type === TreeNodeType.leaf && (!selected || selected.has(node.id)))
+          .sort((a: any, b: any) => a.id.localeCompare(b.id));
+        return { success: true, revision: entitySnapshotRevision(snapshot), total: entities.length, offset,
+          entities: entities.slice(offset, offset + limit), truncated: offset + limit < entities.length };
+      } }),
     createEntity: tool({
       description: 'Create a new entity in the project',
       inputSchema: z.object({
