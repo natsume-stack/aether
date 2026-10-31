@@ -4,6 +4,7 @@ import {providerRequestUrl} from '../../../services/game-server/src/edit/ai/prov
 import {parseProviderUsage, cacheHitRate} from '../../../services/game-server/src/edit/ai/provider-usage';
 import {conversationKey, loadConversation, loadConversationContext, saveConversation, type ConversationMessage} from './agent-conversation';
 import {buildContextPayload, canonicalContext, type AgentContext} from './agent-context';
+import {batRecipe, detectRecipe, type RecipeState} from './modeling-recipes';
 import {buildProjections, buildQuality, formatModelingBrief} from './modeling-context';
 
 export type VoxaAiCommand = {kind: string; args: Record<string, unknown>};
@@ -354,6 +355,7 @@ type Prepared = {
   context: AgentContext;
   contextMode: 'full' | 'delta';
   quality: {symmetry: number; floating: number; components: number; colors: number; occupied: number; truncated: boolean};
+  recipe?: RecipeState;
   conversationKey?: string;
 };
 
@@ -373,8 +375,11 @@ async function prepare(req: NextApiRequest, res: NextApiResponse): Promise<Prepa
   const cacheKey = conversationId ? conversationKey(userId, String(provider.id), String(input.model), SYSTEM, conversationId, projectId) : '';
   const stored = cacheKey ? loadConversation(cacheKey) : undefined;
   const previousRaw = cacheKey ? loadConversationContext(cacheKey) : undefined;
+  const previousRecord = previousRaw && typeof previousRaw === 'object' && !Array.isArray(previousRaw) ? previousRaw as Record<string, any> : undefined;
+  const storedContext = previousRecord && previousRecord.context ? previousRecord.context : previousRaw;
+  const storedRecipe = previousRecord && previousRecord.recipe && previousRecord.recipe.kind === 'bat' ? previousRecord.recipe as RecipeState : undefined;
   const context = canonicalContext(input.context);
-  const previous = previousRaw ? canonicalContext(previousRaw) : undefined;
+  const previous = storedContext ? canonicalContext(storedContext) : undefined;
   const built = buildContextPayload(context, previous);
   const projections = buildProjections(context);
   const quality = buildQuality(context);
@@ -415,8 +420,38 @@ async function prepare(req: NextApiRequest, res: NextApiResponse): Promise<Prepa
     context,
     contextMode: built.mode,
     quality: qualitySummary,
+    recipe: storedRecipe,
     conversationKey: cacheKey || undefined,
   };
+}
+
+function takeRecipePlan(prepared: Prepared, prompt: string) {
+  const blank = prepared.context.voxelContext.cells.length === 0;
+  let state = prepared.recipe;
+  if (!state) {
+    if (!blank || detectRecipe(prompt) !== 'bat') return undefined;
+    const shape = prepared.context.voxelContext.shape;
+    state = {
+      kind: 'bat',
+      next: 0,
+      shape: shape.length === 3
+        ? [Math.max(1, shape[0] || 16), Math.max(1, shape[1] || 16), Math.max(1, shape[2] || 16)] as [number, number, number]
+        : [16, 16, 16],
+    };
+  }
+  const batches = batRecipe(state.shape);
+  if (state.next >= batches.length) return undefined;
+  const batch = batches[state.next];
+  const next = state.next + 1;
+  const done = next >= batches.length;
+  if (prepared.conversationKey) {
+    saveConversation(
+      prepared.conversationKey,
+      [...prepared.systemMessages, {role: 'assistant' as const, content: `[配方 ${batch.stage}] ${batch.message}`}],
+      {context: prepared.context, recipe: done ? undefined : {...state, next}},
+    );
+  }
+  return {message: batch.message, commands: batch.commands, done, stage: batch.stage};
 }
 
 function headersFor(provider: any) {
@@ -571,6 +606,8 @@ export async function generateVoxaAiPlan(req: NextApiRequest, res: NextApiRespon
   const started = Date.now();
   const {runId} = await internal('/api/player-ai-internal/execution', {userId, scope: `voxa:${prepared.projectId || String(req.body?.context?.snapshot?.project?.modelId || 'planner')}`, mode: 'review', providerId: provider.id, model}, req, res);
   let completed = false;
+  const recipe = takeRecipePlan(prepared, String(req.body?.prompt || ''));
+  if (recipe) { completed = true; return {...recipe, quality: prepared.quality.occupied > 0 ? prepared.quality : undefined}; }
   let inputTokens = 0;
   let outputTokens = 0;
   let cachedTokens = 0;
@@ -647,6 +684,12 @@ export async function streamVoxaAiPlan(req: NextApiRequest, res: NextApiResponse
     send({type: 'phase', phase: 'waiting'});
     const lease = await internal('/api/player-ai-internal/execution', {userId, scope: `voxa:${prepared.projectId || String(req.body?.context?.snapshot?.project?.modelId || 'planner')}`, mode: 'review', providerId: provider.id, model}, req, res);
     runId = String(lease.runId || '');
+    const recipe = takeRecipePlan(prepared, String(req.body?.prompt || ''));
+    if (recipe) {
+      send({type: 'plan', message: recipe.message, commands: recipe.commands, done: recipe.done, stage: recipe.stage, quality: prepared.quality.occupied > 0 ? prepared.quality : undefined, usage: {input: 0, output: 0, cached: 0, cacheWrite: 0, hitRate: 0}});
+      completed = true;
+      return;
+    }
     console.info('[voxa-ai] stream start', {contextChars: prepared.contextChars, reasoning: prepared.reasoning});
     const response = await safeProviderFetch(providerRequestUrl(provider.baseUrl, provider.protocol), {
       method: 'POST', headers: headersFor(provider), body: JSON.stringify(bodyFor(prepared, true)),
@@ -727,7 +770,7 @@ export async function streamVoxaAiPlan(req: NextApiRequest, res: NextApiResponse
     }
     send({type: 'phase', phase: 'parsing'});
     if (!text.trim() || text.length > 250000) throw new Error(incompleteReason ? `模型未返回正文（${incompleteReason}）：思考耗尽输出预算，请提高输出上限或换非推理模型` : 'AI provider returned invalid content');
-    if (prepared.conversationKey) saveConversation(prepared.conversationKey, [...prepared.systemMessages, {role: 'assistant', content: text}], prepared.context);
+    if (prepared.conversationKey) saveConversation(prepared.conversationKey, [...prepared.systemMessages, {role: 'assistant', content: text}], {context: prepared.context});
     const clean = text.trim().replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
     let value: unknown;
     try { value = JSON.parse(clean); } catch {
