@@ -177,6 +177,34 @@ function summarize(kind: string, args: Record<string, unknown>) {
 
 type IconName = 'spark' | 'send' | 'stop' | 'settings' | 'rollback' | 'close' | 'chevron' | 'check' | 'alert' | 'plus';
 
+
+function groupTools(tools: ToolCard[]) {
+  const groups = new Map<string, ToolCard[]>();
+  for (const tool of tools) {
+    const list = groups.get(tool.kind) || [];
+    list.push(tool);
+    groups.set(tool.kind, list);
+  }
+  return [...groups.entries()].map(([kind, items]) => ({ kind, items }));
+}
+
+function summarizeToolGroups(tools: ToolCard[]) {
+  return groupTools(tools).map(({ kind, items }) => `${TOOL_LABELS[kind] || kind}×${items.length}`).join(' · ');
+}
+
+function statusSummary(items: ToolCard[]) {
+  const success = items.filter((tool) => tool.status === 'success').length;
+  const running = items.filter((tool) => tool.status === 'running').length;
+  const failed = items.filter((tool) => tool.status === 'error' || tool.status === 'cancelled').length;
+  const pending = items.length - success - running - failed;
+  return [
+    success ? `完成 ${success}` : '',
+    running ? `执行 ${running}` : '',
+    failed ? `失败 ${failed}` : '',
+    pending ? `待执行 ${pending}` : '',
+  ].filter(Boolean).join(' · ');
+}
+
 function Icon({ name, size = 16 }: { name: IconName; size?: number }) {
   const paths: Record<IconName, string> = {
     spark: 'M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z',
@@ -203,7 +231,10 @@ export function VoxaAiPanel() {
   const [providers, setProviders] = useState<Provider[]>([]);
   const [providerId, setProviderId] = useState('');
   const [model, setModel] = useState('');
-  const [autonomy, setAutonomy] = useState<'review' | 'autonomous'>('review');
+  const [autonomy, setAutonomy] = useState<'review' | 'autonomous'>(() => {
+    if (typeof window === 'undefined') return 'autonomous';
+    return window.localStorage.getItem('voxa.autonomy') === 'review' ? 'review' : 'autonomous';
+  });
   const [prompt, setPrompt] = useState('');
   const [reasoning, setReasoning] = useState<Reasoning>(() => {
     if (typeof window === 'undefined') return 'off';
@@ -239,6 +270,10 @@ export function VoxaAiPanel() {
   useEffect(() => {
     try { window.localStorage.setItem('voxa.aiReasoning', reasoning); } catch { /* storage may be blocked */ }
   }, [reasoning]);
+
+  useEffect(() => {
+    try { window.localStorage.setItem('voxa.autonomy', autonomy); } catch { /* storage may be blocked */ }
+  }, [autonomy]);
 
   useEffect(() => {
     if (!busy) { setElapsed(0); return; }
@@ -298,7 +333,6 @@ export function VoxaAiPanel() {
       const fallback = preferred.find((item) => item.id === preference?.providerId) || preferred[0];
       return fallback?.defaultModel || fallback?.models[0]?.id || '';
     });
-    if (preference?.autonomy) setAutonomy(preference.autonomy);
   }, []);
 
   const savePreferences = useCallback(async (nextProvider = providerId, nextModel = model, nextAutonomy = autonomy, signal?: AbortSignal) => {
@@ -648,22 +682,38 @@ export function VoxaAiPanel() {
                     {!!message.tools?.length && (
                       <div className={styles.tools}>
                         <div className={styles.toolsHead}>
-                          <span>修改计划 · {message.tools.length} 项</span>
-                          {message.phase === 'executing' && <em>执行中</em>}
+                          <span>工具调用 · {message.tools.length} 项</span>
+                          {message.phase === 'executing' && <em>执行中 {message.tools.filter((tool) => tool.status === 'success').length}/{message.tools.length}</em>}
+                          {message.phase === 'planned' && autonomy === 'autonomous' && <em>即将执行</em>}
                           {message.phase === 'done' && <em className={styles.doneLabel}><Icon name="check" size={12} /> 已保存</em>}
                           {message.phase === 'error' && <em className={styles.errorLabel}><Icon name="alert" size={12} /> 有错误</em>}
                         </div>
-                        {message.tools.map((tool) => (
-                          <details key={`${message.id}-${tool.index}`} className={`${styles.tool} ${styles[tool.status]}`} open={tool.status === 'error'}>
-                            <summary>
-                              <span className={styles.toolKind}>{TOOL_LABELS[tool.kind] || tool.kind}</span>
-                              <span className={styles.toolSummary}>{summarize(tool.kind, tool.args)}</span>
-                              <span className={styles.toolStatus}>{STATUS_LABELS[tool.status]}</span>
-                            </summary>
-                            {tool.error && <p className={styles.toolError}>{tool.error}</p>}
-                            <pre>{JSON.stringify(tool.args, null, 2)}</pre>
-                          </details>
-                        ))}
+                        <p className={styles.toolFoldSummary}>{summarizeToolGroups(message.tools)}</p>
+                        {message.tools.some((tool) => tool.error) && (
+                          <div className={styles.failureList}>
+                            {message.tools.filter((tool) => tool.error).slice(0, 3).map((tool) => (
+                              <p key={`fail-${message.id}-${tool.index}`}>{TOOL_LABELS[tool.kind] || tool.kind}：{tool.error}</p>
+                            ))}
+                          </div>
+                        )}
+                        <details className={styles.toolFold}>
+                          <summary>查看工具明细</summary>
+                          {groupTools(message.tools).map((group) => (
+                            <details key={`${message.id}-${group.kind}`} className={styles.toolGroup}>
+                              <summary>
+                                <span className={styles.toolKind}>{TOOL_LABELS[group.kind] || group.kind} × {group.items.length}</span>
+                                <span className={styles.toolStatus}>{statusSummary(group.items)}</span>
+                              </summary>
+                              {group.items.map((tool) => (
+                                <div key={`${message.id}-${tool.index}`} className={`${styles.toolRow} ${styles[tool.status]}`}>
+                                  <span className={styles.toolRowIndex}>#{tool.index + 1}</span>
+                                  <span className={styles.toolSummary}>{summarize(tool.kind, tool.args)}</span>
+                                  <span className={styles.toolStatus}>{STATUS_LABELS[tool.status]}</span>
+                                </div>
+                              ))}
+                            </details>
+                          ))}
+                        </details>
                         {message.phase === 'planned' && autonomy === 'review' && (
                           <div className={styles.batchActions}>
                             <button className={styles.primarySmall} disabled={busy} onClick={() => {
@@ -674,8 +724,9 @@ export function VoxaAiPanel() {
                                 if (!failures.length && !message.done) setNote('本批已完成，可继续下一步');
                                 if (failures.length) setNote('部分命令失败，可让 AI 修复');
                               }).catch((error) => setNote((error as Error).message || '执行失败')).finally(() => setBusy(false));
-                            }}>批准并执行</button>
+                            }}>执行这 {message.tools.length} 项</button>
                             <button className={styles.ghost} disabled={busy} onClick={() => patchMessage(message.id, { phase: 'cancelled', tools: [] })}>放弃</button>
+                            <span className={styles.reviewHint}>当前为审核模式</span>
                           </div>
                         )}
                         {message.phase === 'done' && message.step !== undefined && message.step < 2 && (

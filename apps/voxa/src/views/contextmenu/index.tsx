@@ -312,7 +312,7 @@ export function GlobalContextMenu() {
 function getMenuState() {
   const { activeIds, hierarchyData } = store.getState().animator;
   const isSingle = (type: NodeType) => {
-    return activeIds.length === 1 && hierarchyData[activeIds[0]].type === type;
+    return activeIds.length === 1 && hierarchyData[activeIds[0]]?.type === type;
   };
 
   const singleBone = isSingle(ProjectNodeType.Bone);

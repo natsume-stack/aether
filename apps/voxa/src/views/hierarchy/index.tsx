@@ -121,7 +121,8 @@ export function Hierarchy(props: HierarchyProps) {
       const children: TreeNode[] = [];
       if (hierarchyNode.childrenIds) {
         hierarchyNode.childrenIds.forEach((id) => {
-          children.push(getTreeNode(hierarchyData[id]));
+          const child = hierarchyData[id];
+          if (child) children.push(getTreeNode(child));
         });
       }
 
@@ -234,13 +235,13 @@ export function Hierarchy(props: HierarchyProps) {
         // 单选和点按多选过滤骨骼节点
         case SelectType.Single: {
           // 单选选择骨骼时，没有任何交互
-          if (hierarchyData[ids[0]].type === ProjectNodeType.Bone) {
+          if (hierarchyData[ids[0]]?.type === ProjectNodeType.Bone) {
             break;
           }
         }
         case SelectType.Multi: {
           const selectedIds = ids.filter(
-            (id) => hierarchyData[id].type !== ProjectNodeType.Bone,
+            (id) => hierarchyData[id]?.type !== ProjectNodeType.Bone,
           );
           editor.animatorApp.nodeManager.setActiveIds(selectedIds);
           break;
@@ -256,6 +257,7 @@ export function Hierarchy(props: HierarchyProps) {
 
           ids.forEach((id) => {
             const node = hierarchyData[id];
+            if (!node) return;
 
             if (node.type !== ProjectNodeType.Bone) {
               selectedIds.add(id);
@@ -285,13 +287,13 @@ export function Hierarchy(props: HierarchyProps) {
         // 单选和点按多选过滤部件节点
         case SelectType.Single: {
           // 单选选择部件时，没有任何交互
-          if (hierarchyData[ids[0]].type !== ProjectNodeType.Bone) {
+          if (hierarchyData[ids[0]]?.type !== ProjectNodeType.Bone) {
             break;
           }
         }
         case SelectType.Multi: {
           const selectedIds = ids.filter(
-            (id) => hierarchyData[id].type === ProjectNodeType.Bone,
+            (id) => hierarchyData[id]?.type === ProjectNodeType.Bone,
           );
           editor.animatorApp.nodeManager.setActiveIds(selectedIds);
           break;
@@ -306,6 +308,7 @@ export function Hierarchy(props: HierarchyProps) {
 
           ids.forEach((id) => {
             const node = hierarchyData[id];
+            if (!node) return;
             if (node.type === ProjectNodeType.Bone) {
               selectedIds.add(id);
             }
@@ -404,6 +407,7 @@ export function Hierarchy(props: HierarchyProps) {
           return true;
         }
         const rootParent = hierarchyData[rootParentId];
+        if (!rootParent) return true;
         return !!(
           (rootParent.type === ProjectNodeType.Group ||
             rootParent.type === ProjectNodeType.SkinPart) &&
@@ -434,7 +438,7 @@ export function Hierarchy(props: HierarchyProps) {
    * 获得自由部件区最下方的节点id
    */
   const getLastNodeId = useCallback(() => {
-    let childrenIds = hierarchyData[ROOT_SKIN_ID].childrenIds;
+    let childrenIds = hierarchyData[ROOT_SKIN_ID]?.childrenIds;
     let lastChildId: string | undefined = undefined;
     let levelOffset = 0;
 
@@ -445,6 +449,7 @@ export function Hierarchy(props: HierarchyProps) {
       }
 
       const node = hierarchyData[lastChildId];
+      if (!node) break;
       if (
         node.type === ProjectNodeType.SkinPart ||
         !expandedIds.includes(lastChildId)
@@ -452,7 +457,7 @@ export function Hierarchy(props: HierarchyProps) {
         break;
       }
 
-      childrenIds = hierarchyData[lastChildId].childrenIds;
+      childrenIds = hierarchyData[lastChildId]?.childrenIds;
       levelOffset--;
     }
 
@@ -495,6 +500,7 @@ export function Hierarchy(props: HierarchyProps) {
       }
 
       const targetNode = hierarchyData[target.dropId];
+      if (!targetNode) return;
       const notAllowed = isNotAllowed(targetNode);
       if (notAllowed) {
         setPointer(Pointer.NotAllowed);

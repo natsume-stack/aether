@@ -15,6 +15,39 @@ interface Props {
   setLocale: (locale: LangType) => void;
 }
 
+
+class AppErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { error?: Error }
+> {
+  state: { error?: Error } = { error: undefined };
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error('[voxa] UI render error', error, info);
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <main style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: 24, background: '#17181c', color: '#fff', fontFamily: 'system-ui, sans-serif' }}>
+          <section style={{ width: 'min(480px, 100%)', padding: 28, borderRadius: 12, background: '#26282e', boxShadow: '0 16px 48px rgba(0,0,0,.28)' }}>
+            <h1 style={{ margin: '0 0 10px', fontSize: 20 }}>编辑器遇到错误</h1>
+            <p style={{ margin: '0 0 16px', color: '#b7bbc5', lineHeight: 1.6, overflowWrap: 'anywhere' }}>{this.state.error.message}</p>
+            <button style={{ padding: '8px 14px', border: 0, borderRadius: 8, background: '#9afc17', color: '#0d2000', fontWeight: 600, cursor: 'pointer' }} onClick={() => window.location.reload()}>
+              重新加载编辑器
+            </button>
+          </section>
+        </main>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default function VoxelBuilder(props: Props) {
   const { intl, userInfo, setLocale } = props;
 
@@ -26,7 +59,9 @@ export default function VoxelBuilder(props: Props) {
   return (
     <RawIntlProvider value={intl}>
       <Provider store={store}>
-        <Root setLocale={setLocale} />
+        <AppErrorBoundary>
+          <Root setLocale={setLocale} />
+        </AppErrorBoundary>
       </Provider>
     </RawIntlProvider>
   );

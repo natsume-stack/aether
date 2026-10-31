@@ -271,7 +271,7 @@ export class SelectBox {
 
     this.animatorApp.nodeManager.setActiveIds(activeIds);
     activeIds.forEach((id) => {
-      if (hierarchyData[id].type === ProjectNodeType.Bone) {
+      if (hierarchyData[id]?.type === ProjectNodeType.Bone) {
         this.animatorApp.nodeManager.expandParents(id);
       }
     });

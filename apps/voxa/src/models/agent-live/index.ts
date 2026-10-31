@@ -283,6 +283,7 @@ export class VoxaAgentLiveSession {
               if(!hierarchy[id] || protectedIds.includes(id)) throw new Error('Cannot remove this part');
               this.editor.switchToAnimator();
               manager.removeNodes([id]);
+              manager.setActiveIds([]);
             } else if(command.kind==='part_group') {
               if(!Array.isArray(command.args.ids) || !command.args.ids.length || command.args.ids.length>32) throw new Error('Invalid group members');
               const ids=command.args.ids.map(resolveId);

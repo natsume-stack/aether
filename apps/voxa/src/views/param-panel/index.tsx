@@ -867,7 +867,9 @@ function getOpacityActiveIds() {
   const activeBoneSet = new Set<string>();
 
   activeIds.forEach((id) => {
-    switch (hierarchyData[id].type) {
+    const node = hierarchyData[id];
+    if (!node) return;
+    switch (node.type) {
       case ProjectNodeType.Bone:
         activeBoneSet.add(id);
         break;

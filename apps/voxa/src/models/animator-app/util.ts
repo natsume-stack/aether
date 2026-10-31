@@ -84,8 +84,10 @@ export function getRootParentId(currId: string, rootIds?: string[]) {
     !id || isRootNode(id) || rootIds?.includes(id);
 
   let parentId: string | undefined = currId;
-  while (parentId && !isAtRoot(hierarchyData[parentId].parentId)) {
-    parentId = hierarchyData[parentId].parentId;
+  while (parentId) {
+    const node = hierarchyData[parentId];
+    if (!node || isAtRoot(node.parentId)) break;
+    parentId = node.parentId;
   }
 
   return parentId;
@@ -146,6 +148,7 @@ export function hasBoneWithoutSkin(ids: string[]) {
   const { hierarchyData } = store.getState().animator;
   for (let i = 0; i < ids.length; i++) {
     const node = hierarchyData[ids[i]];
+    if (!node) continue;
     if (node.type === ProjectNodeType.Bone && !node.skinId) {
       return true;
     }
@@ -164,10 +167,14 @@ export function getBreadcrumbs(id: string) {
   const { hierarchyData } = store.getState().animator;
   const breadcrumbs: string[] = [];
 
-  let parentId = hierarchyData[id].parentId;
+  const start = hierarchyData[id];
+  if (!start) return [];
+  let parentId = start.parentId;
   while (parentId && !isRootNode(parentId)) {
+    const node = hierarchyData[parentId];
+    if (!node) break;
     breadcrumbs.push(parentId);
-    parentId = hierarchyData[parentId].parentId;
+    parentId = node.parentId;
   }
 
   return breadcrumbs;
