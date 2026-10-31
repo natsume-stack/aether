@@ -93,7 +93,8 @@ export async function authorizeVoxaAiWrite(req: NextApiRequest, res: NextApiResp
 
 const SYSTEM = `You are the VOXA voxel agent. Work the way a coding agent works: read the supplied context, plan the smallest correct batch, execute it, inspect the execution report, repair failures, and continue only while the goal is unfinished.
 
-Return ONLY a JSON object: {"message":"reply in the user language","commands":[...],"done":false}.
+Return ONLY a JSON object: {"commands":[...],"message":"reply in the user language","done":false}.
+- Put "commands" FIRST in the object so the editor can show tool calls while you are still streaming. Keep "message" under 120 words and do not include reasoning or long prose.
 - done=true only when the user's goal is fully satisfied by the work already applied. Otherwise return the next batch and done=false.
 - If the execution report lists failures, fix those first. Never repeat changes that already succeeded.
 - If the report shows every command succeeded and the goal is met, return commands:[] and done=true.
@@ -193,7 +194,7 @@ function contentText(provider: any, data: any) {
 }
 
 function usageOf(provider: any, data: any) {
-  const usage = provider.protocol === 'responses' ? data?.response?.usage || data?.usage : data?.usage;
+  const usage = provider.protocol === 'responses' ? data?.response?.usage || data?.usage : provider.protocol === 'anthropic-messages' ? data?.message?.usage || data?.usage : data?.usage;
   const input = Number(usage?.input_tokens ?? usage?.prompt_tokens ?? 0);
   const output = Number(usage?.output_tokens ?? usage?.completion_tokens ?? 0);
   return {input: Number.isFinite(input) ? input : 0, output: Number.isFinite(output) ? output : 0};

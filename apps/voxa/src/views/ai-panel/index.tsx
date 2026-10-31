@@ -401,11 +401,13 @@ export function VoxaAiPanel() {
     const controller = new AbortController();
     abortRef.current = controller;
     try {
+      const contextStarted = performance.now();
       const context = await session.panelContext();
       const modelContext = { ...(context as unknown as Record<string, unknown>) };
       delete modelContext.snapshot;
+      console.info('[voxa-panel] context', { ms: Math.round(performance.now() - contextStarted), bytes: JSON.stringify(modelContext).length });
       patchMessage(assistantId, { status: '准备请求…' });
-      await savePreferences(providerId, model, autonomy, controller.signal);
+      void savePreferences(providerId, model, autonomy).catch(() => undefined);
       const reply = await streamPlan({
         providerId,
         model,
