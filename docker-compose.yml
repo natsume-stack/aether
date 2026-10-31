@@ -360,6 +360,11 @@ services:
       BOX_AUTO_BACKUP_RETENTION_COUNT: ${BOX_AUTO_BACKUP_RETENTION_COUNT:-24}
       BOX_AUTO_BACKUP_RETENTION_DAYS: ${BOX_AUTO_BACKUP_RETENTION_DAYS:-30}
       BOX_PROJECT_BACKUP_PATH: ${BOX_PROJECT_BACKUP_PATH:-/app/apps/local-engine/backups}
+      # Map agent codes + token digests live here. The default (cwd/data) sits
+      # inside the standalone build directory and dies with the container, which
+      # would silently rotate every map code on deploy. Keep it on the mounted,
+      # writable data volume so codes and joined agents survive restarts.
+      BOX_AGENT_ACCESS_PATH: /app/apps/local-engine/data/agent-access.json
       BOX_CREATOR_ALLOWED_HOSTS: ${BOX_CREATOR_ALLOWED_HOSTS:-}
       BOX_DATABASE_URL: ${BOX_DATABASE_URL:-}
       BOX_DATABASE_SCHEMA: ${BOX_DATABASE_SCHEMA:-box_engine}

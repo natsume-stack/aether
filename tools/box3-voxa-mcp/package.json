@@ -1,0 +1,14 @@
+{
+  "name": "box3-voxa-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Model Context Protocol server for VOXA model building: list / inspect / import .voxaproject bundles via the VOXA identification-code agent surface.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "bin": {
+    "box3-voxa-mcp": "src/index.js"
+  }
+}

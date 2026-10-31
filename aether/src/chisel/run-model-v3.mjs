@@ -21,7 +21,7 @@ import { fileURLToPath } from 'node:url';
 import { pickProgram, defaultModels } from './sculpt-library.mjs';
 import {
   criticSculpt, autoRepairLoop, fitToSizeHint, downsampleLod,
-  Sculptor, Palette,
+  Sculptor, Palette, rgbToHsv,
 } from './model-sculpt.mjs';
 import { renderSoftwarePreview } from './preview-renderer.mjs';
 
@@ -98,17 +98,32 @@ export function buildProjectJson(model) {
   }
   const nodes = {};
   nodes.ROOT = nodeJson({ id: 'ROOT', name: 'Root', type: 0, parentId: '', childrenIds: ['ROOT_BONE', 'ROOT_SKIN'] });
-  nodes.ROOT_BONE = nodeJson({ id: 'ROOT_BONE', name: 'RootBone', type: 3, parentId: 'ROOT', childrenIds: bones.map((b) => b.id) });
+  nodes.ROOT_BONE = nodeJson({ id: 'ROOT_BONE', name: 'RootBone', type: 3, parentId: 'ROOT', childrenIds: bones.filter((b) => !b.parent || b.parent === 'ROOT_BONE').map((b) => b.id) });
   nodes.ROOT_SKIN = nodeJson({
     id: 'ROOT_SKIN', name: 'RootSkin', type: 2, parentId: 'ROOT',
     childrenIds: model.groups.filter((g) => !g.bone || !boneIds.has(g.bone)).map((g) => g.id),
   });
   for (const b of bones) {
+    const parentBone = b.parent && bones.find((candidate) => candidate.id === b.parent);
+    if (b.parent && b.parent !== 'ROOT_BONE' && !parentBone)
+      throw new Error(`Unknown parent bone: ${b.parent}`);
     nodes[b.id] = nodeJson({
       id: b.id, name: b.name, type: 3, parentId: b.parent || 'ROOT_BONE',
-      position: [b.position[0] - rootOffset[0], b.position[1] - rootOffset[1], b.position[2] - rootOffset[2]],
-      childrenIds: partsByBone.get(b.id) || [],
+      position: b.position.map((value, axis) => value - (parentBone ? parentBone.position[axis] : rootOffset[axis])),
+      childrenIds: bones.filter((child) => child.parent === b.id).map((child) => child.id),
     });
+    // VOXA keeps skin and bone hierarchies separate. A skin group is bound
+    // through bone.skinId / group.boneId, never through a bone parentId.
+    const parts = partsByBone.get(b.id) || [];
+    if (parts.length) {
+      const skinId = `${b.id}__skin`;
+      if (bones.some((bone) => bone.id === skinId) || model.groups.some((g) => g.id === skinId))
+        throw new Error(`Generated skin group ID collision: ${skinId}`);
+      nodes[b.id].skinId = skinId;
+      nodes[skinId] = nodeJson({ id: skinId, name: `${b.name}Skin`, type: 2,
+        parentId: '', childrenIds: parts });
+      nodes[skinId].boneId = b.id;
+    }
   }
   const voxels = {};
   for (const g of model.groups) {
@@ -119,11 +134,11 @@ export function buildProjectJson(model) {
       : [p[0] - rootOffset[0], p[1] - rootOffset[1], p[2] - rootOffset[2]];
     nodes[g.id] = nodeJson({
       id: g.id, name: g.name, type: 1,
-      parentId: g.bone && boneIds.has(g.bone) ? g.bone : 'ROOT_SKIN',
+      parentId: g.bone && boneIds.has(g.bone) ? `${g.bone}__skin` : 'ROOT_SKIN',
       position: local, voxelId: g.id,
     });
     const view = g.sculptor.toView();
-    voxels[g.id] = { dimension: 3, encodedView: encodeView(view, [g.sculptor.nx, g.sculptor.ny, g.sculptor.nz]) };
+    voxels[g.id] = { id: g.id, dimension: 3, encodedView: encodeView(view, [g.sculptor.nx, g.sculptor.ny, g.sculptor.nz]) };
     g._view = view;
     g._filled = g.sculptor.count();
   }
@@ -146,9 +161,12 @@ export function buildProjectJson(model) {
     }
     return { id: animation.id, name: animation.name, nodes: motionNodes };
   });
-  const paletteItems = model.palette.items.map((it) => ({
-    id: it.id, hsv: it.hsv, material: { emissive: it.emissive }, rgb: it.rgb,
-  }));
+  const paletteItems = model.palette.items.map((it) => {
+    const rgb = it.rgb.map((value) => Math.max(0, Math.min(255, Math.round(value))));
+    const [h, s, v] = rgbToHsv(rgb);
+    return { id: it.id, hsv: [Math.round(h), Math.round(s * 100), Math.round(v * 100)],
+      material: { emissive: Math.round(clamp01(it.emissive || 0) * 255) }, rgb };
+  });
   return {
     project: {
       version: 10,
@@ -171,7 +189,7 @@ export function buildProjectJson(model) {
 export function buildModelDataJson(model, mesherResult, bounds) {
   const rootOffset = bounds.min;
   const { meshes } = mesherResult;
-  const paletteList = model.palette.items.map((it) => it.rgb);
+  const paletteList = model.palette.items.map((it) => it.rgb.map((value) => Math.max(0, Math.min(255, Math.round(value)))));
   const emissiveList = model.palette.items.map((it) => it.emissive);
   const boneIndex = new Map();
   const nodes = [];
@@ -241,7 +259,8 @@ export async function writeBundle({ projectSchema, modelSchema, meta, previewPng
   ].map((r) => ({ ...r, hash: cid(r.bytes) }));
   const manifest = {
     format: 'box-voxa-project', formatVersion: 1, exportedAt: new Date().toISOString(),
-    projectName: meta.projectName, editType: 1,
+    // VOXA EditType.Normal=0; 1 is Skin, not the model schema version.
+    projectName: meta.projectName, editType: 0,
     resources: resources.map((r) => ({ name: r.name, hash: r.hash, contentType: 'application/octet-stream' })),
   };
   const zip = new JSZip();

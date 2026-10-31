@@ -1,12 +1,12 @@
-import { useState, useCallback, useContext, useRef, useMemo, useEffect } from 'react';
+import { useContext, useRef, useMemo, useState, useEffect, useCallback } from 'react';
 import { ToolbarMenuContext, SharedTipsContext } from '../context.js';
 import { useSharedTipsDelay } from '../hooks.js';
 import { Icon } from '../icon/index.js';
 import { TooltipTrigger } from '../tooltip/index.js';
-import { useClassName, useInteraction } from '../util.js';
+import { useInteraction, useClassName } from '../util.js';
 import styles from './style.module.scss.js';
 import SvgToolExpandNor from './tool-expand-nor.svg.js';
-import { jsx, jsxs } from 'react/jsx-runtime';
+import { jsxs, jsx } from 'react/jsx-runtime';
 
 function Toolbar(props) {
   const {

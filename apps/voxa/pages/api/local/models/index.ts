@@ -1,6 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 import { listModels, saveModel } from '../../../../server/local-voxa-store';
+import {
+  getEditLock,
+  normalizeEditLockActor,
+} from '../../../../server/local-voxa-edit-lock';
 import { setLocalCors } from '../../../../server/local-cors';
 import {
   requireVoxaModelAccess,
@@ -36,6 +40,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   if (req.method === 'POST') {
     if (!await requireVoxaModelManagement(req, res)) return;
+    // Legacy saves (editor autosave, game runtimes) must also respect a CLI
+    // edit lock. Requests may opt into locking by echoing `actor`.
+    const targetId = Number(req.body?.modelId || 0);
+    if (targetId > 0) {
+      const lock = getEditLock(targetId);
+      const actor = normalizeEditLockActor(req.body?.actor);
+      if (lock.locked && lock.actor !== actor) {
+        return res.status(409).json({
+          code: 'EDIT_LOCKED',
+          message: `模型正在由 ${lock.actor} 编辑`,
+          editLock: lock,
+        });
+      }
+    }
     return res.status(200).json(await saveModel(req.body || {}));
   }
   return res.status(405).end();

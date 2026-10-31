@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { apiOperations } from '@box/apis';
 
 import { apiClient } from '../../../src/apis/client';
@@ -23,6 +23,11 @@ export function useProjectTransfer(options: Options) {
   const [importMode, setImportMode] = useState<ImportMode>('independent');
   const [importTargetMainId, setImportTargetMainId] = useState('');
   const [importProgress, setImportProgress] = useState<ImportProgress | null>(null);
+  const importRequestRef = useRef<XMLHttpRequest | null>(null);
+
+  const cancelImport = () => {
+    importRequestRef.current?.abort();
+  };
   const [exportProgress, setExportProgress] = useState<ExportProgress | null>(null);
   const [exportChoiceProject, setExportChoiceProject] = useState<LocalProject | null>(null);
 
@@ -45,6 +50,7 @@ export function useProjectTransfer(options: Options) {
     try {
       const data = await new Promise<{ project?: LocalProject; message?: string; details?: ImportDiagnostic[] }>((resolve, reject) => {
         const request = new XMLHttpRequest();
+        importRequestRef.current = request;
         const parameters = new URLSearchParams({ mode });
         if (mode === 'submap') parameters.set('targetMainProjectId', targetMainProjectId);
         request.open(
@@ -80,6 +86,7 @@ export function useProjectTransfer(options: Options) {
     } catch (error) {
       setImportProgress((current) => ({ filename: file.name, phase: 'error', percent: current?.percent || 0, sent: current?.sent || 0, total: current?.total || file.size, elapsedSeconds: Math.floor((Date.now() - startedAt) / 1000), message: error instanceof Error ? error.message : '导入工程失败', details: (error as Partial<DetailedImportError>)?.details || [] }));
     } finally {
+      importRequestRef.current = null;
       window.clearInterval(timer);
     }
   };
@@ -166,5 +173,6 @@ export function useProjectTransfer(options: Options) {
     exportProgress, exportChoiceProject, chooseProjectFile, confirmProjectImport,
     openExportDialog, exportProjectFile, setPendingImportFile, setImportMode,
     setImportTargetMainId, setImportProgress, setExportProgress, setExportChoiceProject,
+    cancelImport,
   };
 }

@@ -90,7 +90,9 @@ export const INTERNAL_PREFIX = '/api/internal/map-authoring'
  *     createMapAuthoringTools: terrainInfo:180 terrainRead:196 terrainApply:226
  *                           terrainRevert:318 uiTreeRead:354 uiNodeAdd:378
  *                           uiNodeRemove:437                                 (7)
- *   = 22 tools, exactly what `AiServer.this.tools` bundles
+ *   = 22 tools, exactly what `AiServer.this.tools` bundles; N12 adds the four
+ *     block-catalog helpers (blockCatalog/getBlock/resolvePalette/searchBlocks)
+ *     -> 26.
  *     (ai-server.ts:300-304: {...entityTools, ...scriptTools, ...mapAuthoringTools}).
  *
  * The loopback headless router mounts only 17 of them: `ai-tool-route.ts:78-91`
@@ -111,6 +113,7 @@ export const ENGINE_AI_TOOL_SOURCES = {
 /** MCP tool name -> the engine tool(s) it drives. Arrays = one tool, two engines. */
 export const ENGINE_TOOL_FOR_MCP_TOOL = {
   terrain_info: 'terrainInfo',
+  terrain_blocks: ['blockCatalog', 'getBlock', 'resolvePalette', 'searchBlocks'],
   terrain_read: 'terrainRead',
   terrain_apply: 'terrainApply',
   terrain_revert: 'terrainRevert',
@@ -149,7 +152,20 @@ export const ENGINE_AI_TOOLS = [
  * an agent, from the LIVE engine, which of the 22 are actually mounted right now.
  */
 export const ENGINE_TOOLS_USED = Object.fromEntries(
-  ENGINE_AI_TOOLS.map((row) => [row.mcpTool === 'entity_create' ? `entity_create#${row.engineTool}` : row.mcpTool, row.engineTool]),
+  ENGINE_AI_TOOLS.map((row) => {
+    if (row.mcpTool === 'entity_create') {
+      // Keep the historical `entity_create` label for createEntity and suffix
+      // only the second engine it drives, so existing reports stay stable.
+      return [
+        row.engineTool === 'createEntity' ? 'entity_create' : `entity_create#${row.engineTool}`,
+        row.engineTool,
+      ]
+    }
+    const driven = ENGINE_TOOL_FOR_MCP_TOOL[row.mcpTool]
+    // One MCP tool driving several engine tools needs a unique label per engine
+    // tool, otherwise map_tool_catalog would silently under-report coverage.
+    return [Array.isArray(driven) && driven.length > 1 ? `${row.mcpTool}#${row.engineTool}` : row.mcpTool, row.engineTool]
+  }),
 )
 
 /** Error carrying the "next step" fields an autonomous agent needs. */

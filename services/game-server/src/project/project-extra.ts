@@ -9,11 +9,23 @@ import {
 import { CreativeMode } from '@box/apis';
 import { isContentHash } from './content-hash';
 import { voxaInternalHeaders } from './voxa-internal-auth';
+import { BodyPart } from '@box/schema/player/player-schema';
 
 export type Mode = 'edit' | 'play';
 
 const LOCAL_MESH_PATH = /__local_\d+\.vb$/;
 const LOCAL_SKIN_NAME = /__local_\d+$/;
+const invalidLocalSkins = new WeakMap<object, Set<string>>();
+
+/** Imported legacy model bundles were sometimes mislabeled Skin. Never let
+ * one optional library entry abort startup of an unrelated existing map. */
+export function validLocalSkinMetadata(value: unknown): boolean {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const data = value as Record<string, unknown>;
+  if (!Number.isInteger(data.version) || Number(data.version) < 1 || Number(data.version) > 3) return false;
+  return Object.entries(data).every(([key, hash]) => key === 'version' ||
+    (typeof BodyPart[key as keyof typeof BodyPart] === 'number' && (hash === '' || (typeof hash === 'string' && isContentHash(hash)))));
+}
 
 /**
  * `boxes` receives one authoritative extra-project snapshot from its backend.
@@ -61,7 +73,8 @@ export function mergeExtraProjectInfo(
       ),
     },
     skinAssets: {
-      ...packaged.skinAssets,
+      ...Object.fromEntries(Object.entries(packaged.skinAssets).filter(([name]) =>
+        !invalidLocalSkins.get(localLibrary)?.has(name))),
       ...localLibrary.skinAssets,
     },
     defaultSkinName:
@@ -87,6 +100,8 @@ export async function getLocalExtraProject(
   projectKey = '',
 ) {
   const extra = ExtraProjectInfoSchema.clone(ExtraProjectInfoSchema.identity);
+  const invalidSkins = new Set<string>();
+  invalidLocalSkins.set(extra, invalidSkins);
   try {
     const baseURL = voxaURL.replace(/\/$/, '');
     const [modelResponse, skinResponse, defaultSkinResponse] =
@@ -134,7 +149,20 @@ export async function getLocalExtraProject(
       : [];
     for (const row of skinRows) {
       const modelId = Number(row.modelId || 0);
-      if (!modelId || !row.modelFileHash) continue;
+      if (!modelId || !isContentHash(String(row.modelFileHash || ''))) continue;
+      try {
+        const metadata = await axios.get(`${baseURL}/api/local/blobs/${row.modelFileHash}`, {
+          headers: voxaInternalHeaders(), timeout: 10_000,
+        });
+        if (!validLocalSkinMetadata(metadata.data)) {
+          invalidSkins.add(`${String(row.modelName || '皮肤')}__local_${modelId}`);
+          logger.error(`Skip invalid local skin metadata for model ${modelId}`);
+          continue;
+        }
+      } catch {
+        logger.error(`Skip unavailable local skin metadata for model ${modelId}`);
+        continue;
+      }
       const name = `${String(row.modelName || '皮肤')}__local_${modelId}`;
       extra.skinAssets[name] = { hash: String(row.modelFileHash) };
       if (Number(defaultSkinResponse.data?.modelId || 0) === modelId) {

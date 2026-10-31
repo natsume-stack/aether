@@ -1061,7 +1061,7 @@ const K4 = {
   group: 'compat',
   title: '对外面只允许超集（tools/list、声明、契约）',
   requires: ['toolsList.before|toolsList.after'],
-  source: 'src/tools/index.js mergeToolSets（重名即抛）+ 主控 A 泳道 12→37 的增长事实',
+  source: 'src/tools/index.js mergeToolSets（重名即抛）+ 主控 A 泳道 12→37、N12 方块目录 →38 的增长事实',
   check({ evidence }) {
     const failures = []
     const tools = evidence.toolsList || {}
@@ -1301,7 +1301,7 @@ export const PLAYBOOK = {
     },
     {
       n: 2,
-      action: '读能力目录：确认这 22 个引擎工具此刻真挂在运行时上',
+      action: '读能力目录：确认这 26 个引擎工具此刻真挂在运行时上',
       tool: 'map_tool_catalog',
       args: '{ mapId }',
       read: 'missing[]',

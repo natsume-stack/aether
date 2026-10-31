@@ -22,6 +22,6 @@ export { getStringWidth, isMac, isMetaKeyPressed, isValidNumber, popStringByWidt
 export { AXIS } from './interfaces.js';
 export { FileMenuContext, SharedTipsContext, ToolbarMenuContext } from './context.js';
 export { TextArea } from './textarea/index.js';
-export { TreeNodeType } from './tree/tree-node/index.js';
 export { SelectType } from './tree/defs.js';
+export { TreeNodeType } from './tree/tree-node/index.js';
 //# sourceMappingURL=index.js.map

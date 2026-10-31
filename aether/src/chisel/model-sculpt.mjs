@@ -51,7 +51,7 @@ export function hsvToRgb([h, s, v]) {
   else if (hp < 5) rgb = [x, 0, c];
   else rgb = [c, 0, x];
   const m = v - c;
-  return [(rgb[0] + m) * 255, (rgb[1] + m) * 255, (rgb[2] + m) * 255];
+  return rgb.map((channel) => Math.max(0, Math.min(255, Math.round((channel + m) * 255))));
 }
 export function shadeRgb(rgb, mul) { return rgb.map((v) => Math.max(0, Math.min(255, v * mul))); }
 export function mixRgb(a, b, t) { return a.map((v, i) => v + (b[i] - v) * t); }

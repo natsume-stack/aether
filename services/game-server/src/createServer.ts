@@ -138,8 +138,13 @@ export async function createGameServer(spec: {
   const login = getLoginStr(serverConfig.login);
   // create mu server
   spec.logger.info('Creating MuServer...');
+  // Local runtimes always ship together with their client bundle, so the
+  // MuDB schema handshake can never catch a real mismatch here. It is a ~700KB
+  // echo per session; through the loopback proxy chain that echo can stall a
+  // session indefinitely at the last loading step. Remote deployments keep
+  // validating outside development.
   const skipProtocolValidation =
-    process.env.NODE_ENV !== 'development' && serverConfig.method !== 'local';
+    serverConfig.method === 'local' || process.env.NODE_ENV !== 'development';
   const socketServer = new MuWebSocketServer({
     server: spec.httpServer,
     requireSessionProof: true,
@@ -623,6 +628,11 @@ export async function createGameServer(spec: {
         return;
       }
       try {
+        if (editServer.state.game.state.replica.running) {
+          res.writeHead(409, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ code: 'PREVIEW_RUNNING', message: 'Stop preview before saving terrain changes' }));
+          return;
+        }
         const permissionHash = await editServer.replica.saveProject();
         res.setHeader('Content-Type', 'application/json');
         res.end(JSON.stringify({ permissionHash }));
@@ -647,10 +657,30 @@ export async function createGameServer(spec: {
     // graph is untouched.
     const { createAiToolRouteHandler } = await import('./edit/ai/ai-tool-route');
     spec.httpRoutes['/internal/ai-tool'] = createAiToolRouteHandler({
+      codeEditorController: editServer.codeEditorController,
       replica: editServer.replica,
       state: editServer.state,
       gameId: serverConfig.contentId,
       logger: spec.logger.child({ caller: 'ai-tool-route' }),
+    });
+    const { authoringSessionFor } = await import('./edit/ai/authoring-tools');
+    const { createAuthoringEventHandler } = await import('./edit/ai/authoring-events');
+    const authoringSession = authoringSessionFor(editServer.state)!;
+    const { AuthoringJournal } = await import('./edit/ai/authoring-journal');
+    const journalPath = await import('node:path');
+    try {
+      authoringSession.attachJournal(new AuthoringJournal(journalPath.join(
+        process.env.BOX_AUTHORING_JOURNAL_DIR || journalPath.resolve(process.cwd(), '.authoring-journal'),
+        `${encodeURIComponent(serverConfig.containerName)}.jsonl`,
+      )));
+    } catch {
+      authoringSession.disableWrites();
+      spec.logger.error('Authoring journal unavailable; agent writes disabled. Existing editor content remains accessible.');
+    }
+    const { readContentOverview } = await import('./edit/ai/content-overview');
+    spec.httpRoutes['/internal/edit-events'] = createAuthoringEventHandler(authoringSession, async () => {
+      const overview = readContentOverview(editServer.state);
+      return { entityCount: overview.entityCount, uiCount: overview.uiNodeCount };
     });
 
     // Boxes treats extraProject as the map group's shared project library. The

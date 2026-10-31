@@ -196,6 +196,12 @@ test('stableStringify reproduces engine JSON blob bytes byte-for-byte', (t) => {
       continue
     }
     parsedCount += 1
+    // Published VOXA metadata is JSON.stringify output, not storeReleaseJSON.
+    // Its raw bytes are content-addressed; sorting and rewriting would break it.
+    if (parsed.version === 7 && typeof parsed.dataHash === 'string') {
+      assert.equal(verifyBlobName(name, Buffer.from(raw)).verified, true, `VOXA metadata digest: ${name}`)
+      continue
+    }
     if (stableStringify(parsed) === raw) matched += 1
     else if (mismatches.length < 3) mismatches.push(name)
   }

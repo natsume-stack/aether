@@ -722,7 +722,7 @@ test('every playbook step names a tool that is really advertised, except the DoD
     BOX_ENGINE_REPO_ROOT: REPO_ROOT,
   })
   const advertised = new Set(buildTools(ctx).map((tool) => tool.name))
-  assert.equal(advertised.size, 37, 'A 泳道接完线后 face 是 37')
+  assert.equal(advertised.size, 38, 'A 泳道接完线 + N12 方块目录后 face 是 38')
   for (const step of PLAYBOOK.steps) {
     if (step.n === 11) continue
     const named = step.tool.split(/[^a-z0-9_]+/i).filter((token) => advertised.has(token))

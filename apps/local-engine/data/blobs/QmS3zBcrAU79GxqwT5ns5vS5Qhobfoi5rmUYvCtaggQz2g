@@ -1,0 +1,1 @@
+{"version":7,"projectName":"qingming-crane","bounds":[11,16,4],"motionList":[{"id":"flap","name":"Wing Flap","duration":2}],"useCustomBounds":true,"customBounds":{"size":[11,16,4],"offset":[-5.5,-8,-4]},"renderBoxOffset":[0,0,0],"dataHash":"QmfKNFYehHp8kHoGjf1JLJFnydK5wEKhfGM7Hybuo2WR8a"}

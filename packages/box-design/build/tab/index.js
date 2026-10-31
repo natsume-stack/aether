@@ -1,9 +1,9 @@
-import { useState, useMemo, useCallback, createContext, useContext } from 'react';
+import { useContext, useMemo, useState, useCallback, createContext } from 'react';
 import { Button } from '../button/index.js';
 import { TooltipTrigger } from '../tooltip/index.js';
 import { useClassName } from '../util.js';
 import styles from './style.module.scss.js';
-import { jsx, jsxs } from 'react/jsx-runtime';
+import { jsxs, jsx } from 'react/jsx-runtime';
 
 const TabsContext = /*#__PURE__*/createContext({
   activeId: '',

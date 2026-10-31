@@ -1,0 +1,165 @@
+@use '../../../colors.module.scss' as colors;
+
+.root {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  font-family: inherit;
+  overflow: hidden;
+}
+
+.cameraFrame {
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(124, 255, 196, 0.35);
+  border-radius: 8px;
+  box-shadow: inset 0 0 48px rgba(124, 255, 196, 0.08);
+  animation: aiBreathe 2.4s ease-in-out infinite;
+}
+
+.cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  transition: opacity 0.12s linear;
+  will-change: transform;
+}
+
+.cursorSquare {
+  width: 30px;
+  height: 30px;
+  border: 2px solid #7cffc4;
+  border-radius: 3px;
+  box-shadow:
+    0 0 14px rgba(124, 255, 196, 0.65),
+    inset 0 0 12px rgba(124, 255, 196, 0.25);
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    background: rgba(124, 255, 196, 0.85);
+  }
+
+  &::before {
+    left: 50%;
+    top: -7px;
+    bottom: -7px;
+    width: 1px;
+  }
+
+  &::after {
+    top: 50%;
+    left: -7px;
+    right: -7px;
+    height: 1px;
+  }
+}
+
+.cursorLabel {
+  position: absolute;
+  left: 38px;
+  top: -2px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(124, 255, 196, 0.35);
+  background: rgba(0, 0, 0, 0.72);
+  color: #d7ffe9;
+  font-size: 11px;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.chipRow {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid colors.$boxOpacityWhite12;
+  background: rgba(13, 13, 13, 0.78);
+  color: colors.$boxTextWhitePrimary;
+  font-size: 12px;
+  backdrop-filter: blur(8px);
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #7cffc4;
+  animation: aiPulse 1.6s ease-in-out infinite;
+}
+
+.chip.connecting .dot {
+  background: colors.$boxSystemWarn0;
+}
+
+.chip.error .dot {
+  background: colors.$boxSystemError0;
+  animation: none;
+}
+
+.chip.attached .dot {
+  background: colors.$boxSystemSuccess0;
+}
+
+.chipTitle {
+  font-weight: 600;
+}
+
+.chipPhase {
+  color: colors.$boxTextWhiteTertiary;
+}
+
+.note {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 72%;
+  padding: 5px 12px;
+  border-radius: 8px;
+  border: 1px solid colors.$boxOpacityWhite12;
+  background: rgba(13, 13, 13, 0.82);
+  color: colors.$boxTextWhitePrimary;
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@keyframes aiPulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.82);
+  }
+}
+
+@keyframes aiBreathe {
+  0%,
+  100% {
+    border-color: rgba(124, 255, 196, 0.28);
+  }
+  50% {
+    border-color: rgba(124, 255, 196, 0.55);
+  }
+}

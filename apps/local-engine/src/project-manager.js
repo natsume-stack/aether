@@ -6,6 +6,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { createRequire } = require('module');
 const { spawnSync } = require('child_process');
+const { prepareTar } = require('./tar-compat');
 const { ensurePlayImageArchive, getPlayImageConfig } = require('./play-image');
 const { generateDistributionMetadata } = require('./distribution-metadata');
 const { scanProjectCompatibility } = require('./project-compatibility');
@@ -1235,7 +1236,9 @@ function updateProject(id, patch) {
 }
 
 function runTar(args, message) {
-    const result = spawnSync('tar', args, {
+    const prepared = prepareTar(args);
+    const result = spawnSync('tar', prepared.args, {
+        cwd: prepared.cwd,
         encoding: 'utf8',
         // Keep ordinary tar failures readable without allowing the Node default
         // 1 MiB child-process buffer to abort larger project operations.
@@ -1666,7 +1669,9 @@ function archiveEntriesAreSafe(archivePath) {
     let outputDescriptor;
     try {
         outputDescriptor = fs.openSync(entryListPath, 'wx');
-        const result = spawnSync('tar', ['-tzf', archivePath], {
+        const listing = prepareTar(['-tzf', archivePath]);
+        const result = spawnSync('tar', listing.args, {
+            cwd: listing.cwd,
             encoding: 'utf8',
             stdio: ['ignore', outputDescriptor, 'pipe'],
             maxBuffer: 16 * 1024 * 1024,

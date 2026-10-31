@@ -31,6 +31,10 @@ export const apiOperations = {
     "path": "/api/local/models/{id}",
     "method": "DELETE"
   },
+  "deleteApiLocalModelsIdEditLock": {
+    "path": "/api/local/models/{id}/edit-lock",
+    "method": "DELETE"
+  },
   "deleteApiLocalProjectsId": {
     "path": "/api/local-projects/{id}",
     "method": "DELETE"
@@ -83,6 +87,50 @@ export const apiOperations = {
     "path": "/api/runtime/{container_id}",
     "method": "DELETE"
   },
+  "getApiAgentV1LiveAction": {
+    "path": "/api/agent/v1/live/{action}",
+    "method": "GET"
+  },
+  "getApiAgentV1LiveManifest": {
+    "path": "/api/agent/v1/live/manifest",
+    "method": "GET"
+  },
+  "getApiAgentV1LiveMapProjectIdObserve": {
+    "path": "/api/agent/v1/live/map/{projectId}/observe",
+    "method": "GET"
+  },
+  "getApiAgentV1LiveMapProjectIdStatus": {
+    "path": "/api/agent/v1/live/map/{projectId}/status",
+    "method": "GET"
+  },
+  "getApiAgentV1LiveNext": {
+    "path": "/api/agent/v1/live/next",
+    "method": "GET"
+  },
+  "getApiAgentV1LiveStatus": {
+    "path": "/api/agent/v1/live/status",
+    "method": "GET"
+  },
+  "getApiAgentV1LiveVoxaAction": {
+    "path": "/api/agent/v1/live/voxa/{action}",
+    "method": "GET"
+  },
+  "getApiAgentV1MapProjectIdAction": {
+    "path": "/api/agent/v1/map/{projectId}/{action}",
+    "method": "GET"
+  },
+  "getApiAgentV1Models": {
+    "path": "/api/agent/v1/models",
+    "method": "GET"
+  },
+  "getApiAgentV1ModelsIdContext": {
+    "path": "/api/agent/v1/models/{id}/context",
+    "method": "GET"
+  },
+  "getApiAgentV1State": {
+    "path": "/api/agent/v1/state",
+    "method": "GET"
+  },
   "getApiAuthSession": {
     "path": "/api/auth/session",
     "method": "GET"
@@ -109,6 +157,22 @@ export const apiOperations = {
   },
   "getApiCreatorPermissions": {
     "path": "/api/creator-permissions",
+    "method": "GET"
+  },
+  "getApiCreatorV1AuthoringAudit": {
+    "path": "/api/creator/v1/authoring/audit",
+    "method": "GET"
+  },
+  "getApiCreatorV1AuthoringProjectIdPreview": {
+    "path": "/api/creator/v1/authoring/{projectId}/preview",
+    "method": "GET"
+  },
+  "getApiCreatorV1AuthoringProjectIdStatus": {
+    "path": "/api/creator/v1/authoring/{projectId}/status",
+    "method": "GET"
+  },
+  "getApiCreatorV1AuthoringProjectIdTools": {
+    "path": "/api/creator/v1/authoring/{projectId}/tools",
     "method": "GET"
   },
   "getApiCreatorV1Health": {
@@ -171,6 +235,18 @@ export const apiOperations = {
     "path": "/api/health-check",
     "method": "GET"
   },
+  "getApiInternalMapAuthoringGuard": {
+    "path": "/api/internal/map-authoring/_guard",
+    "method": "GET"
+  },
+  "getApiInternalMapAuthoringProjectIdStatus": {
+    "path": "/api/internal/map-authoring/{projectId}/status",
+    "method": "GET"
+  },
+  "getApiInternalMapAuthoringProjectIdTool": {
+    "path": "/api/internal/map-authoring/{projectId}/tool",
+    "method": "GET"
+  },
   "getApiLocalBlobsHash": {
     "path": "/api/local/blobs/{hash}",
     "method": "GET"
@@ -185,6 +261,14 @@ export const apiOperations = {
   },
   "getApiLocalModelsId": {
     "path": "/api/local/models/{id}",
+    "method": "GET"
+  },
+  "getApiLocalModelsIdEditLock": {
+    "path": "/api/local/models/{id}/edit-lock",
+    "method": "GET"
+  },
+  "getApiLocalModelsIdEvents": {
+    "path": "/api/local/models/{id}/events",
     "method": "GET"
   },
   "getApiLocalModelsIdExport": {
@@ -287,6 +371,10 @@ export const apiOperations = {
     "path": "/api/play-admin/script-moderation",
     "method": "GET"
   },
+  "getApiPlayAdminSiteConfig": {
+    "path": "/api/play-admin/site-config",
+    "method": "GET"
+  },
   "getApiPlayAdminStatus": {
     "path": "/api/play-admin/status",
     "method": "GET"
@@ -353,6 +441,10 @@ export const apiOperations = {
   },
   "getApiPlayResourceCacheWorld": {
     "path": "/api/play-resource-cache/{world}",
+    "method": "GET"
+  },
+  "getApiPlaySiteConfig": {
+    "path": "/api/play-site-config",
     "method": "GET"
   },
   "getApiPlayWorlds": {
@@ -451,6 +543,10 @@ export const apiOperations = {
     "path": "/api/play-admin/players/{subjectId}",
     "method": "PATCH"
   },
+  "patchApiPlayAdminSiteConfig": {
+    "path": "/api/play-admin/site-config",
+    "method": "PATCH"
+  },
   "patchApiPlayAdminWorldsId": {
     "path": "/api/play-admin/worlds/{id}",
     "method": "PATCH"
@@ -474,6 +570,54 @@ export const apiOperations = {
   "patchApiPlayProfile": {
     "path": "/api/play-profile",
     "method": "PATCH"
+  },
+  "postApiAgentV1Join": {
+    "path": "/api/agent/v1/join",
+    "method": "POST"
+  },
+  "postApiAgentV1LiveAck": {
+    "path": "/api/agent/v1/live/ack",
+    "method": "POST"
+  },
+  "postApiAgentV1LiveAction": {
+    "path": "/api/agent/v1/live/{action}",
+    "method": "POST"
+  },
+  "postApiAgentV1LiveAttach": {
+    "path": "/api/agent/v1/live/attach",
+    "method": "POST"
+  },
+  "postApiAgentV1LiveDetach": {
+    "path": "/api/agent/v1/live/detach",
+    "method": "POST"
+  },
+  "postApiAgentV1LiveMapProjectIdCmd": {
+    "path": "/api/agent/v1/live/map/{projectId}/cmd",
+    "method": "POST"
+  },
+  "postApiAgentV1LiveMapProjectIdObserve": {
+    "path": "/api/agent/v1/live/map/{projectId}/observe",
+    "method": "POST"
+  },
+  "postApiAgentV1LiveProgress": {
+    "path": "/api/agent/v1/live/progress",
+    "method": "POST"
+  },
+  "postApiAgentV1LiveVoxaAction": {
+    "path": "/api/agent/v1/live/voxa/{action}",
+    "method": "POST"
+  },
+  "postApiAgentV1MapProjectIdAction": {
+    "path": "/api/agent/v1/map/{projectId}/{action}",
+    "method": "POST"
+  },
+  "postApiAgentV1Models": {
+    "path": "/api/agent/v1/models",
+    "method": "POST"
+  },
+  "postApiAgentV1State": {
+    "path": "/api/agent/v1/state",
+    "method": "POST"
   },
   "postApiAuthLogin": {
     "path": "/api/auth/login",
@@ -511,6 +655,18 @@ export const apiOperations = {
     "path": "/api/creator-models/import",
     "method": "POST"
   },
+  "postApiCreatorV1AuthoringProjectIdPreview": {
+    "path": "/api/creator/v1/authoring/{projectId}/preview",
+    "method": "POST"
+  },
+  "postApiCreatorV1AuthoringProjectIdSave": {
+    "path": "/api/creator/v1/authoring/{projectId}/save",
+    "method": "POST"
+  },
+  "postApiCreatorV1AuthoringProjectIdTools": {
+    "path": "/api/creator/v1/authoring/{projectId}/tools",
+    "method": "POST"
+  },
   "postApiCreatorV1ProjectsProjectIdRuntime": {
     "path": "/api/creator/v1/projects/{projectId}/runtime",
     "method": "POST"
@@ -523,12 +679,28 @@ export const apiOperations = {
     "path": "/api/creator/v1/projects/{projectId}/scene/session",
     "method": "POST"
   },
+  "postApiInternalMapAuthoringProjectIdPreview": {
+    "path": "/api/internal/map-authoring/{projectId}/preview",
+    "method": "POST"
+  },
+  "postApiInternalMapAuthoringProjectIdSave": {
+    "path": "/api/internal/map-authoring/{projectId}/save",
+    "method": "POST"
+  },
+  "postApiInternalMapAuthoringProjectIdTool": {
+    "path": "/api/internal/map-authoring/{projectId}/tool",
+    "method": "POST"
+  },
   "postApiLocalBlob": {
     "path": "/api/local/blob",
     "method": "POST"
   },
   "postApiLocalModels": {
     "path": "/api/local/models",
+    "method": "POST"
+  },
+  "postApiLocalModelsIdEditLock": {
+    "path": "/api/local/models/{id}/edit-lock",
     "method": "POST"
   },
   "postApiLocalModelsImport": {
@@ -762,6 +934,14 @@ export const apiOperations = {
   "putApiLocalModelsId": {
     "path": "/api/local/models/{id}",
     "method": "PUT"
+  },
+  "putApiLocalModelsIdModel": {
+    "path": "/api/local/models/{id}/model",
+    "method": "PUT"
+  },
+  "putApiPlayAdminSiteConfig": {
+    "path": "/api/play-admin/site-config",
+    "method": "PUT"
   }
 } as const;
 
@@ -881,6 +1061,18 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/local/models/{id}"]["DELETE"]>
   ) {
     return this.unwrap(this.deleteApiLocalModelsIdRaw(...init));
+  }
+
+  deleteApiLocalModelsIdEditLockRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/local/models/{id}/edit-lock"]["DELETE"]>
+  ) {
+    return this.paths["/api/local/models/{id}/edit-lock"].DELETE(...init);
+  }
+
+  deleteApiLocalModelsIdEditLock(
+    ...init: Parameters<PathBasedClient<paths>["/api/local/models/{id}/edit-lock"]["DELETE"]>
+  ) {
+    return this.unwrap(this.deleteApiLocalModelsIdEditLockRaw(...init));
   }
 
   deleteApiLocalProjectsIdRaw(
@@ -1039,6 +1231,138 @@ export class ApiClient {
     return this.unwrap(this.deleteApiRuntimeContainerIdRaw(...init));
   }
 
+  getApiAgentV1LiveActionRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/{action}"]["GET"]>
+  ) {
+    return this.paths["/api/agent/v1/live/{action}"].GET(...init);
+  }
+
+  getApiAgentV1LiveAction(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/{action}"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiAgentV1LiveActionRaw(...init));
+  }
+
+  getApiAgentV1LiveManifestRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/manifest"]["GET"]>
+  ) {
+    return this.paths["/api/agent/v1/live/manifest"].GET(...init);
+  }
+
+  getApiAgentV1LiveManifest(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/manifest"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiAgentV1LiveManifestRaw(...init));
+  }
+
+  getApiAgentV1LiveMapProjectIdObserveRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/map/{projectId}/observe"]["GET"]>
+  ) {
+    return this.paths["/api/agent/v1/live/map/{projectId}/observe"].GET(...init);
+  }
+
+  getApiAgentV1LiveMapProjectIdObserve(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/map/{projectId}/observe"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiAgentV1LiveMapProjectIdObserveRaw(...init));
+  }
+
+  getApiAgentV1LiveMapProjectIdStatusRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/map/{projectId}/status"]["GET"]>
+  ) {
+    return this.paths["/api/agent/v1/live/map/{projectId}/status"].GET(...init);
+  }
+
+  getApiAgentV1LiveMapProjectIdStatus(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/map/{projectId}/status"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiAgentV1LiveMapProjectIdStatusRaw(...init));
+  }
+
+  getApiAgentV1LiveNextRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/next"]["GET"]>
+  ) {
+    return this.paths["/api/agent/v1/live/next"].GET(...init);
+  }
+
+  getApiAgentV1LiveNext(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/next"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiAgentV1LiveNextRaw(...init));
+  }
+
+  getApiAgentV1LiveStatusRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/status"]["GET"]>
+  ) {
+    return this.paths["/api/agent/v1/live/status"].GET(...init);
+  }
+
+  getApiAgentV1LiveStatus(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/status"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiAgentV1LiveStatusRaw(...init));
+  }
+
+  getApiAgentV1LiveVoxaActionRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/voxa/{action}"]["GET"]>
+  ) {
+    return this.paths["/api/agent/v1/live/voxa/{action}"].GET(...init);
+  }
+
+  getApiAgentV1LiveVoxaAction(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/voxa/{action}"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiAgentV1LiveVoxaActionRaw(...init));
+  }
+
+  getApiAgentV1MapProjectIdActionRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/map/{projectId}/{action}"]["GET"]>
+  ) {
+    return this.paths["/api/agent/v1/map/{projectId}/{action}"].GET(...init);
+  }
+
+  getApiAgentV1MapProjectIdAction(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/map/{projectId}/{action}"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiAgentV1MapProjectIdActionRaw(...init));
+  }
+
+  getApiAgentV1ModelsRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/models"]["GET"]>
+  ) {
+    return this.paths["/api/agent/v1/models"].GET(...init);
+  }
+
+  getApiAgentV1Models(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/models"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiAgentV1ModelsRaw(...init));
+  }
+
+  getApiAgentV1ModelsIdContextRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/models/{id}/context"]["GET"]>
+  ) {
+    return this.paths["/api/agent/v1/models/{id}/context"].GET(...init);
+  }
+
+  getApiAgentV1ModelsIdContext(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/models/{id}/context"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiAgentV1ModelsIdContextRaw(...init));
+  }
+
+  getApiAgentV1StateRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/state"]["GET"]>
+  ) {
+    return this.paths["/api/agent/v1/state"].GET(...init);
+  }
+
+  getApiAgentV1State(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/state"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiAgentV1StateRaw(...init));
+  }
+
   getApiAuthSessionRaw(
     ...init: Parameters<PathBasedClient<paths>["/api/auth/session"]["GET"]>
   ) {
@@ -1121,6 +1445,54 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/creator-permissions"]["GET"]>
   ) {
     return this.unwrap(this.getApiCreatorPermissionsRaw(...init));
+  }
+
+  getApiCreatorV1AuthoringAuditRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/audit"]["GET"]>
+  ) {
+    return this.paths["/api/creator/v1/authoring/audit"].GET(...init);
+  }
+
+  getApiCreatorV1AuthoringAudit(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/audit"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiCreatorV1AuthoringAuditRaw(...init));
+  }
+
+  getApiCreatorV1AuthoringProjectIdPreviewRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/{projectId}/preview"]["GET"]>
+  ) {
+    return this.paths["/api/creator/v1/authoring/{projectId}/preview"].GET(...init);
+  }
+
+  getApiCreatorV1AuthoringProjectIdPreview(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/{projectId}/preview"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiCreatorV1AuthoringProjectIdPreviewRaw(...init));
+  }
+
+  getApiCreatorV1AuthoringProjectIdStatusRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/{projectId}/status"]["GET"]>
+  ) {
+    return this.paths["/api/creator/v1/authoring/{projectId}/status"].GET(...init);
+  }
+
+  getApiCreatorV1AuthoringProjectIdStatus(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/{projectId}/status"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiCreatorV1AuthoringProjectIdStatusRaw(...init));
+  }
+
+  getApiCreatorV1AuthoringProjectIdToolsRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/{projectId}/tools"]["GET"]>
+  ) {
+    return this.paths["/api/creator/v1/authoring/{projectId}/tools"].GET(...init);
+  }
+
+  getApiCreatorV1AuthoringProjectIdTools(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/{projectId}/tools"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiCreatorV1AuthoringProjectIdToolsRaw(...init));
   }
 
   getApiCreatorV1HealthRaw(
@@ -1303,6 +1675,42 @@ export class ApiClient {
     return this.unwrap(this.getApiHealthCheckRaw(...init));
   }
 
+  getApiInternalMapAuthoringGuardRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/internal/map-authoring/_guard"]["GET"]>
+  ) {
+    return this.paths["/api/internal/map-authoring/_guard"].GET(...init);
+  }
+
+  getApiInternalMapAuthoringGuard(
+    ...init: Parameters<PathBasedClient<paths>["/api/internal/map-authoring/_guard"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiInternalMapAuthoringGuardRaw(...init));
+  }
+
+  getApiInternalMapAuthoringProjectIdStatusRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/internal/map-authoring/{projectId}/status"]["GET"]>
+  ) {
+    return this.paths["/api/internal/map-authoring/{projectId}/status"].GET(...init);
+  }
+
+  getApiInternalMapAuthoringProjectIdStatus(
+    ...init: Parameters<PathBasedClient<paths>["/api/internal/map-authoring/{projectId}/status"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiInternalMapAuthoringProjectIdStatusRaw(...init));
+  }
+
+  getApiInternalMapAuthoringProjectIdToolRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/internal/map-authoring/{projectId}/tool"]["GET"]>
+  ) {
+    return this.paths["/api/internal/map-authoring/{projectId}/tool"].GET(...init);
+  }
+
+  getApiInternalMapAuthoringProjectIdTool(
+    ...init: Parameters<PathBasedClient<paths>["/api/internal/map-authoring/{projectId}/tool"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiInternalMapAuthoringProjectIdToolRaw(...init));
+  }
+
   getApiLocalBlobsHashRaw(
     ...init: Parameters<PathBasedClient<paths>["/api/local/blobs/{hash}"]["GET"]>
   ) {
@@ -1349,6 +1757,30 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/local/models/{id}"]["GET"]>
   ) {
     return this.unwrap(this.getApiLocalModelsIdRaw(...init));
+  }
+
+  getApiLocalModelsIdEditLockRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/local/models/{id}/edit-lock"]["GET"]>
+  ) {
+    return this.paths["/api/local/models/{id}/edit-lock"].GET(...init);
+  }
+
+  getApiLocalModelsIdEditLock(
+    ...init: Parameters<PathBasedClient<paths>["/api/local/models/{id}/edit-lock"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiLocalModelsIdEditLockRaw(...init));
+  }
+
+  getApiLocalModelsIdEventsRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/local/models/{id}/events"]["GET"]>
+  ) {
+    return this.paths["/api/local/models/{id}/events"].GET(...init);
+  }
+
+  getApiLocalModelsIdEvents(
+    ...init: Parameters<PathBasedClient<paths>["/api/local/models/{id}/events"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiLocalModelsIdEventsRaw(...init));
   }
 
   getApiLocalModelsIdExportRaw(
@@ -1645,6 +2077,18 @@ export class ApiClient {
     return this.unwrap(this.getApiPlayAdminScriptModerationRaw(...init));
   }
 
+  getApiPlayAdminSiteConfigRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/site-config"]["GET"]>
+  ) {
+    return this.paths["/api/play-admin/site-config"].GET(...init);
+  }
+
+  getApiPlayAdminSiteConfig(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/site-config"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiPlayAdminSiteConfigRaw(...init));
+  }
+
   getApiPlayAdminStatusRaw(
     ...init: Parameters<PathBasedClient<paths>["/api/play-admin/status"]["GET"]>
   ) {
@@ -1847,6 +2291,18 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/play-resource-cache/{world}"]["GET"]>
   ) {
     return this.unwrap(this.getApiPlayResourceCacheWorldRaw(...init));
+  }
+
+  getApiPlaySiteConfigRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-site-config"]["GET"]>
+  ) {
+    return this.paths["/api/play-site-config"].GET(...init);
+  }
+
+  getApiPlaySiteConfig(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-site-config"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiPlaySiteConfigRaw(...init));
   }
 
   getApiPlayWorldsRaw(
@@ -2137,6 +2593,18 @@ export class ApiClient {
     return this.unwrap(this.patchApiPlayAdminPlayersSubjectIdRaw(...init));
   }
 
+  patchApiPlayAdminSiteConfigRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/site-config"]["PATCH"]>
+  ) {
+    return this.paths["/api/play-admin/site-config"].PATCH(...init);
+  }
+
+  patchApiPlayAdminSiteConfig(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/site-config"]["PATCH"]>
+  ) {
+    return this.unwrap(this.patchApiPlayAdminSiteConfigRaw(...init));
+  }
+
   patchApiPlayAdminWorldsIdRaw(
     ...init: Parameters<PathBasedClient<paths>["/api/play-admin/worlds/{id}"]["PATCH"]>
   ) {
@@ -2207,6 +2675,150 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/play-profile"]["PATCH"]>
   ) {
     return this.unwrap(this.patchApiPlayProfileRaw(...init));
+  }
+
+  postApiAgentV1JoinRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/join"]["POST"]>
+  ) {
+    return this.paths["/api/agent/v1/join"].POST(...init);
+  }
+
+  postApiAgentV1Join(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/join"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiAgentV1JoinRaw(...init));
+  }
+
+  postApiAgentV1LiveAckRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/ack"]["POST"]>
+  ) {
+    return this.paths["/api/agent/v1/live/ack"].POST(...init);
+  }
+
+  postApiAgentV1LiveAck(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/ack"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiAgentV1LiveAckRaw(...init));
+  }
+
+  postApiAgentV1LiveActionRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/{action}"]["POST"]>
+  ) {
+    return this.paths["/api/agent/v1/live/{action}"].POST(...init);
+  }
+
+  postApiAgentV1LiveAction(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/{action}"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiAgentV1LiveActionRaw(...init));
+  }
+
+  postApiAgentV1LiveAttachRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/attach"]["POST"]>
+  ) {
+    return this.paths["/api/agent/v1/live/attach"].POST(...init);
+  }
+
+  postApiAgentV1LiveAttach(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/attach"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiAgentV1LiveAttachRaw(...init));
+  }
+
+  postApiAgentV1LiveDetachRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/detach"]["POST"]>
+  ) {
+    return this.paths["/api/agent/v1/live/detach"].POST(...init);
+  }
+
+  postApiAgentV1LiveDetach(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/detach"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiAgentV1LiveDetachRaw(...init));
+  }
+
+  postApiAgentV1LiveMapProjectIdCmdRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/map/{projectId}/cmd"]["POST"]>
+  ) {
+    return this.paths["/api/agent/v1/live/map/{projectId}/cmd"].POST(...init);
+  }
+
+  postApiAgentV1LiveMapProjectIdCmd(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/map/{projectId}/cmd"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiAgentV1LiveMapProjectIdCmdRaw(...init));
+  }
+
+  postApiAgentV1LiveMapProjectIdObserveRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/map/{projectId}/observe"]["POST"]>
+  ) {
+    return this.paths["/api/agent/v1/live/map/{projectId}/observe"].POST(...init);
+  }
+
+  postApiAgentV1LiveMapProjectIdObserve(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/map/{projectId}/observe"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiAgentV1LiveMapProjectIdObserveRaw(...init));
+  }
+
+  postApiAgentV1LiveProgressRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/progress"]["POST"]>
+  ) {
+    return this.paths["/api/agent/v1/live/progress"].POST(...init);
+  }
+
+  postApiAgentV1LiveProgress(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/progress"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiAgentV1LiveProgressRaw(...init));
+  }
+
+  postApiAgentV1LiveVoxaActionRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/voxa/{action}"]["POST"]>
+  ) {
+    return this.paths["/api/agent/v1/live/voxa/{action}"].POST(...init);
+  }
+
+  postApiAgentV1LiveVoxaAction(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/voxa/{action}"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiAgentV1LiveVoxaActionRaw(...init));
+  }
+
+  postApiAgentV1MapProjectIdActionRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/map/{projectId}/{action}"]["POST"]>
+  ) {
+    return this.paths["/api/agent/v1/map/{projectId}/{action}"].POST(...init);
+  }
+
+  postApiAgentV1MapProjectIdAction(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/map/{projectId}/{action}"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiAgentV1MapProjectIdActionRaw(...init));
+  }
+
+  postApiAgentV1ModelsRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/models"]["POST"]>
+  ) {
+    return this.paths["/api/agent/v1/models"].POST(...init);
+  }
+
+  postApiAgentV1Models(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/models"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiAgentV1ModelsRaw(...init));
+  }
+
+  postApiAgentV1StateRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/state"]["POST"]>
+  ) {
+    return this.paths["/api/agent/v1/state"].POST(...init);
+  }
+
+  postApiAgentV1State(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/state"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiAgentV1StateRaw(...init));
   }
 
   postApiAuthLoginRaw(
@@ -2317,6 +2929,42 @@ export class ApiClient {
     return this.unwrap(this.postApiCreatorModelsImportRaw(...init));
   }
 
+  postApiCreatorV1AuthoringProjectIdPreviewRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/{projectId}/preview"]["POST"]>
+  ) {
+    return this.paths["/api/creator/v1/authoring/{projectId}/preview"].POST(...init);
+  }
+
+  postApiCreatorV1AuthoringProjectIdPreview(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/{projectId}/preview"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiCreatorV1AuthoringProjectIdPreviewRaw(...init));
+  }
+
+  postApiCreatorV1AuthoringProjectIdSaveRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/{projectId}/save"]["POST"]>
+  ) {
+    return this.paths["/api/creator/v1/authoring/{projectId}/save"].POST(...init);
+  }
+
+  postApiCreatorV1AuthoringProjectIdSave(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/{projectId}/save"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiCreatorV1AuthoringProjectIdSaveRaw(...init));
+  }
+
+  postApiCreatorV1AuthoringProjectIdToolsRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/{projectId}/tools"]["POST"]>
+  ) {
+    return this.paths["/api/creator/v1/authoring/{projectId}/tools"].POST(...init);
+  }
+
+  postApiCreatorV1AuthoringProjectIdTools(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/{projectId}/tools"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiCreatorV1AuthoringProjectIdToolsRaw(...init));
+  }
+
   postApiCreatorV1ProjectsProjectIdRuntimeRaw(
     ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/projects/{projectId}/runtime"]["POST"]>
   ) {
@@ -2353,6 +3001,42 @@ export class ApiClient {
     return this.unwrap(this.postApiCreatorV1ProjectsProjectIdSceneSessionRaw(...init));
   }
 
+  postApiInternalMapAuthoringProjectIdPreviewRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/internal/map-authoring/{projectId}/preview"]["POST"]>
+  ) {
+    return this.paths["/api/internal/map-authoring/{projectId}/preview"].POST(...init);
+  }
+
+  postApiInternalMapAuthoringProjectIdPreview(
+    ...init: Parameters<PathBasedClient<paths>["/api/internal/map-authoring/{projectId}/preview"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiInternalMapAuthoringProjectIdPreviewRaw(...init));
+  }
+
+  postApiInternalMapAuthoringProjectIdSaveRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/internal/map-authoring/{projectId}/save"]["POST"]>
+  ) {
+    return this.paths["/api/internal/map-authoring/{projectId}/save"].POST(...init);
+  }
+
+  postApiInternalMapAuthoringProjectIdSave(
+    ...init: Parameters<PathBasedClient<paths>["/api/internal/map-authoring/{projectId}/save"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiInternalMapAuthoringProjectIdSaveRaw(...init));
+  }
+
+  postApiInternalMapAuthoringProjectIdToolRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/internal/map-authoring/{projectId}/tool"]["POST"]>
+  ) {
+    return this.paths["/api/internal/map-authoring/{projectId}/tool"].POST(...init);
+  }
+
+  postApiInternalMapAuthoringProjectIdTool(
+    ...init: Parameters<PathBasedClient<paths>["/api/internal/map-authoring/{projectId}/tool"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiInternalMapAuthoringProjectIdToolRaw(...init));
+  }
+
   postApiLocalBlobRaw(
     ...init: Parameters<PathBasedClient<paths>["/api/local/blob"]["POST"]>
   ) {
@@ -2375,6 +3059,18 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/local/models"]["POST"]>
   ) {
     return this.unwrap(this.postApiLocalModelsRaw(...init));
+  }
+
+  postApiLocalModelsIdEditLockRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/local/models/{id}/edit-lock"]["POST"]>
+  ) {
+    return this.paths["/api/local/models/{id}/edit-lock"].POST(...init);
+  }
+
+  postApiLocalModelsIdEditLock(
+    ...init: Parameters<PathBasedClient<paths>["/api/local/models/{id}/edit-lock"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiLocalModelsIdEditLockRaw(...init));
   }
 
   postApiLocalModelsImportRaw(
@@ -3071,6 +3767,30 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/local/models/{id}"]["PUT"]>
   ) {
     return this.unwrap(this.putApiLocalModelsIdRaw(...init));
+  }
+
+  putApiLocalModelsIdModelRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/local/models/{id}/model"]["PUT"]>
+  ) {
+    return this.paths["/api/local/models/{id}/model"].PUT(...init);
+  }
+
+  putApiLocalModelsIdModel(
+    ...init: Parameters<PathBasedClient<paths>["/api/local/models/{id}/model"]["PUT"]>
+  ) {
+    return this.unwrap(this.putApiLocalModelsIdModelRaw(...init));
+  }
+
+  putApiPlayAdminSiteConfigRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/site-config"]["PUT"]>
+  ) {
+    return this.paths["/api/play-admin/site-config"].PUT(...init);
+  }
+
+  putApiPlayAdminSiteConfig(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/site-config"]["PUT"]>
+  ) {
+    return this.unwrap(this.putApiPlayAdminSiteConfigRaw(...init));
   }
 
 }

@@ -1,0 +1,25 @@
+name: Authoring regression
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  bare-node:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: MCP clients and authoring coordinator
+        run: |
+          node --test tools/box3-agent-mcp/test/*.test.js
+          node --test tools/box3-map-mcp/test/*.test.js
+          node --test tools/box3-voxa-mcp/test/*.test.js
+          node --experimental-strip-types --test services/game-server/src/edit/ai/authoring-session.test.ts services/game-server/src/edit/ai/authoring-events.test.ts services/game-server/src/edit/ai/terrain-region.test.ts
+          node --experimental-strip-types --test services/game-server/src/edit/ai/authoring-journal.test.ts
+          node --experimental-strip-types --test services/game-server/src/edit/ai/script-preview.test.ts
+          node --experimental-strip-types --test services/game-server/src/edit/ai/authoring-content.test.ts
+          node --experimental-strip-types --test services/game-server/src/edit/ai/script-diagnostic-policy.test.ts

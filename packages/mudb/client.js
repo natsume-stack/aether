@@ -131,9 +131,6 @@ class MuClient {
                     }
                 }
                 else {
-                    // Mirror of the server-side gate: only a reliable text frame may
-                    // consume the handshake slot, otherwise a leading unreliable frame
-                    // kills the browser's own session on a JSON.parse failure.
                     if (unreliable || typeof data !== 'string') {
                         this.logger.log(`mudb: dropped pre-handshake ${unreliable ? 'unreliable' : 'binary'} frame`);
                         return;

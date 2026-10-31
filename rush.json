@@ -11,40 +11,153 @@
     "defaultBranch": "main"
   },
   "projects": [
-    { "packageName": "@box/deployment-manager", "projectFolder": "apps/deployment-manager" },
-    { "packageName": "@box/game", "projectFolder": "apps/game" },
-    { "packageName": "@box/local-engine", "projectFolder": "apps/local-engine" },
-    { "packageName": "@box/player-admin", "projectFolder": "apps/player-admin" },
-    { "packageName": "@box/player-launcher", "projectFolder": "apps/player-launcher" },
-    { "packageName": "@box/server-manager", "projectFolder": "apps/server-manager" },
-    { "packageName": "@box/voxa", "projectFolder": "apps/voxa" },
-    { "packageName": "@box/player-auth-portal", "projectFolder": "apps/player-auth-portal" },
-    { "packageName": "@box/apis", "projectFolder": "internals/apis" },
-    { "packageName": "@box/build-system", "projectFolder": "internals/build-system" },
-    { "packageName": "@box/env", "projectFolder": "internals/env" },
-    { "packageName": "@box/schema", "projectFolder": "internals/schema" },
-    { "packageName": "@box/vb", "projectFolder": "internals/vb" },
-    { "packageName": "@box/ao-mesher", "projectFolder": "packages/ao-mesher" },
-    { "packageName": "@box/box-design", "projectFolder": "packages/box-design" },
-    { "packageName": "@box/cli", "projectFolder": "packages/cli" },
-    { "packageName": "@box/content-server", "projectFolder": "packages/content-server" },
-    { "packageName": "@box/deployment-routing", "projectFolder": "packages/deployment-routing" },
-    { "packageName": "@box/dsbridge", "projectFolder": "packages/dsbridge" },
-    { "packageName": "@box/icons", "projectFolder": "packages/icons" },
-    { "packageName": "@box/iframe-event-bus", "projectFolder": "packages/iframe-event-bus" },
-    { "packageName": "@box/mesher", "projectFolder": "packages/mesher" },
-    { "packageName": "@box/mudb", "projectFolder": "packages/mudb" },
-    { "packageName": "@box/player-policy", "projectFolder": "packages/player-policy" },
-    { "packageName": "@box/realtime-client", "projectFolder": "packages/realtime-client" },
-    { "packageName": "@box/regl", "projectFolder": "packages/regl" },
-    { "packageName": "@box/rewgpu", "projectFolder": "packages/rewgpu" },
-    { "packageName": "@box/script-api", "projectFolder": "packages/script-api" },
-    { "packageName": "@box/sdk", "projectFolder": "packages/sdk" },
-    { "packageName": "@box/utils", "projectFolder": "packages/utils" },
-    { "packageName": "@box/vb-parser", "projectFolder": "packages/vb-parser" },
-    { "packageName": "@box/voxa-project", "projectFolder": "packages/voxa-project" },
-    { "packageName": "@box/game-server", "projectFolder": "services/game-server" },
-    { "packageName": "@box/repo-tooling", "projectFolder": "tools/repo-tooling" },
-    { "packageName": "box3-map-mcp", "projectFolder": "tools/box3-map-mcp" }
+    {
+      "packageName": "@box/deployment-manager",
+      "projectFolder": "apps/deployment-manager"
+    },
+    {
+      "packageName": "@box/game",
+      "projectFolder": "apps/game"
+    },
+    {
+      "packageName": "@box/local-engine",
+      "projectFolder": "apps/local-engine"
+    },
+    {
+      "packageName": "@box/player-admin",
+      "projectFolder": "apps/player-admin"
+    },
+    {
+      "packageName": "@box/player-launcher",
+      "projectFolder": "apps/player-launcher"
+    },
+    {
+      "packageName": "@box/server-manager",
+      "projectFolder": "apps/server-manager"
+    },
+    {
+      "packageName": "@box/voxa",
+      "projectFolder": "apps/voxa"
+    },
+    {
+      "packageName": "@box/player-auth-portal",
+      "projectFolder": "apps/player-auth-portal"
+    },
+    {
+      "packageName": "@box/apis",
+      "projectFolder": "internals/apis"
+    },
+    {
+      "packageName": "@box/build-system",
+      "projectFolder": "internals/build-system"
+    },
+    {
+      "packageName": "@box/env",
+      "projectFolder": "internals/env"
+    },
+    {
+      "packageName": "@box/schema",
+      "projectFolder": "internals/schema"
+    },
+    {
+      "packageName": "@box/vb",
+      "projectFolder": "internals/vb"
+    },
+    {
+      "packageName": "@box/ao-mesher",
+      "projectFolder": "packages/ao-mesher"
+    },
+    {
+      "packageName": "@box/box-design",
+      "projectFolder": "packages/box-design"
+    },
+    {
+      "packageName": "@box/cli",
+      "projectFolder": "packages/cli"
+    },
+    {
+      "packageName": "@box/content-server",
+      "projectFolder": "packages/content-server"
+    },
+    {
+      "packageName": "@box/deployment-routing",
+      "projectFolder": "packages/deployment-routing"
+    },
+    {
+      "packageName": "@box/dsbridge",
+      "projectFolder": "packages/dsbridge"
+    },
+    {
+      "packageName": "@box/icons",
+      "projectFolder": "packages/icons"
+    },
+    {
+      "packageName": "@box/iframe-event-bus",
+      "projectFolder": "packages/iframe-event-bus"
+    },
+    {
+      "packageName": "@box/mesher",
+      "projectFolder": "packages/mesher"
+    },
+    {
+      "packageName": "@box/mudb",
+      "projectFolder": "packages/mudb"
+    },
+    {
+      "packageName": "@box/player-policy",
+      "projectFolder": "packages/player-policy"
+    },
+    {
+      "packageName": "@box/realtime-client",
+      "projectFolder": "packages/realtime-client"
+    },
+    {
+      "packageName": "@box/regl",
+      "projectFolder": "packages/regl"
+    },
+    {
+      "packageName": "@box/rewgpu",
+      "projectFolder": "packages/rewgpu"
+    },
+    {
+      "packageName": "@box/script-api",
+      "projectFolder": "packages/script-api"
+    },
+    {
+      "packageName": "@box/sdk",
+      "projectFolder": "packages/sdk"
+    },
+    {
+      "packageName": "@box/utils",
+      "projectFolder": "packages/utils"
+    },
+    {
+      "packageName": "@box/vb-parser",
+      "projectFolder": "packages/vb-parser"
+    },
+    {
+      "packageName": "@box/voxa-project",
+      "projectFolder": "packages/voxa-project"
+    },
+    {
+      "packageName": "@box/game-server",
+      "projectFolder": "services/game-server"
+    },
+    {
+      "packageName": "@box/repo-tooling",
+      "projectFolder": "tools/repo-tooling"
+    },
+    {
+      "packageName": "box3-map-mcp",
+      "projectFolder": "tools/box3-map-mcp"
+    },
+    {
+      "packageName": "box3-voxa-mcp",
+      "projectFolder": "tools/box3-voxa-mcp"
+    },
+    {
+      "packageName": "box3-agent-mcp",
+      "projectFolder": "tools/box3-agent-mcp"
+    }
   ]
 }

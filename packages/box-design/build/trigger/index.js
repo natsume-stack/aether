@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useMemo, useCallback, cloneElement } from 'react';
 import { createPortal } from 'react-dom';
-import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
+import { jsxs, Fragment, jsx } from 'react/jsx-runtime';
 
 const DISPATCH_DELAY = 50;
 const DEFAULT_DELAY = 500 - DISPATCH_DELAY;

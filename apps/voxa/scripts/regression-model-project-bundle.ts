@@ -33,6 +33,11 @@ async function main() {
       ['preview.bin', 'QmPreview', previewBytes],
     ],
   );
+  const mislabeled = await buildModelProjectBundle({ projectName: 'mislabel', editType: 1,
+    projectBytes, resources: imported.resources });
+  await assert.rejects(readModelProjectBundle(mislabeled), /VOXA_BUNDLE_MODE_MISMATCH/);
+  const sourceSkin = await buildModelProjectBundle({ projectName: 'source skin', editType: 1, projectBytes });
+  assert.equal((await readModelProjectBundle(sourceSkin)).editType, 1);
   console.log('model project bundle resource regression passed');
 }
 

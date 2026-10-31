@@ -59,6 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       modelName: bundle.projectName,
       modelDescription: '',
       modelType: 0,
+      animated: project.animations.length > 0,
       creativeMode: bundle.editType === 1 ? 2 : 1,
       modelFileHash,
       modelProjectFileHash: projectFileHash,
@@ -66,6 +67,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
     return res.status(201).json({
       ...created,
+      editorUrl: `/?modelId=${created.modelId}&editType=${bundle.editType}`,
       // Older .voxaproject files contained only project.bin. They remain
       // editable, but require one VOXA save to regenerate their model blobs
       // and preview before they can be placed in a map.

@@ -5,6 +5,7 @@ import { store, useAppSelector } from './redux/store';
 import { LaunchState, setLaunchState, setUserInfo } from './redux/app-slice';
 import { OnRetry, Launcher } from './views/launcher';
 import { RootContext } from './root-context';
+import { AgentActivePanel } from './views/agent-active';
 import type { UserInfo } from './interface';
 import { LangType } from './utils/i18n';
 
@@ -77,6 +78,7 @@ function Root(props: { setLocale: (locale: LangType) => void }) {
     <RootContext.Provider value={{ retry, setRetry, setLocale }}>
       {launcher}
       {container}
+      <AgentActivePanel />
     </RootContext.Provider>
   );
 }

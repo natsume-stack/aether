@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
+const { prepareTar } = require('./tar-compat');
 
 const packageRoot = path.resolve(__dirname, '..');
 const repoRoot = path.resolve(packageRoot, '../..');
@@ -134,7 +135,9 @@ function inspectLocalImageFormat(
 }
 
 function extractArchiveJSON(archive, entry) {
-    const result = spawnSync('tar', ['-xOf', archive, entry], {
+    const prepared = prepareTar(['-xOf', archive, entry]);
+    const result = spawnSync('tar', prepared.args, {
+        cwd: prepared.cwd,
         encoding: 'utf8',
         stdio: ['ignore', 'pipe', 'pipe'],
     });

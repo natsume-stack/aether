@@ -64,6 +64,12 @@ export class Pointer extends LineLoop {
 
   private drawingEnabled = true;
 
+  /**
+   * True while an agent (not the mouse) owns the cursor. Any real pointer
+   * event clears it, so a human always wins without a mode switch.
+   */
+  private agentControlled = false;
+
   constructor(
     private stage: Stage,
     public raycaster: Raycaster,
@@ -93,6 +99,9 @@ export class Pointer extends LineLoop {
   public dispose() {}
 
   private updatePointer = (event: PointerEvent) => {
+    // A human moving the mouse always takes the cursor back from the agent.
+    this.agentControlled = false;
+
     screenPosToClipPos(
       this.eventPosition,
       [event.clientX, event.clientY],
@@ -101,6 +110,39 @@ export class Pointer extends LineLoop {
 
     this.update();
   };
+
+  /**
+   * 由 agent 接管光标：直接把光标放到指定体素（与真人鼠标指向同一渲染路径）。
+   *
+   * `normal` 缺省时用 +Y 面，保证线框可见；返回是否成功放置。
+   */
+  public setAgentVoxelPosition(voxel: vec3, normal?: vec3): boolean {
+    const face = normal
+      ? vec3.fromValues(normal[0], normal[1], normal[2])
+      : vec3.fromValues(0, 1, 0);
+    const vertices = Pointer.mapVertices(
+      FACES[`${face[0]},${face[1]},${face[2]}`] || FACES['0,1,0'],
+      vec3.fromValues(voxel[0], voxel[1], voxel[2]),
+      face,
+    );
+
+    this.geometry.setAttribute(
+      'position',
+      new BufferAttribute(new Float32Array(vertices.flat()), 3),
+    );
+
+    vec3.copy(this.voxelPos, voxel);
+    vec3.copy(this.normal, face);
+    this.agentControlled = true;
+    this.visible = true;
+
+    return true;
+  }
+
+  /** True when the agent currently owns the cursor and no human has moved it since. */
+  public isAgentControlled() {
+    return this.agentControlled;
+  }
 
   /**
    * 更新指针位置。

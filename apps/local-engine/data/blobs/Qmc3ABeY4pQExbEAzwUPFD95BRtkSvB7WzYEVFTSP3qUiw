@@ -1,0 +1,1 @@
+{"version":7,"projectName":"qingming-guardian-lion","bounds":[6,9,7],"motionList":[{"id":"idle","name":"Guard Idle","duration":2}],"useCustomBounds":true,"customBounds":{"size":[6,9,7],"offset":[-3,-4.5,-3.5]},"renderBoxOffset":[0,0,0],"dataHash":"QmTrEZFJXwSgGahCVtgB6yyRmr9kqUywmJSMnnRPuAr58s"}

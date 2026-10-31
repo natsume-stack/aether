@@ -117,6 +117,13 @@ export async function readModelProjectBundle(bundle: Uint8Array): Promise<Bundle
       };
     }),
   );
+  // These two resources form a MODEL graph. Skins are body-part graphs and
+  // must not be published as skin assets merely because a manifest says 1.
+  // Keep source-only skin bundles importable; the native editor bakes them.
+  if (manifest.editType === 1 && resources.some(resource =>
+    resource.name === 'model-meta.bin' || resource.name === 'model-data.bin')) {
+    throw new Error('VOXA_BUNDLE_MODE_MISMATCH');
+  }
   return {
     projectName: safeProjectName(manifest.projectName),
     editType: manifest.editType,

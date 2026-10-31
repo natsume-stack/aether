@@ -1,4 +1,4 @@
-import { IconArrowBack, IconCancel, IconLoading } from '@box/icons';
+import { IconLoading, IconCancel, IconArrowBack } from '@box/icons';
 import { useMemo, useState, useRef, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Button } from '../button/index.js';
