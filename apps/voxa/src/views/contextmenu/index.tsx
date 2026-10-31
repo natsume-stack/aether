@@ -329,6 +329,9 @@ function getMenuState() {
 
   activeIds.forEach((activeId) => {
     const node = hierarchyData[activeId];
+    if (!node) {
+      return;
+    }
     if (node.type === ProjectNodeType.Root) {
       return;
     }

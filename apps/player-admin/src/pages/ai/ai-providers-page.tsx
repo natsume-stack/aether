@@ -40,10 +40,16 @@ type Values = {
     models?:string;
     enabled:boolean;
 };
+// Generated OpenAPI type may lag behind the ledger; extend it locally with cache fields.
+type AiExecutionRun = components['schemas']['AiExecutionRun'] & {
+    cachedInputTokens?:number;
+    cacheWriteTokens?:number;
+    cacheHitRate?:number;
+};
 
 export function AiProvidersPage() {
     const [providers, setProviders] = useState<Provider[]>([]);
-    const [runs,setRuns]=useState<components['schemas']['AiExecutionRun'][]>([]);
+    const [runs,setRuns]=useState<AiExecutionRun[]>([]);
     const [busy, setBusy] = useState(false);
     const [policy, setPolicy] = useState({
         enabled: true,
@@ -57,7 +63,7 @@ export function AiProvidersPage() {
     const load = useCallback(async () => {
         const result = await api.getApiPlayAdminAiProviders();
         setProviders(result.providers);
-        setRuns((await api.getApiPlayAdminAiProvidersRuns()).runs);
+        setRuns((await api.getApiPlayAdminAiProvidersRuns()).runs as AiExecutionRun[]);
         setPolicy(await api.getApiPlayAdminAiProvidersControl());
     }, []);
     const run = async (action:() => Promise<void>) => {
@@ -273,11 +279,20 @@ export function AiProvidersPage() {
                 const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=`ai-execution-audit-${new Date().toISOString().slice(0,10)}.json`;link.click();window.setTimeout(()=>URL.revokeObjectURL(url),1000);
             }}>导出当前记录</Button></Space>}>
                 <p>每用户最多 3 个并发、每分钟 10 次、24 小时 200 次，累计一百万 token。超时任务显示为 interrupted；VOXA 操作记录由已登录编辑器上报。</p>
-                <Table rowKey="id" dataSource={runs} size="small" pagination={{pageSize:10}} columns={[
+                <Table rowKey="id" dataSource={runs} size="small" scroll={{x:1060}} pagination={{pageSize:10}} columns={[
                     {title:'用户',dataIndex:'userId'},{title:'地图 / 模型',dataIndex:'scope'},
                     {title:'模式',dataIndex:'mode'},{title:'状态',dataIndex:'status'},
                     {title:'模型',dataIndex:'model'},
                     {title:'输入 / 输出 token',render:(_,row)=>`${row.inputTokens || 0} / ${row.outputTokens || 0}`},
+                    {title:'缓存命中',width:112,render:(_,row)=>{
+                        const cached=row.cachedInputTokens || 0,total=row.inputTokens || 0;
+                        const rate=typeof row.cacheHitRate==='number' && Number.isFinite(row.cacheHitRate)?row.cacheHitRate:total>0?cached/total:0;
+                        return <div title="缓存输入 / 输入 token" style={{whiteSpace:'nowrap'}}>
+                            <span style={{fontVariantNumeric:'tabular-nums'}}>{total>0?`${(rate*100).toFixed(1)}%`:'—'}</span>
+                            <span style={{marginLeft:6,color:'#8c8c8c',fontSize:12}}>{cached}/{total}</span>
+                            {(row.cacheWriteTokens || 0)>0 && <span title="缓存写入 token" style={{marginLeft:6,color:'#8c8c8c',fontSize:12}}>+{row.cacheWriteTokens}</span>}
+                        </div>;
+                    }},
                     {title:'耗时（ms）',dataIndex:'durationMs'},
                     {title:'开始时间',dataIndex:'startedAt'},
                 ]} expandable={{expandedRowRender:row=><pre style={{whiteSpace:'pre-wrap'}}>{JSON.stringify(row.events,null,2)}</pre>}}/>

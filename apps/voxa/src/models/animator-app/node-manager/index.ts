@@ -610,7 +610,7 @@ export class NodeManager extends EventEmitter {
     let index = 0;
 
     if (selectedId !== undefined) {
-      parentId = hierarchyData[selectedId].parentId || ROOT_SKIN_ID;
+      parentId = hierarchyData[selectedId]?.parentId || ROOT_SKIN_ID;
       index = hierarchyData[parentId]?.childrenIds?.indexOf(selectedId) || 0;
     }
 
@@ -731,7 +731,7 @@ export class NodeManager extends EventEmitter {
     const { hierarchyData } = store.getState().animator;
     const skinNode = this.skinManager.map.get(id);
     const node = hierarchyData[id];
-    const originChildrenIds = node.childrenIds;
+    const originChildrenIds = node?.childrenIds;
     if (!skinNode || isSkinPart(skinNode) || !originChildrenIds) {
       return;
     }
@@ -755,6 +755,9 @@ export class NodeManager extends EventEmitter {
     const { hierarchyData, activeIds, activeSkinPartIds } =
       store.getState().animator;
     const targetNode = hierarchyData[dropTargetId];
+    if (!targetNode) {
+      return;
+    }
     if (
       targetNode.type === ProjectNodeType.Bone &&
       (activeIds.length !== 1 || dropType !== 'box')
@@ -768,6 +771,9 @@ export class NodeManager extends EventEmitter {
     // 检查要移动的组件，有绑定到骨骼上的需要先解绑
     for (let i = 0; i < activeIds.length; i++) {
       const node = hierarchyData[activeIds[i]];
+      if (!node) {
+        return;
+      }
 
       // 此方法不允许移动骨骼，遇到骨骼直接return
       if (
@@ -891,7 +897,7 @@ export class NodeManager extends EventEmitter {
 
     for (let i = 0; i < activeIds.length; i++) {
       const node = hierarchyData[activeIds[i]];
-      if (node.type !== ProjectNodeType.Bone) {
+      if (!node || node.type !== ProjectNodeType.Bone) {
         return;
       }
     }
@@ -1000,6 +1006,9 @@ export class NodeManager extends EventEmitter {
     const unbindBones: string[] = [];
     for (let i = 0; i < ids.length; i++) {
       const node = sourceNodes[ids[i]];
+      if (!node) {
+        continue;
+      }
       if (
         node.type === ProjectNodeType.Group ||
         node.type === ProjectNodeType.SkinPart

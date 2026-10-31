@@ -273,6 +273,7 @@ export class VoxelEditor {
       this.animatorApp.nodeManager.getSkinNode(editingSkinPartId);
 
     if (
+      !node ||
       node.type !== ProjectNodeType.SkinPart ||
       !skinPart ||
       !isSkinPart(skinPart)

@@ -1,4 +1,5 @@
-import {ProjectNodeType} from '../../redux/animator-slice';
+import {ProjectNodeType,setHoveredId,setHoveredObjectId,setHoveredSkinPartIds,setEditingNodeId} from '../../redux/animator-slice';
+import {setEditingSkinPartId,setEditingVoxelId} from '../../redux/app-slice';
 import {ROOT_ID,ROOT_BONE_ID,ROOT_SKIN_ID} from '../../defs';
 import {loadAiSnapshot, storeAiSnapshot, removeAiSnapshot} from './panel-snapshot';
 import { vec3, quat } from 'gl-matrix';
@@ -288,7 +289,7 @@ export class VoxaAgentLiveSession {
               if(!Array.isArray(command.args.ids) || !command.args.ids.length || command.args.ids.length>32) throw new Error('Invalid group members');
               const ids=command.args.ids.map(resolveId);
               if(new Set(ids).size!==ids.length || ids.some(v=>!hierarchy[v] || protectedIds.includes(v) || ![ProjectNodeType.SkinPart,ProjectNodeType.Group].includes(hierarchy[v].type))) throw new Error('Invalid group members');
-              if(ids.some(v=>hierarchy[v].parentId!==hierarchy[ids[0]].parentId)) throw new Error('Group members must be siblings');
+              if(ids.some(v=>hierarchy[v].parentId!==hierarchy[ids[0]]?.parentId)) throw new Error('Group members must be siblings');
               this.editor.switchToAnimator();
               createdId=manager.addGroup(ids).uuid;
             } else {
@@ -306,9 +307,13 @@ export class VoxaAgentLiveSession {
             aliases.set(alias,createdId);
             if(command.args.name!==undefined) {
               if(typeof command.args.name!=='string' || !command.args.name.trim() || command.args.name.length>64) throw new Error('Invalid part name');
-              const data=await this.editor.projectManager.getData();data.nodes[createdId].name=command.args.name;
-              this.commitVoxels(()=>this.editor.projectManager.restoreAiSnapshot(data));
-              if(command.kind==='part_create') this.commitVoxels(()=>this.editor.switchToVoxel(createdId));
+              const data=await this.editor.projectManager.getData();
+              const createdNode=data.nodes[createdId];
+              if(createdNode) {
+                createdNode.name=command.args.name;
+                this.commitVoxels(()=>this.editor.projectManager.restoreAiSnapshot(data));
+                if(command.kind==='part_create') this.commitVoxels(()=>this.editor.switchToVoxel(createdId));
+              }
             }
           }
           this.modelRevision++;this.observedUndoDepth=this.voxaDepth().undo;this.observedHumanEpoch=expected.humanEpoch;
@@ -377,6 +382,14 @@ export class VoxaAgentLiveSession {
     if(!this.panelUndo) throw new Error('No AI snapshot available');
     if(!this.panelRollbackFingerprint || await this.panelFingerprint(await this.editor.projectManager.getData())!==this.panelRollbackFingerprint) throw new Error('Model changed after AI execution; rollback would overwrite later edits');
     this.commitVoxels(()=>this.editor.projectManager.restoreAiSnapshot(this.panelUndo!));
+    // 快照恢复后旧的选中/编辑/hover id可能已失效，先清空避免后续解引用
+    this.editor.animatorApp.nodeManager.setActiveIds([], false);
+    store.dispatch(setHoveredId(undefined));
+    store.dispatch(setHoveredObjectId(undefined));
+    store.dispatch(setHoveredSkinPartIds([]));
+    store.dispatch(setEditingNodeId(undefined));
+    store.dispatch(setEditingSkinPartId(undefined));
+    store.dispatch(setEditingVoxelId(undefined));
     this.modelRevision++;
     this.observedUndoDepth=this.voxaDepth().undo;
     const saved=await this.editor.projectManager.saveProject({autoSave:false});

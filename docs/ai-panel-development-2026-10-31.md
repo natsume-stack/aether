@@ -121,3 +121,26 @@ Source of truth: /home/natsume/box3-dev/repo/box3-local-engine, branch dev/serve
 - **命令格式**：同一模型在不同接口会返回 `{"kind","args"}`、`{"cmd",...扁平}`、`{"paint":{...}}` 单键对象；另有 Anthropic `tool_use`、OpenAI `tool_calls/function_call`、Gemini `functionCall`。现统一归一化为 `{kind,args}`，无法识别的条目才计入 rejected，并在错误中列出原始 key/kind，便于定位。
 
 验证：`apps/voxa/scripts/check-agent-plan-coercion.ts` 覆盖全部上述结构；真实 DeepSeek 流式蝙蝠测试 14s 返回 23 条命令、rejected=0；流式先到工具调用再出完整计划。
+
+## 上下文缓存与成本优化（2026-11-01）
+
+调研结论（DeepSeek 官方 KV cache、deepseek-harness、Anthropic/OpenAI prompt caching）：
+
+- DeepSeek 按请求前缀落盘缓存，`A+B` 后的 `A+C` 不会命中 `A`，必须保持 append-only 前缀；官方 Usage：Chat `prompt_cache_hit_tokens` / `prompt_tokens_details.cached_tokens`，Responses `input_tokens_details.cached_tokens`，Anthropic 兼容 `cache_read_input_tokens`。DeepSeek 忽略 `cache_control` / `prompt_cache_key`。
+- Anthropic 需要显式 `cache_control`（system/message 内容块，≤4 个断点）；OpenAI 自动前缀缓存并提供 `prompt_cache_key` 路由亲和；Responses 应使用消息数组而非扁平字符串。
+- deepseek-harness 的核心是“模型可见内容 = 持久引用内容”的 append-only 投影；上下文压缩时原样重放上一请求前缀，只在末尾追加。
+
+本轮实现：
+
+- **服务端精确回放**：`apps/voxa/server/agent-conversation.ts` 按 userId/provider/model/systemHash/conversationId 保存完整消息（含上一轮模型原文），下一步只追加新用户消息；TTL 3 小时，超限按对裁剪并清空上下文以免增量链断裂。客户端发送每会话 UUID。
+- **稳定前缀**：上下文规范化（parts 按 id、palette 按 colorId、cells 按坐标排序、数值定点），提示词改为 `{context|contextDelta, execution, request, step}`，易变字段靠后。
+- **上下文增量**：第一步发全量；之后仅发 `contextDelta`（added/removed cells、变化的 parts/palette）；shape/partId/截断变化或差异过大时回退全量。System 中明确增量应用规则。
+- **协议缓存标记**：Anthropic system + 最近两条消息加 `cache_control`；OpenAI host 加 `prompt_cache_key`；DeepSeek 不发送其忽略的参数。
+- **可观测**：`provider-usage.ts` 统一解析命中/写入；台账新增 `cached_input_tokens`/`cache_write_tokens` 与 `cacheHitRate`；Admin“最近 AI 执行记录”显示缓存命中；VOXA 计划消息显示“上下文缓存命中 N%”。
+
+实测：
+
+- DeepSeek 官方流式蝙蝠：首个请求 input 787 / cached 640（81%），第二个 1606 / 768（48%），26 条命令全部解析（rejected=0）；Responses `input` 消息数组可用。
+- Mock 会话两步：第二次请求确认为 `[user, assistant(原文), user]`，指令逐字节一致，`contextDelta` 含新增体素且移除为空，计划事件回传 cached 60/100。
+
+已知边界：会话缓存当前为进程内存，重启或多副本会冷启动；DeepSeek 缓存 best-effort，不能作为正确性依赖。崩溃防护：NavBar/hierarchy/node-manager/redux 空节点守卫、AI 删除后清理选中、React error boundary 已加入。

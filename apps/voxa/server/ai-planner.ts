@@ -1,6 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import {safeProviderFetch} from '../../../services/game-server/src/edit/ai/provider-http';
 import {providerRequestUrl} from '../../../services/game-server/src/edit/ai/provider-url';
+import {parseProviderUsage, cacheHitRate} from '../../../services/game-server/src/edit/ai/provider-usage';
+import {conversationKey, loadConversation, loadConversationContext, saveConversation, type ConversationMessage} from './agent-conversation';
+import {buildContextPayload, canonicalContext, type AgentContext} from './agent-context';
 
 export type VoxaAiCommand = {kind: string; args: Record<string, unknown>};
 export type VoxaAiPlan = {message: string; commands: VoxaAiCommand[]; done: boolean};
@@ -310,7 +313,7 @@ Return ONLY a JSON object: {"commands":[...],"message":"reply in the user langua
 
 Commands: paint/erase {at:[x,y,z],colorId}, paint_path {points:[[x,y,z]],colorId,paceMs:0}, fill_box {from:[x,y,z],to:[x,y,z],colorId,hollow:false,paceMs:0}, set_color {id}, trim {}, palette_add {alias:"$red",rgb:[255,0,0],emissive?:0} adds an RGB color (0..255), workspace_resize {size:[x,y,z]} resizes the active voxel canvas (axes 1..256, at most 1048576 cells; native resize recenters X/Z and may crop voxels), part_patch {id,name?,position?:[x,y,z],scale?:[x,y,z],pivot?:[x,y,z],rotationDegrees?:[x,y,z],alpha?:0.5}, part_create {alias:"$body",name?} creates a part and selects its voxel canvas, part_select {id} selects a part before painting, part_delete {id} removes an existing part or group, part_group {ids:[id,...],alias:"$group",name?} groups sibling parts, part_move {id,parentId} reparents a part/group into an existing group.
 
-Root nodes cannot be removed or moved; cyclic hierarchy is forbidden. Maximum 32 commands per batch, 8192 cells per fill, 4096 points per path. Coordinates are integer local voxel coordinates within the current shape. Do not generate scripts or arbitrary code. Empty commands for advice. Parts/context describe the currently open unsaved model. voxelContext.cells are occupied cells of the active part only; truncated=true means missing cells are unknown, not empty. Select the correct part before editing. Use existing palette colorId or palette_add and reference its $alias in later commands.`;
+Root nodes cannot be removed or moved; cyclic hierarchy is forbidden. Maximum 32 commands per batch, 8192 cells per fill, 4096 points per path. Coordinates are integer local voxel coordinates within the current shape. Do not generate scripts or arbitrary code. Empty commands for advice. Parts/context describe the currently open unsaved model. voxelContext.cells are occupied cells of the active part only; truncated=true means missing cells are unknown, not empty. Select the correct part before editing. The user message contains either 'context' (full state) or 'contextDelta': for a delta, start from the context in the previous turn, apply 'added'/'removed' cells ([x,y,z,colorId]), treat omitted cells as unchanged, replace parts/palette only when present, and use the current shape/partId. Use existing palette colorId or palette_add and reference its $alias in later commands.`;
 
 function redact(text: string, secret: string) {
   const value = String(text || '');
@@ -320,7 +323,8 @@ function redact(text: string, secret: string) {
 type Prepared = {
   provider: any;
   prompt: string;
-  messages: Array<{role: 'user' | 'assistant'; content: string}>;
+  systemMessages: ConversationMessage[];
+  modelMessages: Array<{role: 'user' | 'assistant'; content: string}>;
   history: VoxaHistoryRow[];
   execution: VoxaToolResult[];
   step: number;
@@ -328,6 +332,9 @@ type Prepared = {
   model: string;
   userId: string;
   contextChars: number;
+  context: AgentContext;
+  contextMode: 'full' | 'delta';
+  conversationKey?: string;
 };
 
 async function prepare(req: NextApiRequest, res: NextApiResponse): Promise<Prepared> {
@@ -339,12 +346,29 @@ async function prepare(req: NextApiRequest, res: NextApiResponse): Promise<Prepa
   const reasoning = reasoningValue(input.reasoning);
   const userId = await voxaAiIdentity(req, res);
   const {provider} = await internal('/api/player-ai-internal/resolve', {userId, providerId: input.providerId}, req, res);
-  const prompt = JSON.stringify({request: input.prompt, step, context: input.context, execution: execution.length ? execution : undefined});
-  const messages = [...history, {role: 'user' as const, content: prompt}];
+  const conversationId = typeof input.conversationId === 'string' && /^[0-9a-f-]{36}$/i.test(input.conversationId) ? input.conversationId : '';
+  const cacheKey = conversationId ? conversationKey(userId, String(provider.id), String(input.model), SYSTEM, conversationId) : '';
+  const stored = cacheKey ? loadConversation(cacheKey) : undefined;
+  const previousRaw = cacheKey ? loadConversationContext(cacheKey) : undefined;
+  const context = canonicalContext(input.context);
+  const previous = previousRaw ? canonicalContext(previousRaw) : undefined;
+  const built = buildContextPayload(context, previous);
+  // Stable context first; the request and step are the volatile tail.
+  const prompt = JSON.stringify({
+    ...built.payload,
+    execution: execution.length ? execution : undefined,
+    request: input.prompt,
+    step,
+  });
+  const systemMessages: ConversationMessage[] = stored?.length
+    ? [...stored, {role: 'user', content: prompt}]
+    : [{role: 'system', content: SYSTEM}, ...history, {role: 'user', content: prompt}];
+  const modelMessages = systemMessages.filter((message) => message.role !== 'system') as Array<{role: 'user' | 'assistant'; content: string}>;
   return {
     provider,
     prompt,
-    messages,
+    systemMessages,
+    modelMessages,
     history,
     execution,
     step,
@@ -352,6 +376,9 @@ async function prepare(req: NextApiRequest, res: NextApiResponse): Promise<Prepa
     model: String(input.model),
     userId,
     contextChars: prompt.length,
+    context,
+    contextMode: built.mode,
+    conversationKey: cacheKey || undefined,
   };
 }
 
@@ -366,22 +393,51 @@ function headersFor(provider: any) {
   return headers;
 }
 
+function isOpenAIHost(baseUrl: string) {
+  try {
+    const host = new URL(baseUrl).hostname.toLowerCase();
+    return host === 'api.openai.com' || host.endsWith('.openai.com') || host.endsWith('.openai.azure.com');
+  } catch {
+    return false;
+  }
+}
+
+function anthropicMessages(messages: Array<{role: 'user' | 'assistant'; content: string}>) {
+  const list: Array<{role: 'user' | 'assistant'; content: any}> = messages.map((message) => ({ role: message.role, content: message.content }));
+  const mark = (index: number) => {
+    if (index < 0 || index >= list.length) return;
+    const item = list[index];
+    if (typeof item.content !== 'string') return;
+    list[index] = { role: item.role, content: [{ type: 'text', text: item.content, cache_control: { type: 'ephemeral' } }] };
+  };
+  // Last prior turn is a read anchor; the current user turn is a cache write.
+  mark(list.length - 2);
+  mark(list.length - 1);
+  return list;
+}
+
 function bodyFor(prepared: Prepared, stream: boolean) {
-  const {provider, messages, prompt, history, model, reasoning} = prepared;
+  const {provider, modelMessages, model, reasoning, conversationKey: cacheKey} = prepared;
   if (provider.protocol === 'chat-completions') {
-    const body: Record<string, unknown> = {model, messages: [{role: 'system', content: SYSTEM}, ...messages], max_tokens: reasoning === 'off' ? 8192 : 12288, stream};
+    const body: Record<string, unknown> = {model, messages: [{role: 'system', content: SYSTEM}, ...modelMessages], max_tokens: reasoning === 'off' ? 8192 : 12288, stream};
     if (reasoning !== 'off') body.reasoning_effort = reasoning;
+    if (isOpenAIHost(provider.baseUrl)) body.prompt_cache_key = `voxa-${model}`.slice(0, 64);
     return body;
   }
   if (provider.protocol === 'responses') {
-    const transcript = history.map((row) => `[${row.role}] ${row.content}`).join('\n\n');
-    const body: Record<string, unknown> = {model, instructions: SYSTEM, input: transcript ? `${transcript}\n\n${prompt}` : prompt, max_output_tokens: reasoning === 'off' ? 12288 : 16384};
+    const body: Record<string, unknown> = {model, instructions: SYSTEM, input: modelMessages, max_output_tokens: reasoning === 'off' ? 12288 : 16384};
     if (stream) body.stream = true;
     if (reasoning !== 'off') body.reasoning = {effort: reasoning};
+    if (isOpenAIHost(provider.baseUrl)) body.prompt_cache_key = `voxa-${model}`.slice(0, 64);
     return body;
   }
   if (provider.protocol === 'anthropic-messages') {
-    const body: Record<string, unknown> = {model, system: SYSTEM, messages, max_tokens: reasoning === 'off' ? 8192 : 12288};
+    const body: Record<string, unknown> = {
+      model,
+      system: [{type: 'text', text: SYSTEM, cache_control: {type: 'ephemeral'}}],
+      messages: anthropicMessages(modelMessages),
+      max_tokens: reasoning === 'off' ? 8192 : 12288,
+    };
     if (stream) body.stream = true;
     if (reasoning !== 'off') body.thinking = {type: 'enabled', budget_tokens: reasoning === 'low' ? 1024 : reasoning === 'medium' ? 2048 : 4096};
     return body;
@@ -398,13 +454,6 @@ function contentText(provider: any, data: any) {
     return (data?.output || []).flatMap((item: any) => (item.content || []).filter((part: any) => part.type === 'output_text').map((part: any) => part.text)).join('');
   }
   return (data?.content || []).filter((part: any) => part.type === 'text').map((part: any) => part.text).join('');
-}
-
-function usageOf(provider: any, data: any) {
-  const usage = provider.protocol === 'responses' ? data?.response?.usage || data?.usage : provider.protocol === 'anthropic-messages' ? data?.message?.usage || data?.usage : data?.usage;
-  const input = Number(usage?.input_tokens ?? usage?.prompt_tokens ?? 0);
-  const output = Number(usage?.output_tokens ?? usage?.completion_tokens ?? 0);
-  return {input: Number.isFinite(input) ? input : 0, output: Number.isFinite(output) ? output : 0};
 }
 
 /** Complete command objects that have already arrived inside the JSON stream. */
@@ -466,6 +515,8 @@ export async function generateVoxaAiPlan(req: NextApiRequest, res: NextApiRespon
   let completed = false;
   let inputTokens = 0;
   let outputTokens = 0;
+  let cachedTokens = 0;
+  let cacheWriteTokens = 0;
   const abort = new AbortController();
   const cancel = () => abort.abort();
   res.on('close', cancel);
@@ -482,8 +533,8 @@ export async function generateVoxaAiPlan(req: NextApiRequest, res: NextApiRespon
       throw new Error(`AI provider returned HTTP ${response.status}${detail ? `: ${detail}` : ''}`);
     }
     const data = await response.json();
-    const usage = usageOf(provider, data);
-    inputTokens = usage.input; outputTokens = usage.output;
+    const usage = parseProviderUsage(provider.protocol, data);
+    inputTokens = usage.input; outputTokens = usage.output; cachedTokens = usage.cached; cacheWriteTokens = usage.cacheWrite;
     const text = contentText(provider, data);
     if (provider.protocol === 'responses' && data?.status === 'incomplete' && !String(text || '').trim()) {
       throw new Error(`模型未返回正文（${data?.incomplete_details?.reason || 'incomplete'}）：思考耗尽输出预算，请提高输出上限或换非推理模型`);
@@ -502,8 +553,8 @@ export async function generateVoxaAiPlan(req: NextApiRequest, res: NextApiRespon
     return { message: plan.message, commands: plan.commands, done: plan.done };
   } finally {
     clearTimeout(timer); res.off('close', cancel);
-    console.info('[voxa-ai] plan finished', {completed, elapsedMs: Date.now() - started, inputTokens, outputTokens});
-    await internal('/api/player-ai-internal/execution', {userId, runId, event: {phase: abort.signal.aborted ? 'cancelled' : completed ? 'complete' : 'failed', action: 'voxa-plan', inputTokens, outputTokens}}, req, res).catch(() => undefined);
+    console.info('[voxa-ai] plan finished', {completed, elapsedMs: Date.now() - started, contextMode: prepared.contextMode, contextChars: prepared.contextChars, inputTokens, outputTokens, cachedTokens, cacheWriteTokens, cacheHitRate: cacheHitRate({input: inputTokens, output: outputTokens, cached: cachedTokens, cacheWrite: cacheWriteTokens, cacheMiss: Math.max(0, inputTokens - cachedTokens)})});
+    await internal('/api/player-ai-internal/execution', {userId, runId, event: {phase: abort.signal.aborted ? 'cancelled' : completed ? 'complete' : 'failed', action: 'voxa-plan', inputTokens, outputTokens, cachedTokens, cacheWriteTokens}}, req, res).catch(() => undefined);
   }
 }
 
@@ -525,6 +576,8 @@ export async function streamVoxaAiPlan(req: NextApiRequest, res: NextApiResponse
   let completed = false;
   let inputTokens = 0;
   let outputTokens = 0;
+  let cachedTokens = 0;
+  let cacheWriteTokens = 0;
   const abort = new AbortController();
   const cancel = () => { if (!res.writableEnded) abort.abort(); };
   res.on('close', cancel);
@@ -589,8 +642,8 @@ export async function streamVoxaAiPlan(req: NextApiRequest, res: NextApiResponse
             emitCommands(text);
             if (text.length % 400 < delta.length) send({type: 'progress', chars: text.length});
           }
-          const usage = usageOf(provider, payload);
-          if (usage.input || usage.output) { inputTokens = usage.input || inputTokens; outputTokens = usage.output || outputTokens; }
+          const usage = parseProviderUsage(provider.protocol, payload);
+          if (usage.input || usage.output || usage.cached || usage.cacheWrite) { inputTokens = usage.input || inputTokens; outputTokens = usage.output || outputTokens; cachedTokens = usage.cached || cachedTokens; cacheWriteTokens = usage.cacheWrite || cacheWriteTokens; }
         }
       }
       buffer += decoder.decode();
@@ -603,19 +656,20 @@ export async function streamVoxaAiPlan(req: NextApiRequest, res: NextApiResponse
           const payload = JSON.parse(payloadText);
           const delta = deltaText(provider, payload);
           if (delta) { text += delta; emitCommands(text); }
-          const usage = usageOf(provider, payload);
-          if (usage.input || usage.output) { inputTokens = usage.input || inputTokens; outputTokens = usage.output || outputTokens; }
+          const usage = parseProviderUsage(provider.protocol, payload);
+          if (usage.input || usage.output || usage.cached || usage.cacheWrite) { inputTokens = usage.input || inputTokens; outputTokens = usage.output || outputTokens; cachedTokens = usage.cached || cachedTokens; cacheWriteTokens = usage.cacheWrite || cacheWriteTokens; }
         } catch { /* ignore partial trailing line */ }
       }
     } else {
       const data = await response.json();
-      const usage = usageOf(provider, data);
-      inputTokens = usage.input; outputTokens = usage.output;
+      const usage = parseProviderUsage(provider.protocol, data);
+      inputTokens = usage.input; outputTokens = usage.output; cachedTokens = usage.cached; cacheWriteTokens = usage.cacheWrite;
       text = contentText(provider, data);
       emitCommands(text);
     }
     send({type: 'phase', phase: 'parsing'});
     if (!text.trim() || text.length > 250000) throw new Error(incompleteReason ? `模型未返回正文（${incompleteReason}）：思考耗尽输出预算，请提高输出上限或换非推理模型` : 'AI provider returned invalid content');
+    if (prepared.conversationKey) saveConversation(prepared.conversationKey, [...prepared.systemMessages, {role: 'assistant', content: text}], prepared.context);
     const clean = text.trim().replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
     let value: unknown;
     try { value = JSON.parse(clean); } catch {
@@ -626,8 +680,8 @@ export async function streamVoxaAiPlan(req: NextApiRequest, res: NextApiResponse
     const plan = coercePlanValue(value);
     if (plan.commands.length === 0 && plan.rejected > 0) throw new Error(`模型返回的命令格式不受支持：${plan.rejectedKinds.join(', ')}`);
     completed = true;
-    console.info('[voxa-ai] stream done', {firstByteMs, totalMs: Date.now() - started, chars: text.length, commands: plan.commands.length, rejected: plan.rejected, rejectedKinds: plan.rejectedKinds.slice(0, 6), inputTokens, outputTokens});
-    send({type: 'plan', message: plan.message, commands: plan.commands, done: plan.done});
+    console.info('[voxa-ai] stream done', {firstByteMs, totalMs: Date.now() - started, contextMode: prepared.contextMode, contextChars: prepared.contextChars, chars: text.length, commands: plan.commands.length, rejected: plan.rejected, rejectedKinds: plan.rejectedKinds.slice(0, 6), inputTokens, outputTokens, cachedTokens, cacheWriteTokens, cacheHitRate: cacheHitRate({input: inputTokens, output: outputTokens, cached: cachedTokens, cacheWrite: cacheWriteTokens, cacheMiss: Math.max(0, inputTokens - cachedTokens)})});
+    send({type: 'plan', message: plan.message, commands: plan.commands, done: plan.done, usage: {input: inputTokens, output: outputTokens, cached: cachedTokens, cacheWrite: cacheWriteTokens, hitRate: cacheHitRate({input: inputTokens, output: outputTokens, cached: cachedTokens, cacheWrite: cacheWriteTokens, cacheMiss: Math.max(0, inputTokens - cachedTokens)})}});
   } catch (error) {
     const message = error instanceof Error ? error.message : 'AI request failed';
     console.info('[voxa-ai] stream failed', {elapsedMs: Date.now() - started, message: message.slice(0, 120)});
@@ -639,7 +693,7 @@ export async function streamVoxaAiPlan(req: NextApiRequest, res: NextApiResponse
       await internal('/api/player-ai-internal/execution', {
         userId: prepared.userId,
         runId: runId || undefined,
-        event: {phase: abort.signal.aborted ? 'cancelled' : completed ? 'complete' : 'failed', action: 'voxa-plan', inputTokens, outputTokens},
+        event: {phase: abort.signal.aborted ? 'cancelled' : completed ? 'complete' : 'failed', action: 'voxa-plan', inputTokens, outputTokens, cachedTokens, cacheWriteTokens},
       }, req, res).catch(() => undefined);
     }
     closed = true;

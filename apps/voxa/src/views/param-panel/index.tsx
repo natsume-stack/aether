@@ -377,6 +377,9 @@ export function ParamPanel(props: ParamPanelProps) {
 
     for (const id of activeIds) {
       const node = hierarchyData[id];
+      if (!node) {
+        continue;
+      }
       if (
         node.type === ProjectNodeType.Bone ||
         node.type === ProjectNodeType.Root
@@ -396,7 +399,7 @@ export function ParamPanel(props: ParamPanelProps) {
       const parentId = getRootParentId(id);
       if (parentId) {
         const parentNode = hierarchyData[parentId];
-        if (parentNode.type === ProjectNodeType.Group && parentNode.boneId) {
+        if (parentNode?.type === ProjectNodeType.Group && parentNode.boneId) {
           return {
             disableOpacity: true,
             disableVecInput: false,

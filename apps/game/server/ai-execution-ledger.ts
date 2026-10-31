@@ -17,7 +17,7 @@ async function init() {
       events jsonb NOT NULL DEFAULT '[]'::jsonb
     )`);
     await db().query(`CREATE INDEX IF NOT EXISTS ai_execution_runs_user_time ON ${runs}(user_id,started_at DESC)`);
-    await db().query(`ALTER TABLE ${runs} ADD COLUMN IF NOT EXISTS provider_id uuid,ADD COLUMN IF NOT EXISTS model text NOT NULL DEFAULT '',ADD COLUMN IF NOT EXISTS input_tokens integer NOT NULL DEFAULT 0,ADD COLUMN IF NOT EXISTS output_tokens integer NOT NULL DEFAULT 0`);
+    await db().query(`ALTER TABLE ${runs} ADD COLUMN IF NOT EXISTS provider_id uuid,ADD COLUMN IF NOT EXISTS model text NOT NULL DEFAULT '',ADD COLUMN IF NOT EXISTS input_tokens integer NOT NULL DEFAULT 0,ADD COLUMN IF NOT EXISTS output_tokens integer NOT NULL DEFAULT 0,ADD COLUMN IF NOT EXISTS cached_input_tokens integer NOT NULL DEFAULT 0,ADD COLUMN IF NOT EXISTS cache_write_tokens integer NOT NULL DEFAULT 0`);
   })().catch(error=>{ready=undefined;throw error;});
   return ready;
 }
@@ -59,8 +59,9 @@ export async function recordAiExecution(value:unknown,runId:unknown,event:unknow
   const usage=(value:unknown)=>Number.isSafeInteger(value) && Number(value)>=0 && Number(value)<=100000000?Number(value):0;
   const result=await db().query(`UPDATE ${runs} SET events=events || $3::jsonb,event_count=event_count+1,
     status=CASE WHEN $4 THEN $5 ELSE status END,finished_at=CASE WHEN $4 THEN NOW() ELSE finished_at END,
-    input_tokens=CASE WHEN $4 THEN $6 ELSE input_tokens END,output_tokens=CASE WHEN $4 THEN $7 ELSE output_tokens END
-    WHERE id=$1 AND user_id=$2 AND status='running' AND expires_at>NOW() AND event_count<256 RETURNING id`,[runId,uid,JSON.stringify([clean]),terminal,phase,usage(input.inputTokens),usage(input.outputTokens)]);
+    input_tokens=CASE WHEN $4 THEN $6 ELSE input_tokens END,output_tokens=CASE WHEN $4 THEN $7 ELSE output_tokens END,
+    cached_input_tokens=CASE WHEN $4 THEN $8 ELSE cached_input_tokens END,cache_write_tokens=CASE WHEN $4 THEN $9 ELSE cache_write_tokens END
+    WHERE id=$1 AND user_id=$2 AND status='running' AND expires_at>NOW() AND event_count<256 RETURNING id`,[runId,uid,JSON.stringify([clean]),terminal,phase,usage(input.inputTokens),usage(input.outputTokens),usage(input.cachedTokens),usage(input.cacheWriteTokens)]);
   if(!result.rows.length) throw new AiProviderError('AI_EXECUTION_EXPIRED','AI execution expired or event budget exceeded',409);
   return {success:true};
 }
@@ -68,6 +69,9 @@ export async function listAiExecutionRuns() {
   await init();
   const result=await db().query(`SELECT id,user_id AS "userId",scope,mode,
     CASE WHEN status='running' AND expires_at<=NOW() THEN 'interrupted' ELSE status END AS status,
-    started_at AS "startedAt",finished_at AS "finishedAt",provider_id AS "providerId",model,input_tokens AS "inputTokens",output_tokens AS "outputTokens",EXTRACT(EPOCH FROM (COALESCE(finished_at,LEAST(NOW(),expires_at))-started_at))*1000 AS "durationMs",events FROM ${runs} ORDER BY started_at DESC LIMIT 100`);
+    started_at AS "startedAt",finished_at AS "finishedAt",provider_id AS "providerId",model,input_tokens AS "inputTokens",output_tokens AS "outputTokens",
+    cached_input_tokens AS "cachedInputTokens",cache_write_tokens AS "cacheWriteTokens",
+    CASE WHEN input_tokens>0 THEN LEAST(1.0,cached_input_tokens::float8/input_tokens) ELSE 0 END AS "cacheHitRate",
+    EXTRACT(EPOCH FROM (COALESCE(finished_at,LEAST(NOW(),expires_at))-started_at))*1000 AS "durationMs",events FROM ${runs} ORDER BY started_at DESC LIMIT 100`);
   return result.rows;
 }

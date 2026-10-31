@@ -303,7 +303,11 @@ export const animatorSlice = createSlice({
       }
 
       node.childrenIds.forEach((childId) => {
-        state.hierarchyData[childId].parentId = node.parentId;
+        const child = state.hierarchyData[childId];
+        if (!child) {
+          return;
+        }
+        child.parentId = node.parentId;
       });
 
       delete state.hierarchyData[action.payload.id];
@@ -347,12 +351,14 @@ export const animatorSlice = createSlice({
         }
       }
 
+      const dropTargetNode = state.hierarchyData[dropTargetId];
       const parentId =
-        dropType === 'box'
-          ? dropTargetId
-          : state.hierarchyData[dropTargetId].parentId;
+        dropType === 'box' ? dropTargetId : dropTargetNode?.parentId;
+      const parentNode = parentId
+        ? state.hierarchyData[parentId]
+        : undefined;
 
-      if (!parentId) {
+      if (!parentId || !parentNode) {
         return;
       }
 
@@ -373,12 +379,12 @@ export const animatorSlice = createSlice({
       const getDropIndex = () => {
         const index = Math.max(
           0,
-          state.hierarchyData[parentId].childrenIds?.indexOf(dropTargetId) || 0,
+          parentNode.childrenIds?.indexOf(dropTargetId) || 0,
         );
         return dropType === 'bottom' ? index + 1 : index;
       };
 
-      state.hierarchyData[parentId].childrenIds?.splice(
+      parentNode.childrenIds?.splice(
         getDropIndex(),
         0,
         ...moveIds,
@@ -395,13 +401,15 @@ export const animatorSlice = createSlice({
         // disconnect
         if (node.parentId) {
           const parent = state.hierarchyData[node.parentId];
-          parent?.childrenIds?.splice(parent.childrenIds.indexOf(node.id), 1);
-          if (
-            parent.type === ProjectNodeType.Bone &&
-            !parent.childrenIds?.length &&
-            parent.id !== ROOT_BONE_ID
-          ) {
-            collapseIds.push(parent.id);
+          if (parent) {
+            parent.childrenIds?.splice(parent.childrenIds.indexOf(node.id), 1);
+            if (
+              parent.type === ProjectNodeType.Bone &&
+              !parent.childrenIds?.length &&
+              parent.id !== ROOT_BONE_ID
+            ) {
+              collapseIds.push(parent.id);
+            }
           }
         }
 
@@ -412,7 +420,10 @@ export const animatorSlice = createSlice({
         delete state.hierarchyData[node.id];
       });
       collapseIds.forEach((id) => {
-        state.expandedIds.splice(state.expandedIds.indexOf(id), 1);
+        const index = state.expandedIds.indexOf(id);
+        if (index >= 0) {
+          state.expandedIds.splice(index, 1);
+        }
       });
     },
     clearHierarchyNodes(state) {
@@ -485,7 +496,28 @@ export const animatorSlice = createSlice({
       state,
       action: PayloadAction<{ [id: string]: HierarchyNode }>,
     ) {
-      state.hierarchyData = action.payload;
+      const hierarchyData = action.payload;
+      // 清理指向已不存在节点的子节点引用，避免层级遍历时解引用undefined
+      Object.values(hierarchyData).forEach((node) => {
+        if (node.childrenIds) {
+          const pruned = node.childrenIds.filter((id) => hierarchyData[id]);
+          if (pruned.length !== node.childrenIds.length) {
+            node.childrenIds = pruned;
+          }
+        }
+      });
+      state.hierarchyData = hierarchyData;
+      // 层级数据整体替换后只剔除失效的选中/hover/编辑id，保留仍然有效的选择
+      const alive = (id: string | undefined) => !!id && !!hierarchyData[id];
+      state.activeIds = state.activeIds.filter(alive);
+      state.activeSkinPartIds = state.activeSkinPartIds.filter(alive);
+      state.relativeIds = state.relativeIds.filter(alive);
+      state.relativeSkinPartIds = state.relativeSkinPartIds.filter(alive);
+      state.hoveredId = alive(state.hoveredId) ? state.hoveredId : undefined;
+      state.hoveredObjectId = alive(state.hoveredObjectId) ? state.hoveredObjectId : undefined;
+      state.hoveredSkinPartIds = state.hoveredSkinPartIds.filter(alive);
+      state.editingNodeId = alive(state.editingNodeId) ? state.editingNodeId : undefined;
+      state.expandedIds = state.expandedIds.filter(alive);
     },
     updateParamPanelData(
       state,
@@ -525,8 +557,9 @@ export const animatorSlice = createSlice({
       if (boneNode.skinId) {
         const attachedNode = state.hierarchyData[boneNode.skinId];
         if (
-          attachedNode.type === ProjectNodeType.SkinPart ||
-          attachedNode.type === ProjectNodeType.Group
+          attachedNode &&
+          (attachedNode.type === ProjectNodeType.SkinPart ||
+            attachedNode.type === ProjectNodeType.Group)
         ) {
           const newParent = state.hierarchyData[ROOT_SKIN_ID];
           attachedNode.parentId = newParent.id;

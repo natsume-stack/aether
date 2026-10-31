@@ -193,7 +193,7 @@ export function parseSkinParts(
       parseSkinParts(out, node.childrenIds, condition);
       return;
     }
-    if (node.type === ProjectNodeType.SkinPart) {
+    if (node?.type === ProjectNodeType.SkinPart) {
       condition ? condition(id) && out.push(id) : out.push(id);
     }
   });
@@ -296,7 +296,7 @@ export function getActiveBoneIds(activeIds: string[]) {
   const { hierarchyData } = store.getState().animator;
   const activeBoneIds: string[] = [];
   activeIds.forEach((id) => {
-    if (hierarchyData[id].type === ProjectNodeType.Bone) {
+    if (hierarchyData[id]?.type === ProjectNodeType.Bone) {
       activeBoneIds.push(id);
     }
   });
@@ -573,6 +573,7 @@ export function getBreadcrumbsWithBone(id: string) {
   const topParentId = breadcrumbs[breadcrumbs.length - 1] || id;
   const topParent = hierarchyData[topParentId];
   if (
+    topParent &&
     (topParent.type === ProjectNodeType.Group ||
       topParent.type === ProjectNodeType.SkinPart) &&
     topParent.boneId
@@ -779,6 +780,9 @@ export function filterNotInteractiveNode(ids: string[]) {
 
   return ids.filter((id) => {
     const node = hierarchyData[id];
+    if (!node) {
+      return false;
+    }
 
     if (
       node.type === ProjectNodeType.SkinPart ||

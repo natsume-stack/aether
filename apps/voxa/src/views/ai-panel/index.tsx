@@ -30,6 +30,7 @@ type ChatMessage = {
   step?: number;
   context?: Context;
   status?: string;
+  usage?: { input: number; output: number; cached: number; cacheWrite: number; hitRate: number };
 };
 type PlanReply = { message: string; commands: Command[]; done: boolean };
 type Reasoning = 'off' | 'low' | 'medium' | 'high';
@@ -37,7 +38,7 @@ type StreamEvent =
   | { type: 'phase'; phase: string }
   | { type: 'progress'; chars: number }
   | { type: 'command'; index: number; kind: string; args: Record<string, unknown> }
-  | { type: 'plan'; message: string; commands: Command[]; done: boolean }
+  | { type: 'plan'; message: string; commands: Command[]; done: boolean; usage?: { input: number; output: number; cached: number; cacheWrite: number; hitRate: number } }
   | { type: 'error'; message: string };
 type Draft = { id?: string; name: string; protocol: string; baseUrl: string; apiKey: string; defaultModel: string; models: string };
 type Tab = 'chat' | 'channels';
@@ -83,6 +84,12 @@ const STATUS_LABELS: Record<ToolStatus, string> = {
   error: '失败',
   cancelled: '已取消',
 };
+
+function newConversationId() {
+  return typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `conv-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
 
 let messageSeq = 0;
 function nextId(prefix: string) {
@@ -249,6 +256,7 @@ export function VoxaAiPanel() {
   const [draft, setDraft] = useState<Draft | undefined>(undefined);
   const [note, setNote] = useState('');
   const abortRef = useRef<AbortController | undefined>(undefined);
+  const conversationId = useRef<string>(newConversationId());
   const transcriptRef = useRef<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
   const mounted = useRef(true);
   const logRef = useRef<HTMLDivElement>(null);
@@ -438,11 +446,12 @@ export function VoxaAiPanel() {
       const contextStarted = performance.now();
       const context = await session.panelContext();
       const modelContext = { ...(context as unknown as Record<string, unknown>) };
-      delete modelContext.snapshot;
+      for (const key of ['snapshot', 'fingerprint', 'revision', 'humanEpoch', 'undoDepth']) delete modelContext[key];
       console.info('[voxa-panel] context', { ms: Math.round(performance.now() - contextStarted), bytes: JSON.stringify(modelContext).length });
       patchMessage(assistantId, { status: '准备请求…' });
       void savePreferences(providerId, model, autonomy).catch(() => undefined);
-      const reply = await streamPlan({
+      let planUsage: ChatMessage['usage'];
+    const reply = await streamPlan({
         providerId,
         model,
         prompt: text,
@@ -451,9 +460,11 @@ export function VoxaAiPanel() {
         toolResults: options.toolResults,
         step,
         reasoning,
+        conversationId: conversationId.current,
       }, controller.signal, (event) => {
         if (event.type === 'phase') patchMessage(assistantId, { status: PHASE_TEXT[event.phase] || '处理中…' });
         if (event.type === 'progress') patchMessage(assistantId, { status: `已接收 ${event.chars} 字符…` });
+        if (event.type === 'plan' && event.usage) planUsage = event.usage;
         if (event.type === 'command') {
           patchMessage(assistantId, (message) => {
             const tools = message.tools ? [...message.tools] : [];
@@ -473,6 +484,7 @@ export function VoxaAiPanel() {
         done: reply.done,
         context,
         status: undefined,
+        usage: planUsage,
         tools: reply.commands.map((command, index) => ({ index, kind: command.kind, args: command.args, status: 'pending' })),
       };
       patchMessage(assistantId, assistant);
@@ -503,6 +515,10 @@ export function VoxaAiPanel() {
     void runPlan({ text, displayUser: false, toolResults: message.results, step: (message.step || 0) + 1 });
   }, [runPlan]);
 
+  const resetConversation = useCallback(() => {
+    conversationId.current = newConversationId();
+  }, []);
+
   const saveChannel = useCallback(async () => {
     if (!draft) return;
     const { id, models, ...fields } = draft;
@@ -515,12 +531,13 @@ export function VoxaAiPanel() {
     setDraft(undefined);
     await loadChannels();
     if (saved.provider?.id) {
+      resetConversation();
       setProviderId(saved.provider.id);
       setModel(saved.provider.defaultModel || saved.provider.models[0]?.id || '');
       await savePreferences(saved.provider.id, saved.provider.defaultModel || saved.provider.models[0]?.id || '', autonomy);
     }
     setNote('渠道已保存，可直接复用');
-  }, [autonomy, draft, loadChannels, savePreferences]);
+  }, [autonomy, draft, loadChannels, resetConversation, savePreferences]);
 
   const testChannel = useCallback(async (provider: Provider) => {
     const result = await request<{ result: { ok: boolean; message: string; latencyMs: number } }>(`/api/player-ai/providers/${provider.id}/test`, 'POST', { model: provider.defaultModel || provider.models[0]?.id });
@@ -548,13 +565,14 @@ export function VoxaAiPanel() {
 
   const chooseProvider = useCallback((provider: Provider) => {
     if (!provider.enabled) return;
+    resetConversation();
     setProviderId(provider.id);
     setCustomModel(false);
     const nextModel = provider.defaultModel || provider.models[0]?.id || '';
     setModel(nextModel);
     void savePreferences(provider.id, nextModel, autonomy).catch(() => undefined);
     setTab('chat');
-  }, [autonomy, savePreferences]);
+  }, [autonomy, resetConversation, savePreferences]);
 
   const toggle = () => {
     setOpen((value) => {
@@ -689,6 +707,9 @@ export function VoxaAiPanel() {
                           {message.phase === 'error' && <em className={styles.errorLabel}><Icon name="alert" size={12} /> 有错误</em>}
                         </div>
                         <p className={styles.toolFoldSummary}>{summarizeToolGroups(message.tools)}</p>
+                        {message.usage && message.usage.input > 0 && (
+                          <p className={styles.cacheLine}>上下文缓存命中 {Math.round(message.usage.hitRate * 100)}% · {message.usage.cached}/{message.usage.input} tokens</p>
+                        )}
                         {message.tools.some((tool) => tool.error) && (
                           <div className={styles.failureList}>
                             {message.tools.filter((tool) => tool.error).slice(0, 3).map((tool) => (
@@ -758,6 +779,7 @@ export function VoxaAiPanel() {
                 onChange={(event) => {
                   if (event.target.value === '__custom') { setCustomModel(true); return; }
                   setCustomModel(false);
+                  resetConversation();
                   setModel(event.target.value);
                 }}
                 aria-label="选择模型"

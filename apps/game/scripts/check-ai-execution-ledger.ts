@@ -19,17 +19,20 @@ async function main(){
     await recordAiExecution(uid,runId,{phase:'after',action:'check',snapshot:'hash',apiKey:'never-store-this'});
     const stored=(await listAiExecutionRuns()).find(v=>v.id===runId)!;
     assert.equal(JSON.stringify(stored.events).includes('never-store-this'),false);
+    assert.equal(stored.cachedInputTokens,0);assert.equal(stored.cacheWriteTokens,0);assert.equal(stored.cacheHitRate,0);
     await db.query('UPDATE box_identity.ai_execution_policy SET blocked_users=blocked_users || $1::jsonb WHERE id=1',[JSON.stringify([String(uid)])]);
     await assert.rejects(recordAiExecution(uid,runId,{phase:'before'}),(e:any)=>e.code==='AI_EXECUTION_DISABLED');
     await db.query('UPDATE box_identity.ai_execution_policy SET blocked_users=blocked_users - $1 WHERE id=1',[String(uid)]);
-    await recordAiExecution(uid,runId,{phase:'complete',inputTokens:13,outputTokens:7});
-    assert.equal((await listAiExecutionRuns()).find(v=>v.id===runId)?.inputTokens,13);
+    await recordAiExecution(uid,runId,{phase:'complete',inputTokens:13,outputTokens:7,cachedTokens:9,cacheWriteTokens:4});
+    const completed=(await listAiExecutionRuns()).find(v=>v.id===runId)!;
+    assert.equal(completed.inputTokens,13);assert.equal(completed.cachedInputTokens,9);assert.equal(completed.cacheWriteTokens,4);
+    assert.ok(Math.abs(Number(completed.cacheHitRate)-9/13)<1e-6,'cache hit rate = cached/input tokens');
     await assert.rejects(recordAiExecution(uid,runId,{phase:'after'}));
     const expired=allowed[1].runId;
     await db.query("UPDATE box_identity.ai_execution_runs SET expires_at=NOW()-INTERVAL '1 second' WHERE id=$1",[expired]);
     await assert.rejects(recordAiExecution(uid,expired,{phase:'after'}));
     assert.equal((await listAiExecutionRuns()).find(v=>v.id===expired)?.status,'interrupted');
-    console.log(JSON.stringify({ok:true,checks:['distributed-concurrency','owner-isolation','secret-redaction','kill-switch','terminal-no-replay','lease-expiry']}));
+    console.log(JSON.stringify({ok:true,checks:['distributed-concurrency','owner-isolation','secret-redaction','kill-switch','prompt-cache-usage','terminal-no-replay','lease-expiry']}));
   } finally {
     if(uid) await db.query('UPDATE box_identity.ai_execution_policy SET blocked_users=blocked_users - $1 WHERE id=1',[String(uid)]);
     await db.query('DELETE FROM box_identity.principals WHERE id=$1',[principal]);await db.end();

@@ -150,14 +150,18 @@ export function Hierarchy(props: HierarchyProps) {
         nodeInteractive = false;
       }
 
+      const attachedHierarchyNode =
+        hierarchyNode.type === ProjectNodeType.Bone && hierarchyNode.skinId
+          ? hierarchyData[hierarchyNode.skinId]
+          : undefined;
+
       return {
         id: hierarchyNode.id,
         type: type,
         name: hierarchyNode.name,
-        attachedNode:
-          hierarchyNode.type === ProjectNodeType.Bone && hierarchyNode.skinId
-            ? getTreeNode(hierarchyData[hierarchyNode.skinId])
-            : undefined,
+        attachedNode: attachedHierarchyNode
+          ? getTreeNode(attachedHierarchyNode)
+          : undefined,
         children: hierarchyNode.childrenIds ? children : undefined,
         icon: icon,
         separator: hierarchyNode.id === ROOT_BONE_ID,

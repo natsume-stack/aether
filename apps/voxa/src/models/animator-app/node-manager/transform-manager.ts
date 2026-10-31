@@ -398,6 +398,9 @@ export class TransformManager {
 
         ids.forEach((id) => {
           const node = hierarchyData[id];
+          if (!node) {
+            return;
+          }
 
           if (
             node.type !== ProjectNodeType.Bone &&
@@ -1019,7 +1022,11 @@ export class TransformManager {
     // 如果选中的是骨骼，并且有绑定的蒙皮，双击穿透选中绑定的蒙皮
     // 如果没有绑定的蒙皮，保持选中骨骼自己
     // 动画模式下，禁用部件交互，此时选中自己
-    if (hierarchyData[activeIds[0]].type === ProjectNodeType.Bone) {
+    const activeNode = hierarchyData[activeIds[0]];
+    if (!activeNode) {
+      return;
+    }
+    if (activeNode.type === ProjectNodeType.Bone) {
       const skinId = getSkinIdByBoneId(activeIds[0]);
       if (skinId && isSkinPartInteractive()) {
         this.setActiveIds([skinId]);
