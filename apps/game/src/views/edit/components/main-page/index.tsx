@@ -64,7 +64,7 @@ export const EditorUIComponent = React.memo((props: EditorUIProps) => {
   );
   const isLocalEngine = clientConfig.isLocalGameServer;
 
-  const isAiEnabled = clientConfig.FEATURE_FLAGS?.includes(FeatureFlag.Ai);
+  const isAiEnabled = isLocalEngine || clientConfig.FEATURE_FLAGS?.includes(FeatureFlag.Ai);
   const showAiPanel = isShowLeftAiPanel && isAiEnabled;
 
   // state

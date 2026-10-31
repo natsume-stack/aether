@@ -68,3 +68,6 @@ export async function callEditRuntime(
 }
 
 export const RUNTIME_UNAVAILABLE_CODE = 'RUNTIME_NOT_ACTIVE';
+
+/** This helper is not a public API. */
+export default function handler(_req: NextApiRequest, res: NextApiResponse) { return res.status(404).end(); }

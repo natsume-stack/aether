@@ -325,7 +325,7 @@ function table(name: string) {
   return `${quoteIdentifier(identitySchema())}.${quoteIdentifier(name)}`;
 }
 
-function getPool() {
+export function getPool() {
   const connectionString = (process.env.BOX_DATABASE_URL || '').trim();
   if (!connectionString) return null;
   if (!pool) {
@@ -578,9 +578,17 @@ function sessionToken(req: NextApiRequest) {
   return parse(req.headers.cookie || '')[COOKIE_NAME] || '';
 }
 
+function deviceTokens(req: NextApiRequest) {
+  const values = String(req.headers.cookie || '').split(';').map((entry) => {
+    const at = entry.indexOf('=');
+    if (at < 0 || entry.slice(0, at).trim() !== DEVICE_COOKIE_NAME) return '';
+    return entry.slice(at + 1).trim();
+  }).filter((value) => /^[A-Za-z0-9_-]{40,64}$/.test(value));
+  return [...new Set(values)];
+}
+
 function deviceToken(req: NextApiRequest) {
-  const value = parse(req.headers.cookie || '')[DEVICE_COOKIE_NAME] || '';
-  return /^[A-Za-z0-9_-]{40,64}$/.test(value) ? value : '';
+  return deviceTokens(req)[0] || '';
 }
 
 function secretsMatch(provided: string, expected: string) {
@@ -650,44 +658,70 @@ function secureCookie(req: NextApiRequest) {
   return false;
 }
 
+function cookieDomain() {
+  return process.env.BOX_PLAYER_COOKIE_DOMAIN?.trim() || '';
+}
+
+/**
+ * A host-only cookie from before the shared-domain migration shadows the new
+ * domain cookie on the host that originally set it: a stale session token can
+ * win the cookie parse, and a host-only device token never reaches sibling
+ * hosts (VOXA), where session-device binding then rejects a valid login.
+ */
+function expireHostOnlyCookie(req: NextApiRequest, res: NextApiResponse, name: string) {
+  if (!cookieDomain()) return;
+  appendCookie(res, serialize(name, '', {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: secureCookie(req),
+    path: '/',
+    maxAge: 0,
+  }));
+}
+
 function setSessionCookie(req: NextApiRequest, res: NextApiResponse, token: string) {
+  expireHostOnlyCookie(req, res, COOKIE_NAME);
   appendCookie(res, serialize(COOKIE_NAME, token, {
     httpOnly: true,
     sameSite: 'lax',
     secure: secureCookie(req),
     path: '/',
-    ...(process.env.BOX_PLAYER_COOKIE_DOMAIN
-      ? { domain: process.env.BOX_PLAYER_COOKIE_DOMAIN.trim() }
+    ...(cookieDomain()
+      ? { domain: cookieDomain() }
       : {}),
     maxAge: SESSION_IDLE_DAYS * 24 * 60 * 60,
   }));
 }
 
-function ensureDeviceToken(req: NextApiRequest, res: NextApiResponse) {
+function ensureDeviceToken(req: NextApiRequest, res: NextApiResponse, migrate = false) {
+  const domain = cookieDomain();
   const existing = deviceToken(req);
-  if (existing) return existing;
-  const token = randomBytes(32).toString('base64url');
+  // Only session-creating requests migrate a host-only device token to the
+  // shared domain; internal identity reads must never rewrite it, because the
+  // first duplicate in the cookie header belongs to another browser host and
+  // would break the session's device binding.
+  if (existing && !(domain && migrate)) return existing;
+  const token = existing || randomBytes(32).toString('base64url');
   appendCookie(res, serialize(DEVICE_COOKIE_NAME, token, {
     httpOnly: true,
     sameSite: 'lax',
     secure: secureCookie(req),
     path: '/',
-    ...(process.env.BOX_PLAYER_COOKIE_DOMAIN
-      ? { domain: process.env.BOX_PLAYER_COOKIE_DOMAIN.trim() }
-      : {}),
+    ...(domain ? { domain } : {}),
     maxAge: 365 * 24 * 60 * 60,
   }));
   return token;
 }
 
 function clearSessionCookie(req: NextApiRequest, res: NextApiResponse) {
+  expireHostOnlyCookie(req, res, COOKIE_NAME);
   appendCookie(res, serialize(COOKIE_NAME, '', {
     httpOnly: true,
     sameSite: 'lax',
     secure: secureCookie(req),
     path: '/',
-    ...(process.env.BOX_PLAYER_COOKIE_DOMAIN
-      ? { domain: process.env.BOX_PLAYER_COOKIE_DOMAIN.trim() }
+    ...(cookieDomain()
+      ? { domain: cookieDomain() }
       : {}),
     maxAge: 0,
   }));
@@ -780,8 +814,8 @@ async function activeIdentityBan(database: Pool, kind: 'ip' | 'device', value: s
   return result.rows[0] || null;
 }
 
-async function assertRequestSourceAllowed(database: Pool, req: NextApiRequest, res: NextApiResponse) {
-  const token = ensureDeviceToken(req, res);
+async function assertRequestSourceAllowed(database: Pool, req: NextApiRequest, res: NextApiResponse, migrateDevice = false) {
+  const token = ensureDeviceToken(req, res, migrateDevice);
   const [ipBan, deviceBan] = await Promise.all([
     activeIdentityBan(database, 'ip', requestIp(req)),
     activeIdentityBan(database, 'device', tokenHash(token)),
@@ -807,8 +841,11 @@ async function findSession(database: Pool, token: string, req: NextApiRequest) {
   `, [tokenHash(token)]);
   const row = result.rows[0];
   if (!row) return null;
-  const currentDevice = deviceToken(req);
-  if (!sessionDeviceBindingMatches(row.session_device_hash, currentDevice)) {
+  // A host-only legacy device cookie and a domain-scoped one can coexist, and
+  // the cookie parser returns only the first. Accept any candidate that
+  // matches the session's binding instead of rejecting a valid login.
+  const currentDevices = deviceTokens(req);
+  if (!currentDevices.some((device) => sessionDeviceBindingMatches(row.session_device_hash, device))) {
     await database.query(`DELETE FROM ${table('sessions')} WHERE token_hash = $1`, [tokenHash(token)]);
     return null;
   }
@@ -1070,7 +1107,7 @@ export async function registerPlayer(
   const database = getPool();
   if (!database) throw new Error('玩家账号功能需要配置 PostgreSQL');
   await initialize();
-  const deviceHash = await assertRequestSourceAllowed(database, req, res);
+  const deviceHash = await assertRequestSourceAllowed(database, req, res, true);
   const existing = await findSession(database, sessionToken(req), req);
   if (existing?.user_id) throw new Error('当前已经登录');
   const input = validateRegistration(values.username, values.displayName, values.password);
@@ -1242,7 +1279,7 @@ export async function loginPlayer(
   if (!database) throw new Error('玩家账号功能需要配置 PostgreSQL');
   await initialize();
   await expireTemporaryBans(database);
-  const deviceHash = await assertRequestSourceAllowed(database, req, res);
+  const deviceHash = await assertRequestSourceAllowed(database, req, res, true);
   const username = typeof values.username === 'string' ? values.username.trim() : '';
   const password = typeof values.password === 'string' ? values.password : '';
   const result = await database.query<IdentityRow & { password_salt: string; password_hash: string }>(`

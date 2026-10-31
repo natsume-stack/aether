@@ -1,4 +1,5 @@
 import { vec3 } from 'gl-matrix';
+import {projectSchemaToBytes, projectV10} from '@box/voxa-project';
 
 import type { VoxelEditor } from '../editor';
 import { store } from '../../redux/store';
@@ -125,6 +126,9 @@ function roundTuple(value: ArrayLike<number>): Vec3Tuple {
 
 export class VoxaAgentLiveSession {
   private stopped = false;
+  private panelBusy = false;
+  private panelRollbackFingerprint = '';
+  private panelUndo: Awaited<ReturnType<VoxelEditor['projectManager']['getData']>> | undefined;
   private sessionId = '';
   private after = 0;
   private pollAbort: AbortController | undefined;
@@ -150,6 +154,107 @@ export class VoxaAgentLiveSession {
   private historyInstrumented = false;
 
   constructor(private editor: VoxelEditor) {}
+
+  private async panelFingerprint(data: Awaited<ReturnType<VoxelEditor['projectManager']['getData']>>) {
+    const bytes = projectSchemaToBytes(data);
+    if(bytes.length>16*1024*1024) throw new Error('Model exceeds AI snapshot budget');
+    const digest=await crypto.subtle.digest('SHA-256',new Uint8Array(bytes).buffer);
+    return Array.from(new Uint8Array(digest),n=>n.toString(16).padStart(2,'0')).join('');
+  }
+
+  public async panelContext() {
+    const data = await this.editor.projectManager.getData();
+    const parts = Object.entries(data.nodes).slice(0,128).map(([id,node]) => ({id,name:node.name,type:node.type,parentId:node.parentId,position:Array.from(node.position),scale:Array.from(node.scale)}));
+    return {fingerprint:await this.panelFingerprint(data),snapshot:this.snapshot(),parts,palette:this.paletteInfo({limit:64}),revision:this.modelRevision,humanEpoch:this.humanEpoch,undoDepth:this.voxaDepth().undo};
+  }
+
+  public async executePanelPlan(commands: Array<{kind:string;args:Record<string,unknown>}>, expected: {revision:number;humanEpoch:number;undoDepth:number;fingerprint:string}, signal:AbortSignal) {
+    if(this.panelBusy) throw new Error('AI plan already running');
+    if(this.modelRevision!==expected.revision || this.humanEpoch!==expected.humanEpoch || this.voxaDepth().undo!==expected.undoDepth) throw new Error('Model changed after planning; generate a new plan');
+    if(commands.length>32) throw new Error('AI plan exceeds command budget');
+    this.panelBusy=true;
+    let mutated=false;
+    let currentFingerprint=expected.fingerprint;
+    try {
+      const source=await this.editor.projectManager.getData();
+      if(await this.panelFingerprint(source)!==expected.fingerprint) throw new Error('Model source changed; generate a new plan');
+      this.panelUndo=projectV10.ProjectDataV10Schema.clone(source);
+      this.panelRollbackFingerprint='';
+      const shape=this.shape();
+      let cells=0;
+      const coordinate=(value:unknown) => {
+        if(!Array.isArray(value) || value.length!==3 || value.some((n,i)=>!Number.isSafeInteger(n) || n<0 || n>=shape[i])) throw new Error('Invalid or out-of-bounds voxel coordinates');
+        return value as number[];
+      };
+      for(const command of commands) {
+        if(['paint','erase'].includes(command.kind)) {coordinate(command.args.at);cells++;}
+        if(command.kind==='paint_path') {
+          if(!Array.isArray(command.args.points) || command.args.points.length>4096) throw new Error('Invalid voxel path');
+          command.args.points.forEach(coordinate);cells+=command.args.points.length;
+        }
+        if(command.kind==='fill_box') {
+          const a=coordinate(command.args.from),b=coordinate(command.args.to);
+          const volume=a.reduce((v,n,i)=>v*(Math.abs(n-b[i])+1),1);
+          if(volume>8192) throw new Error('Voxel fill exceeds budget');
+          cells+=volume;
+        }
+      }
+      if(cells>32768) throw new Error('AI batch exceeds voxel budget');
+      const before=await this.editor.projectManager.saveProject({autoSave:false});
+      if(!before.isSuccess) throw new Error('Cannot save model snapshot');
+      if(await this.panelFingerprint(await this.editor.projectManager.getData())!==expected.fingerprint) throw new Error('Model changed while saving snapshot');
+      await this.run('observe',{});
+      for(const command of commands) {
+        if(signal.aborted) throw new Error('AI plan cancelled');
+        const response=await fetch('/api/ai/authorize',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({modelId:store.getState().app.projectId}),signal});
+        if(!response.ok) throw new Error('AI execution is disabled or unavailable');
+        if(await this.panelFingerprint(await this.editor.projectManager.getData())!==currentFingerprint) throw new Error('Model changed during AI execution');
+        this.ensureWriteAllowed('paint');
+        mutated=true;
+        if(command.kind==='part_patch') {
+          if(!store.getState().permission.editParts) throw new Error('Part editing is not allowed');
+          const data=await this.editor.projectManager.getData();
+          if(await this.panelFingerprint(data)!==currentFingerprint) throw new Error('Part data changed during AI execution');
+          const node=data.nodes[String(command.args.id || '')];
+          if(!node) throw new Error('Unknown part ID');
+          if(command.args.name!==undefined) {if(typeof command.args.name!=='string' || !command.args.name.trim() || command.args.name.length>64) throw new Error('Invalid part name');node.name=command.args.name;}
+          for(const key of ['position','scale'] as const) {
+            const value=command.args[key];
+            if(value!==undefined) {
+              if(!Array.isArray(value) || value.length!==3 || value.some(v=>typeof v!=='number' || !Number.isFinite(v) || Math.abs(v)>10000 || (key==='scale' && v<=0))) throw new Error('Invalid part transform');
+              node[key].set(value);
+            }
+          }
+          this.editor.projectManager.restoreAiSnapshot(data);
+          this.modelRevision++;
+          this.observedUndoDepth=this.voxaDepth().undo;
+        } else {
+          if(!['paint','erase','paint_path','fill_box','set_color','trim'].includes(command.kind)) throw new Error('Unsupported panel command');
+          await this.run(command.kind,{...command.args,paceMs:0});
+        }
+        currentFingerprint=await this.panelFingerprint(await this.editor.projectManager.getData());
+      }
+      const saved=await this.editor.projectManager.saveProject({autoSave:false});
+      if(!saved.isSuccess) throw new Error('Model changed but save failed; inspect before retry');
+      if(await this.panelFingerprint(await this.editor.projectManager.getData())!==currentFingerprint) throw new Error('Model changed during AI save');
+      this.panelRollbackFingerprint=currentFingerprint;
+      return {success:true,commands:commands.length};
+    } finally {
+      if(mutated) this.panelRollbackFingerprint=currentFingerprint;
+      this.panelBusy=false;
+    }
+  }
+
+  public async rollbackPanelPlan() {
+    if(this.panelBusy || !this.panelUndo) throw new Error('No AI snapshot available');
+    if(!this.panelRollbackFingerprint || await this.panelFingerprint(await this.editor.projectManager.getData())!==this.panelRollbackFingerprint) throw new Error('Model changed after AI execution; rollback would overwrite later edits');
+    this.editor.projectManager.restoreAiSnapshot(this.panelUndo);
+    this.panelUndo=undefined;
+    this.modelRevision++;
+    this.observedUndoDepth=this.voxaDepth().undo;
+    const saved=await this.editor.projectManager.saveProject({autoSave:false});
+    if(!saved.isSuccess) throw new Error('Snapshot restored but save failed');
+  }
 
   public start() {
     setVoxaAgentPresence({ phase: 'connecting' });

@@ -6,6 +6,7 @@ import { LaunchState, setLaunchState, setUserInfo } from './redux/app-slice';
 import { OnRetry, Launcher } from './views/launcher';
 import { RootContext } from './root-context';
 import { AgentActivePanel } from './views/agent-active';
+import { VoxaAiPanel } from './views/ai-panel';
 import type { UserInfo } from './interface';
 import { LangType } from './utils/i18n';
 
@@ -79,6 +80,7 @@ function Root(props: { setLocale: (locale: LangType) => void }) {
       {launcher}
       {container}
       <AgentActivePanel />
+      <VoxaAiPanel />
     </RootContext.Provider>
   );
 }

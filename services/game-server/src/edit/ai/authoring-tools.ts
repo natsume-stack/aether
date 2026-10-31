@@ -5,6 +5,7 @@ import { entityPatchSchema } from './entity-content-domain';
 import { entityLifecycleSchema } from './entity-lifecycle-domain';
 import { uiPatchSchema } from './ui-content-domain';
 import { readContentOverview } from './content-overview';
+import { createTerrainContentDomain } from './terrain-content-domain';
 
 const sessions = new WeakMap<object, { session: AuthoringSession; raw: Record<string, any> }>();
 const domains = new WeakMap<object, Map<string, ContentDomain>>();
@@ -33,6 +34,7 @@ export function coordinateAuthoring<T extends Record<string, any>>(state: object
       return definition.execute(parsed.data, { toolCallId: 'authoring-internal', messages: [] });
     };
     const session = new AuthoringSession(invoke);
+    session.registerDomain('terrain', createTerrainContentDomain(invoke));
     Object.assign(raw, {
       authoringApply: { inputSchema: z.object({ proposalId: z.string() }), execute: ({ proposalId }: any) => session.applyProposal(proposalId) },
       authoringRevert: { inputSchema: z.object({ proposalId: z.string() }), execute: ({ proposalId }: any) => session.revertProposal(proposalId) },
@@ -73,10 +75,16 @@ export function coordinateAuthoring<T extends Record<string, any>>(state: object
       execute: async args => session.proposeContent('script', args) }),
     authoringProposeEntities: tool({ description: 'Prepare bounded property edits to existing entity IDs with entity/asset CAS, edit-lock protection, exact diff and inverse. Does not add/delete/reparent entities or save.',
       inputSchema: entityPatchSchema, execute: async args => session.proposeContent('entities', args) }),
-    authoringProposeEntityLifecycle: tool({ description: 'Prepare entity creation or leaf deletion with full-node inverse and entity/asset CAS. Refuses subtrees, locked entities and unknown models. Reparenting is not supported. Does not save.',
+    authoringProposeEntityLifecycle: tool({ description: 'Prepare entity creation, leaf copying (full value incl. mesh, optional position offset), leaf deletion or reparenting with full-node inverse and entity/asset CAS. Refuses subtree copies, locked entities and unknown models. Does not save.',
       inputSchema: entityLifecycleSchema, execute: async args => session.proposeContent('entityLifecycle', args) }),
     authoringProposeUi: tool({description:'Prepare existing UI element property edits with authoritative revision, exact schema simulation and durable inverse. Preserves binding names, IDs, kinds, hierarchy and scripts. Does not create/delete/rename nodes or prove visual correctness.',
       inputSchema:uiPatchSchema,execute:async args=>session.proposeContent('ui',args)}),
+    authoringProposeTerrain: tool({ description: 'Prepare 1-64 terrain region fills as one plan-capable content proposal with optimistic revision. Applies in order with rolling revision. Does not modify or save the map.',
+      inputSchema: z.object({ expectedRevision: z.string().optional(),
+        step: z.object({ args: z.record(z.string(), z.unknown()) }).optional(),
+        steps: z.array(z.object({ args: z.record(z.string(), z.unknown()) })).min(1).max(64).optional(),
+      }).refine((v: any) => Boolean(v.step) !== Boolean(v.steps), 'Provide either step or steps'),
+      execute: async args => session.proposeContent('terrain', args) }),
     authoringApply: tool({ description: 'Apply a terrain or checked script proposal with domain revision checks. Inverse stays on the server; save separately. Not an atomic multi-domain transaction.', inputSchema: z.object({ proposalId: z.string() }), execute: async (args, options) => session.perform('authoringApply', args, options?.toolCallId) }),
     authoringDiscard: tool({ description: 'Discard an unapplied or expired draft without changing map content. Preserves review/history; applied, partial or unknown proposals must be inspected or reverted instead. Does not release proposal capacity.', inputSchema: z.object({ proposalId: z.string() }), execute: async (args, options) => session.perform('authoringDiscard', args, options?.toolCallId) }),
     authoringRevert: tool({ description: 'Revert a terrain or script proposal only if its domain revision still matches. Refuses to erase later human edits. Save separately.', inputSchema: z.object({ proposalId: z.string() }), execute: async (args, options) => session.perform('authoringRevert', args, options?.toolCallId) }),

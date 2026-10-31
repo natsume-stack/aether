@@ -25860,7 +25860,7 @@ class BindingFactory {
         `);
                 Object.keys(PlayerGamepadSchema.identity).forEach((partName)=>{
                     check.push(`
-            ${path} = ${safePropExpr(scriptGamepad, partName)} 
+            ${path} = ${safePropExpr(scriptGamepad, partName)}
                     || ${safePropExpr(defaultGamepad, partName)};
             ${res} = ${resources}.resolveAsset(${path},GameAssetType.PICTURE);
             if(${res}){

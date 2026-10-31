@@ -4,7 +4,7 @@ import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { FeatureFlag } from '@box/env/constants';
 import {
-  Experimental_Agent as Agent,
+  streamText,
   convertToModelMessages,
   ModelMessage,
   stepCountIs,
@@ -19,6 +19,13 @@ import { EditReplicaServer } from '../replica/replica-server';
 import { createEntityTools, createScriptTools } from './entity-tools';
 import { createMapAuthoringTools } from './map-authoring-tools';
 import { coordinateAuthoring } from './authoring-tools';
+import { executionTools, type ExecutionMode } from './execution-policy';
+import { assertAiExecutionAllowed } from './provider-gateway';
+import {
+  parseModelSelection,
+  providerLanguageModel,
+  resolveUserProvider,
+} from './provider-gateway';
 
 /**
  * LLM 生成选项
@@ -44,6 +51,10 @@ export class AiServer {
     ReturnType<typeof createScriptTools> &
     ReturnType<typeof createMapAuthoringTools>;
   private abortControllers = new Map<string, AbortController>();
+
+  private requestKey(sessionId: string, requestId: string) {
+    return JSON.stringify([sessionId, requestId]);
+  }
   private openRouter: ReturnType<typeof createOpenRouter>;
   /**
    * 临时处理
@@ -53,6 +64,7 @@ export class AiServer {
 
   private apiContext: string;
   private modelMapping: Record<string, string[]>;
+  private gameId: number;
 
   private getSystemPrompt(mapSize: { x: number; y: number; z: number }) {
     return `
@@ -96,10 +108,22 @@ When writing scripts, strictly follow these API definitions.
     messages: ModelMessage[],
     candidateModels: string[],
     options: LlmGenerateOptions,
+    modelFactory?: (model: string) => ReturnType<typeof providerLanguageModel>,
+    providerLabel?: string,
+    mode: ExecutionMode = 'review',
   ): Promise<void> {
     const sessionId = client.sessionId;
     const abortController = new AbortController();
-    this.abortControllers.set(requestId, abortController);
+    const requestKey = this.requestKey(sessionId, requestId);
+    if (this.abortControllers.has(requestKey)) {
+      client.message.error({ requestId, message: 'AI request is already running' });
+      return;
+    }
+    this.abortControllers.set(requestKey, abortController);
+    const timeout = setTimeout(() => abortController.abort(), 180_000);
+    let outputStarted = false;
+    let toolStarted = false;
+    try {
 
     let lastError: any;
 
@@ -110,40 +134,57 @@ When writing scripts, strictly follow these API definitions.
       try {
         if (abortController.signal.aborted) return;
 
-        const aiModel = useSilconFlow
-          ? this.openAiRouter
-          : this.openRouter.chat(model, {
-              reasoning: { enabled: true, effort: 'medium' },
-            });
+        const aiModel = modelFactory
+          ? modelFactory(model)
+          : useSilconFlow
+            ? this.openAiRouter
+            : this.openRouter.chat(model, {
+                reasoning: { enabled: true, effort: 'medium' },
+              });
 
         this.logger.debug(
           {
             sessionId,
             model,
-            provider: useSilconFlow ? 'silconflow' : 'openrouter',
+            provider: providerLabel || (useSilconFlow ? 'siliconflow' : 'openrouter'),
           },
           'Selected AI provider and model',
         );
 
         this.logger.info(
-          { sessionId, messages, model },
+          { sessionId, messageCount: messages.length, model },
           'Sending messages to LLM',
         );
 
         const shape = this.state.replica.project.voxels.shape;
-        const systemPrompt = this.getSystemPrompt(shape);
+        const systemPrompt = this.getSystemPrompt(shape) + (mode === 'review'
+          ? '\nCreate proposals and plans only. Explain them and wait for the human to approve in the review panel. Do not claim changes have been applied.'
+          : '\nUse authoring proposals and apply tools to edit. Writes are snapshotted and saved automatically. Stop after any uncertain result.');
 
         // 调用 Vercel AI SDK Agent
-        const agent = new Agent({
+        const settings = {
           model: aiModel,
-          tools: this.tools,
+          tools: executionTools(this.tools, {
+            mode, signal: abortController.signal, maxCalls: 100,
+            authorizeWrite: async () => {
+              if (!this.canUseAI(sessionId)) throw new Error('AI permission revoked');
+              if (this.state.game.state.replica.running) throw new Error('Stop preview before AI writes');
+              await assertAiExecutionAllowed(String(this.state.replica.sessionPermission[sessionId]?.userId || ''), String(this.gameId));
+              toolStarted = true;
+            },
+            save: () => this.replica.saveProject(Number(this.state.replica.sessionPermission[sessionId]?.userId || 0)),
+            audit: (event) => this.logger.info({sessionId, requestId, mode, ...event}, 'AI execution audit'),
+          }),
           system: systemPrompt,
-          stopWhen: stepCountIs(100), // TODO move into config
-        });
+          stopWhen: stepCountIs(20),
+          maxOutputTokens: 16384,
+        };
 
-        const result = agent.stream({
+        const result = streamText({
+          ...settings,
           messages,
-          providerOptions: useSilconFlow
+          abortSignal: abortController.signal,
+          providerOptions: modelFactory || useSilconFlow
             ? undefined
             : {
                 openrouter: {
@@ -158,10 +199,7 @@ When writing scripts, strictly follow these API definitions.
 
         // 处理流式文本
         for await (const part of uiStream) {
-          this.logger.debug(
-            { sessionId, part },
-            'Received stream part from LLM',
-          );
+
 
           // Check for error in stream part
           if (part.type === 'error') {
@@ -171,6 +209,7 @@ When writing scripts, strictly follow these API definitions.
           if (abortController.signal.aborted) {
             break;
           }
+          outputStarted = true;
           // 发送流式块到客户端
           client.message.streamChunk({
             requestId,
@@ -190,21 +229,7 @@ When writing scripts, strictly follow these API definitions.
           done: true,
         });
 
-        const fullContent = await result.text;
-        const toolCalls = await result.toolCalls;
-        const toolResults = await result.toolResults;
-        const reasoning = await result.reasoning;
-
-        this.logger.info(
-          {
-            sessionId,
-            fullContent,
-            toolCalls,
-            toolResults,
-            reasoning,
-          },
-          'LLM Full Response',
-        );
+        this.logger.info({ sessionId, requestId, model }, 'AI generation completed');
 
         // Success, return
         return;
@@ -213,9 +238,10 @@ When writing scripts, strictly follow these API definitions.
         if (abortController.signal.aborted) return;
 
         this.logger.error(
-          { sessionId, model, err },
+          { sessionId, model, errorName: err?.name },
           'Model generation failed, trying next model if available',
         );
+        if (outputStarted || toolStarted) break;
         continue;
       }
     }
@@ -229,7 +255,7 @@ When writing scripts, strictly follow these API definitions.
         );
       } else {
         this.logger.error(
-          { sessionId, error: lastError },
+          { sessionId, errorName: lastError?.name },
           'AI generation failed',
         );
 
@@ -240,7 +266,13 @@ When writing scripts, strictly follow these API definitions.
       }
     }
 
-    this.abortControllers.delete(requestId);
+    } finally {
+      clearTimeout(timeout);
+      if (abortController.signal.aborted) {
+        client.message.streamChunk({ requestId, chunk: '', done: true });
+      }
+      this.abortControllers.delete(requestKey);
+    }
   }
 
   constructor(spec: {
@@ -255,6 +287,7 @@ When writing scripts, strictly follow these API definitions.
     aiModelMapping: Record<string, string[]>;
   }) {
     this.logger = spec.logger;
+    this.gameId = spec.gameId;
     this.state = spec.state;
     this.replica = spec.replica;
     this.protocol = spec.server.protocol(AiProtocol);
@@ -308,8 +341,9 @@ When writing scripts, strictly follow these API definitions.
     this.protocol.configure({
       message: {
         sendMessage: async (client, { requestId, messages, model }) => {
-          // 验证权限
-          if (!this.canUseAI(client.sessionId)) {
+          // 验证权限；新面板的渠道必须绑定到当前会话的真实用户
+          const sessionPermission = this.state.replica.sessionPermission[client.sessionId];
+          if (!this.canUseAI(client.sessionId) || !sessionPermission?.userId) {
             client.message.error({
               requestId,
               message: 'AI 功能未获授权',
@@ -318,6 +352,14 @@ When writing scripts, strictly follow these API definitions.
           }
 
           const sessionId = client.sessionId;
+          if ([...this.abortControllers.keys()].some(key => JSON.parse(key)[0] === sessionId)) {
+            client.message.error({ requestId, message: 'An AI request is already running; stop it first' });
+            return;
+          }
+          if (messages.length > 2_000_000) {
+            client.message.error({ requestId, message: 'AI conversation is too large; start a new chat' });
+            return;
+          }
 
           this.logger.info(
             { sessionId, model },
@@ -341,12 +383,53 @@ When writing scripts, strictly follow these API definitions.
             return;
           }
 
-          // 解析选项
+          // 新面板把「渠道 + 模型 + 自主度」编码在 model 字段；旧的 FAST/PRO 仍走环境变量兜底
+          const selection = parseModelSelection(model);
+          const usesUserProvider = Boolean(selection.providerId) ||
+            Boolean(selection.model && !this.modelMapping[selection.model]);
+          if (usesUserProvider) {
+            try {
+              const provider = await resolveUserProvider(
+                String(sessionPermission.userId),
+                selection.providerId,
+                this.logger,
+              );
+              const selectedModel = selection.model || provider.defaultModel || provider.models[0]?.id || '';
+              if (!selectedModel) {
+                client.message.error({ requestId, message: '请先为渠道选择模型' });
+                return;
+              }
+              this.logger.info(
+                { sessionId, providerId: provider.id, provider: provider.name, model: selectedModel, autonomy: selection.autonomy },
+                'Using user provider',
+              );
+              await this.generateStream(
+                client,
+                requestId,
+                modelMessages,
+                [selectedModel],
+                { model: selectedModel },
+                (requested) => providerLanguageModel(provider, requested),
+                `${provider.owner}:${provider.protocol}:${provider.name}`,
+                selection.autonomy,
+              );
+              return;
+            } catch (error) {
+              this.logger.error({ sessionId, error }, 'User provider request failed');
+              client.message.error({
+                requestId,
+                message: (error as Error).message || 'AI 渠道不可用',
+              });
+              return;
+            }
+          }
+
           let candidateModels: string[] = [];
-          if (this.modelMapping[model]) {
-            candidateModels = this.modelMapping[model];
+          if (this.modelMapping[selection.model || model]) {
+            candidateModels = this.modelMapping[selection.model || model];
           } else {
-            throw new Error(`Unsupported model selection: ${model}`);
+            client.message.error({ requestId, message: `Unsupported model selection: ${model}` });
+            return;
           }
 
           const options: LlmGenerateOptions = {
@@ -364,7 +447,7 @@ When writing scripts, strictly follow these API definitions.
         },
 
         abort: (client, { requestId }) => {
-          const controller = this.abortControllers.get(requestId);
+          const controller = this.abortControllers.get(this.requestKey(client.sessionId, requestId));
           if (controller) {
             controller.abort();
             this.logger.info({ requestId }, 'Aborted AI generation');
@@ -378,6 +461,7 @@ When writing scripts, strictly follow these API definitions.
    * 清理资源，移除已断开连接的会话
    */
   public cleanup(): void {
-    // 无状态模式下无需清理会话
+    for (const controller of this.abortControllers.values()) controller.abort();
+    this.abortControllers.clear();
   }
 }

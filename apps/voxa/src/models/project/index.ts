@@ -1018,6 +1018,10 @@ export class ProjectManager {
    * 从本地工程文件载入一个可继续编辑的新工程。
    * 导入后清除原模型 ID，避免后续保存覆盖导出方或当前已打开的模型。
    */
+  public restoreAiSnapshot(projectData: ProjectData) {
+    this.loadData(ProjectDataSchema.clone(projectData), store.getState().app.projectName);
+  }
+
   public loadImportedProject(projectData: ProjectData, projectName: string) {
     this.loadData(projectData, projectName);
     store.dispatch(setProjectId(0));

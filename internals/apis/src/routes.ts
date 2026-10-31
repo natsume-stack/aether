@@ -2,6 +2,9 @@ const escaped = (value: string) => encodeURIComponent(value);
 
 /** Stable paths consumed by the player administration application. */
 export const playerAdminRoutes = {
+  aiProviders: '/api/play-admin/ai-providers',
+  aiProvider: (id: string) => `/api/play-admin/ai-providers/${escaped(id)}`,
+  aiProviderAction: (id: string, action: 'default' | 'test' | 'models') => `/api/play-admin/ai-providers/${escaped(id)}/${action}`,
   activity: '/api/play-admin/activity',
   admins: '/api/play-admin/admins',
   admin: (id: string) => `/api/play-admin/admins/${escaped(id)}`,

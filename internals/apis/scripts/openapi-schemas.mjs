@@ -3,6 +3,21 @@ const optionalString = string
 const stringArray = { type: 'array', items: string }
 
 export const localEngineSchemas = {
+  AiProvider: {
+    type: 'object', required: ['id','owner','name','protocol','baseUrl','keyHint','defaultModel','models','headers','capabilities','enabled','isDefault','lastTestedAt','lastTestStatus'],
+    properties: {
+      id: {type:'string',format:'uuid'}, owner:{type:'string',enum:['user','admin']}, name:string,
+      protocol:{type:'string',enum:['chat-completions','responses','anthropic-messages']}, baseUrl:string,
+      keyHint:string, defaultModel:string, models:{type:'array',items:{type:'object',required:['id'],properties:{id:string,name:string}}},
+      headers:{type:'object',additionalProperties:string},capabilities:{type:'object',required:['tools','vision','json'],properties:{tools:{type:'boolean'},vision:{type:'boolean'},json:{type:'boolean'}}},
+      enabled:{type:'boolean'},isDefault:{type:'boolean'},lastTestedAt:{type:['string','null']},lastTestStatus:string,
+    },
+  },
+  AiProviderInput: {
+    type:'object',properties:{name:{type:'string',maxLength:64},protocol:{type:'string',enum:['chat-completions','responses','anthropic-messages']},baseUrl:{type:'string',format:'uri'},apiKey:{type:'string',writeOnly:true},defaultModel:{type:'string',maxLength:200},models:{type:'array',maxItems:200,items:{oneOf:[string,{type:'object',required:['id'],properties:{id:string,name:string}}]}},headers:{type:'object',additionalProperties:string},capabilities:{type:'object',properties:{tools:{type:'boolean'},vision:{type:'boolean'},json:{type:'boolean'}}},enabled:{type:'boolean'}},
+  },
+  AiExecutionPolicy:{type:'object',required:['enabled','blockedUsers','blockedMaps'],properties:{enabled:{type:'boolean'},blockedUsers:stringArray,blockedMaps:stringArray}},
+  AiProviderTestResult:{type:'object',required:['ok','status','latencyMs','model','message'],properties:{ok:{type:'boolean'},status:{type:'integer'},latencyMs:{type:'number'},model:string,message:string}},
   PlayerSelfProfile: {
     type: 'object',
     required: ['subjectId', 'userId', 'username', 'displayName'],

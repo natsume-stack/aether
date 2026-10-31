@@ -181,7 +181,7 @@ export const DropDownMenu = (props: DropDownMenuProps) => {
         return (
           !isLocalEngine &&
           localOwner &&
-          clientConfig.FEATURE_FLAGS?.includes(FeatureFlag.Ai)
+          (clientConfig.isLocalGameServer || clientConfig.FEATURE_FLAGS?.includes(FeatureFlag.Ai))
         );
       }
       if (item.id === menuItemsId.backToWebsite) {

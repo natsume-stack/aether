@@ -200,7 +200,7 @@ function printTable(rows, extra) {
   console.log('活体通道（AI 接入方式）');
   console.log(`  地图  在 Creator 打开一张地图 → 右侧 Agent Active → 活体 页签 → 复制 MCP 配置`);
   console.log(`        面板会显示该地图的 MAP-xxxx 识别码与公开地址；把两者发给 AI 即可。`);
-  console.log(`  VOXA  打开 ${rows.find((row) => row.name === 'voxa')?.editorUrl || 'http://127.0.0.1:3123'} → 右下 Agent Active → 活体`);
+  console.log(`  VOXA  打开 ${rows.find((row) => row.name === 'voxa')?.editorUrl || `http://127.0.0.1:${port('BOX_DEV_VOXA_PORT', 3123)}`} → 右下 Agent Active → 活体`);
   if (extra.voxaCode) console.log(`        当前 VOX- 识别码：${extra.voxaCode}`);
   else console.log('        识别码在面板里（首次打开 VOXA 时生成）。');
   if (extra.mapCode) {
@@ -216,7 +216,7 @@ function printTable(rows, extra) {
   console.log('        "env": {');
   console.log('          "BOX_MAP_AGENT_BASE_URL": "' + (extra.publicCreatorUrl || `http://127.0.0.1:${port('BOX_DEV_CREATOR_PORT', 3127)}`) + '",');
   console.log('          "BOX_MAP_AGENT_CODE": "<面板里的 MAP- 识别码>",');
-  console.log('          "BOX_VOXA_AGENT_BASE_URL": "' + (extra.publicVoxaUrl || 'http://127.0.0.1:3123') + '",');
+  console.log('          "BOX_VOXA_AGENT_BASE_URL": "' + (extra.publicVoxaUrl || `http://127.0.0.1:${port('BOX_DEV_VOXA_PORT', 3123)}`) + '",');
   console.log('          "BOX_VOXA_AGENT_CODE": "' + (extra.voxaCode || '<VOX- 识别码>') + '",');
   console.log(
     '          "BOX_MAP_PROJECT": "'

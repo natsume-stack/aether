@@ -1,3 +1,4 @@
+import { AiProvidersPage } from '../ai/ai-providers-page';
 import { canOpenPlayerAdminView } from '@box/player-policy/navigation';
 
 import { CreatorManagementPage, type CreatorPageController } from '../creator/creator-management';
@@ -115,6 +116,8 @@ export function PlayerAdminContent({
         );
     } else if (view === 'security') {
         body = <SecurityActivityPage {...security.activity} refresh={() => void load()} />;
+    } else if (view === 'ai-providers') {
+        body = <AiProvidersPage />;
     } else if (view === 'script-moderation') {
         body = <ScriptModerationPage />;
     } else if (view === 'admins') {

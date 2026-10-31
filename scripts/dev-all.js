@@ -31,12 +31,47 @@ const PORTS = {
     play: port('BOX_DEV_PLAY_PORT', 3121),
     playRuntime: port('BOX_DEV_PLAY_RUNTIME_PORT', 9966),
     editRuntime: port('BOX_DEV_EDIT_RUNTIME_PORT', 9967),
+    admin: port('BOX_DEV_ADMIN_PORT', 8000),
 };
+
+// Where the dev stack is reachable from. Defaults keep the classic loopback
+// setup; a remote dev box sets BOX_DEV_HOST to its LAN/Tailscale IP and
+// BOX_DEV_BIND=0.0.0.0 so a browser on another machine can log in.
+const DEV_HOST = process.env.BOX_DEV_HOST || '127.0.0.1';
+const DEV_BIND = process.env.BOX_DEV_BIND || '127.0.0.1';
+const DEV_SCHEME = process.env.BOX_DEV_SCHEME || 'http';
+const origin = (servicePort) => `${DEV_SCHEME}://${DEV_HOST}:${servicePort}`;
 
 const sharedEnv = createDevelopmentEnvironment({
     repoRoot,
     inheritedEnv: process.env,
     useInfrastructure: args.has('--infra'),
+});
+// Public URLs drive cross-site login redirects, so they must point at the
+// externally reachable origin, not loopback. Explicit values (for example a
+// tunnel hostname) win over the derived host:port origin.
+const publicURL = (name, servicePort) => process.env[name] || origin(servicePort);
+const loopback = (servicePort) => `http://127.0.0.1:${servicePort}`;
+const CREATOR_ORIGIN = publicURL('BOX_CREATOR_PUBLIC_URL', PORTS.creator);
+const VOXA_ORIGIN = publicURL('BOX_VOXA_PUBLIC_URL', PORTS.voxa);
+const PORTAL_ORIGIN = publicURL('BOX_AUTH_PORTAL_PUBLIC_URL', PORTS.portal);
+Object.assign(sharedEnv, {
+    BOX_WEB_HOST: DEV_BIND,
+    // Internal calls must never fall through to a co-hosted deployment: the
+    // default 3121-3127 ports belong to another stack on this host.
+    BOX_PLAYER_SERVICE_INTERNAL_URL: loopback(PORTS.playerService),
+    VOXA_INTERNAL_URL: loopback(PORTS.voxa),
+    VOXA_URL: VOXA_ORIGIN,
+    BOX_PLAYER_SERVICE_PUBLIC_URL: publicURL('BOX_PLAYER_SERVICE_PUBLIC_URL', PORTS.playerService),
+    BOX_CREATOR_PUBLIC_URL: CREATOR_ORIGIN,
+    BOX_PLAY_PUBLIC_URL: publicURL('BOX_PLAY_PUBLIC_URL', PORTS.play),
+    BOX_VOXA_PUBLIC_URL: VOXA_ORIGIN,
+    BOX_AUTH_PORTAL_PUBLIC_URL: PORTAL_ORIGIN,
+    BOX_PLAYER_LOGIN_URL: process.env.BOX_PLAYER_LOGIN_URL || PORTAL_ORIGIN,
+    BOX_VOXA_ALLOWED_ORIGINS: process.env.BOX_VOXA_ALLOWED_ORIGINS || [VOXA_ORIGIN, CREATOR_ORIGIN].join(','),
+    BOX_RESOURCE_ALLOWED_ORIGINS: process.env.BOX_RESOURCE_ALLOWED_ORIGINS || [VOXA_ORIGIN, CREATOR_ORIGIN].join(','),
+    BOX_PLAYER_AUTH_ALLOWED_ORIGINS: process.env.BOX_PLAYER_AUTH_ALLOWED_ORIGINS || PORTAL_ORIGIN,
+    BOX_CREATOR_ALLOWED_HOSTS: process.env.BOX_CREATOR_ALLOWED_HOSTS || [DEV_HOST, '127.0.0.1', 'localhost'].join(','),
 });
 
 function prefixLines(prefix) {
@@ -160,7 +195,7 @@ try {
             cwd: gameRoot,
             env: {
                 BOX_DEPLOYMENT_MODE: 'player-service',
-                BOX_WEB_HOST: '127.0.0.1',
+                BOX_WEB_HOST: DEV_BIND,
                 NEXT_PUBLIC_APP_ENV: 'development',
                 NEXT_PUBLIC_APP_EDITION: 'createra',
                 NEXT_PUBLIC_APP_REGION: 'cn',
@@ -203,7 +238,7 @@ try {
     start('voxa', process.execPath, [nextExecutable, 'dev', '-p', String(PORTS.voxa)], {
         cwd: voxaRoot,
         env: {
-            BOX_PLAYER_SERVICE_INTERNAL_URL: `http://127.0.0.1:${PORTS.playerService}`,
+            BOX_PLAYER_SERVICE_INTERNAL_URL: loopback(PORTS.playerService),
             NEXT_DIST_DIR: '.next-voxa',
             PORT: String(PORTS.voxa),
         },
@@ -216,12 +251,12 @@ try {
         {
             cwd: portalRoot,
             env: {
-                HOST: '127.0.0.1',
+                HOST: DEV_BIND,
                 PORT: String(PORTS.portal),
-                AUTH_DEMO_PLAYER_SERVICE_URL: `http://127.0.0.1:${PORTS.playerService}`,
-                AUTH_DEMO_PUBLIC_URL: `http://127.0.0.1:${PORTS.portal}`,
-                AUTH_DEMO_CREATOR_URL: `http://127.0.0.1:${PORTS.creator}`,
-                AUTH_DEMO_PLAY_URL: `http://127.0.0.1:${PORTS.play}`,
+                AUTH_DEMO_PLAYER_SERVICE_URL: origin(PORTS.playerService),
+                AUTH_DEMO_PUBLIC_URL: PORTAL_ORIGIN,
+                AUTH_DEMO_CREATOR_URL: CREATOR_ORIGIN,
+                AUTH_DEMO_PLAY_URL: publicURL('BOX_PLAY_PUBLIC_URL', PORTS.play),
                 AUTH_DEMO_API_KEY: sharedEnv.BOX_PLAYER_AUTH_API_KEY,
                 AUTH_DEMO_REGISTRATION_ENABLED: 'true',
             },
@@ -236,7 +271,12 @@ try {
         );
         start('player-admin', process.execPath, [executable, 'dev'], {
             cwd: adminRoot,
-            env: { PORT: '8000', PLAYER_ADMIN_DEV_API_URL: 'http://127.0.0.1:3124' },
+            env: {
+            PORT: String(PORTS.admin),
+            // The Umi dev proxy must reach the dev player-service, not a co-hosted
+            // production stack on 3124.
+            PLAYER_ADMIN_DEV_API_URL: loopback(PORTS.playerService),
+        },
         });
     }
 
@@ -249,7 +289,7 @@ try {
     console.log('  Player Service http://127.0.0.1:3124/');
     console.log('  Auth Portal    http://127.0.0.1:3125/');
     if (includeAdmin) {
-        console.log('  Player Admin   http://127.0.0.1:8000/');
+        console.log(`  Player Admin   http://127.0.0.1:${PORTS.admin}/`);
     }
     console.log(
         '\n按 Ctrl-C 停止源码服务。默认不会启动或停止 Docker 基础服务；需要时使用 rush dev --infra。',

@@ -12,6 +12,7 @@ const domainLabel: Record<string, string> = { script: '脚本', entities: '实�
 /** Review independent terrain/script proposals; no simulated cross-domain atomicity. */
 export function TerrainProposals({ base }: { base: string }) {
   const [proposals, setProposals] = useState<Proposal[]>([]);
+  const [plans, setPlans] = useState<Array<{planId: string; status: string; appliedCount: number; domains: string[]}>>([]);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [uncertain, setUncertain] = useState<{ id: string; runtimeId: string }>();
@@ -29,6 +30,8 @@ export function TerrainProposals({ base }: { base: string }) {
     const data = await tool('authoringProposals');
     setRuntimeId(data.runtimeId);
     setProposals(data.proposals);
+    const index = await tool('authoringPlans');
+    setPlans(index.plans || []);
     return data.runtimeId as string;
   }
   async function run(action: () => Promise<void>) {
@@ -81,6 +84,27 @@ export function TerrainProposals({ base }: { base: string }) {
       <summary>历史动作 · 最近 {history.length} 条</summary>
       <ul className={style.proposalList}>{history.map(row => <li key={`${row.runtimeId}:${row.payload.seq}`}>
         {new Date(row.payload.at).toLocaleString('zh-CN')} · {row.payload.summary}
+      </li>)}</ul>
+    </details>}
+    {plans.length > 0 && <details open>
+      <summary>批次计划 · {plans.length}</summary>
+      <p className={style.proposalNote}>计划按顺序执行各内容域，失败时尝试补偿。应用后需要保存工程。</p>
+      <ul className={style.proposalList}>{plans.map(plan => <li key={plan.planId}>
+        <strong>{statusLabel[plan.status] || plan.status}</strong> · {plan.domains.map(domain => domainLabel[domain] || domain).join('、')} · 已应用 {plan.appliedCount} 项
+        <div className={style.actions}>
+          {(['proposed', 'applied'].includes(plan.status)) && <button disabled={busy || !!uncertain} onClick={() => void run(async () => {
+            const id = `editor-${crypto.randomUUID()}`;
+            setUncertain({id, runtimeId});
+            await tool(plan.status === 'proposed' ? 'authoringApplyPlan' : 'authoringRevertPlan', {planId: plan.planId}, id);
+            setUncertain(undefined);
+            await refresh();
+            setMessage('计划处理完成，请保存工程。');
+          })}>{plan.status === 'proposed' ? '批准并应用计划' : '回滚计划'}</button>}
+          {plan.status === 'proposed' && <button disabled={busy || !!uncertain} onClick={() => void run(async () => {
+            await tool('authoringDiscardPlan', {planId: plan.planId}, `editor-${crypto.randomUUID()}`);
+            await refresh();
+          })}>拒绝计划</button>}
+        </div>
       </li>)}</ul>
     </details>}
     <ul className={style.proposalList}>{proposals.slice(0, 20).map(p => <li key={p.proposalId}>

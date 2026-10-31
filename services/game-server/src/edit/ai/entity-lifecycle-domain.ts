@@ -21,7 +21,9 @@ import { entitySnapshotRevision, readEntitySnapshot } from './entity-content-dom
  * - a locked node anywhere in the affected subtree refuses the whole plan.
  * - reparenting uses the tree's atomic `move` action; the inverse moves the node
  *   back to its original parent (end of that parent's child list).
- * - copies are not implemented.
+ * - copying is leaf-only: the full node value (mesh and other properties) is
+ *   cloned under a fresh id with an optional position offset. The inverse is
+ *   the deletion of the generated copy.
  */
 
 const finite = z.number().finite();
@@ -53,12 +55,22 @@ const moveSchema = z.object({
   parentId: z.string().max(64).optional(),
 }).strict();
 
-export const entityLifecycleSchema = z.object({
-  expectedRevision: z.string(),
-  operations: z.array(z.discriminatedUnion('op', [createSchema, deleteSchema, moveSchema])).min(1).max(16),
+const copySchema = z.object({
+  op: z.literal('copy'),
+  entityId: z.string().min(1).max(64),
+  /** Target parent, or omit to stay under the source's parent. */
+  parentId: z.string().max(64).optional(),
+  /** Defaults to the source name; duplicated names are allowed by the tree. */
+  name: z.string().min(1).max(32).regex(/^[^\u0000-\u001f]+$/).optional(),
+  positionOffset: vector3(finite.min(-1000000).max(1000000)).optional(),
 }).strict();
 
-type Operation = z.infer<typeof createSchema> | z.infer<typeof deleteSchema> | z.infer<typeof moveSchema>;
+export const entityLifecycleSchema = z.object({
+  expectedRevision: z.string(),
+  operations: z.array(z.discriminatedUnion('op', [createSchema, deleteSchema, moveSchema, copySchema])).min(1).max(16),
+}).strict();
+
+type Operation = z.infer<typeof createSchema> | z.infer<typeof deleteSchema> | z.infer<typeof moveSchema> | z.infer<typeof copySchema>;
 type Step = {
   operations: Operation[];
   created: Record<number, string>;
@@ -101,6 +113,27 @@ function buildNode(id: string, operation: any): any {
     ...(operation.mesh ? { mesh: operation.mesh } : {}),
   };
   return node;
+}
+
+/**
+ * Copy becomes a create that carries the source's full value, so simulation,
+ * CAS readback and the inverse (delete the new id) all reuse the create path.
+ */
+function normalizeCopy(snapshot: Snapshot, operation: z.infer<typeof copySchema>): Operation {
+  const source = snapshot.tree[operation.entityId] as NodeJson | undefined;
+  if (!source) throw authoringError('ENTITY_NOT_FOUND', 'Copy source does not exist');
+  if (operation.entityId === ROOT_ID) throw authoringError('ENTITY_ROOT_IMMUTABLE', 'The scene root cannot be copied');
+  if (source.type !== TreeNodeType.leaf || !source.value)
+    throw authoringError('ENTITY_NOT_LEAF', 'Only leaf entities with editable properties can be copied');
+  if (source.value.editLock) throw authoringError('ENTITY_LOCKED', 'Unlock this entity in the editor before copying it');
+  const value: Record<string, any> = structuredClone(source.value);
+  const base = Array.isArray(value.position) && value.position.length === 3 ? value.position : [0, 0, 0];
+  const offset = operation.positionOffset || [0, 0, 0];
+  value.position = [base[0] + offset[0], base[1] + offset[1], base[2] + offset[2]];
+  const parentId = operation.parentId === undefined ? source.parentId || ROOT_ID : operation.parentId || ROOT_ID;
+  const name = operation.name || source.name || value.name || 'Entity';
+  value.name = name;
+  return { op: 'create', parentId, name, type: source.type, value } as any;
 }
 
 /** Pre-order descendants: a parent always appears before its children. */
@@ -151,19 +184,21 @@ function validate(snapshot: Snapshot, step: Step, restoring = false) {
         throw authoringError('ENTITY_ALREADY_THERE', 'Entity already has this parent');
       return;
     }
-    const node = snapshot.tree[operation.entityId];
-    if (!node || removed.has(operation.entityId)) throw authoringError('ENTITY_NOT_FOUND', 'Target entity does not exist');
-    if (operation.entityId === ROOT_ID) throw authoringError('ENTITY_ROOT_IMMUTABLE', 'The scene root cannot be deleted');
-    const kids = descendants(snapshot.tree, operation.entityId).filter(id => !removed.has(id));
-    if (kids.length && !operation.subtree)
+    // Copy operations are normalized to creates before validation.
+    const deletion = operation as z.infer<typeof deleteSchema>;
+    const node = snapshot.tree[deletion.entityId];
+    if (!node || removed.has(deletion.entityId)) throw authoringError('ENTITY_NOT_FOUND', 'Target entity does not exist');
+    if (deletion.entityId === ROOT_ID) throw authoringError('ENTITY_ROOT_IMMUTABLE', 'The scene root cannot be deleted');
+    const kids = descendants(snapshot.tree, deletion.entityId).filter(id => !removed.has(id));
+    if (kids.length && !deletion.subtree)
       throw authoringError('ENTITY_HAS_CHILDREN', 'Target has children; pass subtree:true to delete the branch explicitly');
     if (node.value?.editLock) throw authoringError('ENTITY_LOCKED', 'Unlock this entity in the editor before deleting it');
     if (kids.length && step.deletes[index]?.length !== kids.length + 1)
       throw authoringError('ENTITY_HAS_CHILDREN', 'The subtree changed since it was read; re-read and propose again');
-    for (const id of step.deletes[index] || [operation.entityId]) {
+    for (const id of step.deletes[index] || [deletion.entityId]) {
       if (snapshot.tree[id]?.value?.editLock) throw authoringError('ENTITY_LOCKED', `Child ${id} is locked; unlock it before deleting the branch`);
     }
-    for (const id of step.deletes[index] || [operation.entityId]) removed.add(id);
+    for (const id of step.deletes[index] || [deletion.entityId]) removed.add(id);
   });
 }
 
@@ -298,12 +333,14 @@ export function createEntityLifecycleDomain(state: EditServerState, replica: Edi
     const created: Record<number, string> = {};
     const deletes: Record<number, string[]> = {};
     args.operations.forEach((operation, index) => {
-      if (operation.op === 'create') created[index] = randomUUID();
+      if (operation.op === 'create' || operation.op === 'copy') created[index] = randomUUID();
       if (operation.op === 'delete') {
         deletes[index] = operation.subtree ? subtreeIds(before.tree, operation.entityId) : [operation.entityId];
       }
     });
-    const step: Step = { operations: args.operations as Operation[], created, deletes, resultRevision: '' };
+    const operations = args.operations.map((operation, index) =>
+      operation.op === 'copy' ? normalizeCopy(before, operation) : operation);
+    const step: Step = { operations, created, deletes, resultRevision: '' };
     validate(before, step);
     const after = simulate(before, step);
     step.resultRevision = entitySnapshotRevision(after);
@@ -321,6 +358,12 @@ export function createEntityLifecycleDomain(state: EditServerState, replica: Edi
             return { op: 'create', entityId: created[index], name: operation.name, parentId: operation.parentId || ROOT_ID,
               mesh: operation.mesh || null, position: operation.position || null };
           }
+          if (operation.op === 'copy') {
+            const copied = operations[index] as any;
+            return { op: 'copy', entityId: created[index], sourceEntityId: operation.entityId, name: copied.name,
+              parentId: copied.parentId, mesh: copied.value?.mesh || null, position: copied.value?.position || null,
+              positionOffset: operation.positionOffset || null };
+          }
           if (operation.op === 'move') {
             return { op: 'move', entityId: operation.entityId, name: before.tree[operation.entityId]?.name,
               parentId: operation.parentId || ROOT_ID, fromParentId: before.tree[operation.entityId]?.parentId || ROOT_ID };
@@ -328,7 +371,8 @@ export function createEntityLifecycleDomain(state: EditServerState, replica: Edi
           return { op: 'delete', entityId: operation.entityId, name: before.tree[operation.entityId]?.name,
             subtree: !!operation.subtree, nodeCount: deletes[index]?.length || 1 };
         }),
-        createdCount: Object.keys(created).length,
+        createdCount: args.operations.filter(op => op.op === 'create' || op.op === 'copy').length,
+        copiedCount: args.operations.filter(op => op.op === 'copy').length,
         deletedCount,
         movedCount: args.operations.filter(op => op.op === 'move').length,
       },

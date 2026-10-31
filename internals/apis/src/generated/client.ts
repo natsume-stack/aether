@@ -43,6 +43,14 @@ export const apiOperations = {
     "path": "/api/play-admin/admins/{id}",
     "method": "DELETE"
   },
+  "deleteApiPlayAdminAiProvidersId": {
+    "path": "/api/play-admin/ai-providers/{id}",
+    "method": "DELETE"
+  },
+  "deleteApiPlayAdminAiProvidersPath": {
+    "path": "/api/play-admin/ai-providers/{path}",
+    "method": "DELETE"
+  },
   "deleteApiPlayAdminContainerResourceGroupsId": {
     "path": "/api/play-admin/container-resource-groups/{id}",
     "method": "DELETE"
@@ -77,6 +85,10 @@ export const apiOperations = {
   },
   "deleteApiPlayAdminWorldsId": {
     "path": "/api/play-admin/worlds/{id}",
+    "method": "DELETE"
+  },
+  "deleteApiPlayerAiPath": {
+    "path": "/api/player-ai/{path}",
     "method": "DELETE"
   },
   "deleteApiPlayPresence": {
@@ -315,6 +327,18 @@ export const apiOperations = {
     "path": "/api/play-admin/admins",
     "method": "GET"
   },
+  "getApiPlayAdminAiProviders": {
+    "path": "/api/play-admin/ai-providers",
+    "method": "GET"
+  },
+  "getApiPlayAdminAiProvidersControl": {
+    "path": "/api/play-admin/ai-providers/control",
+    "method": "GET"
+  },
+  "getApiPlayAdminAiProvidersPath": {
+    "path": "/api/play-admin/ai-providers/{path}",
+    "method": "GET"
+  },
   "getApiPlayAdminContainerResourceGroups": {
     "path": "/api/play-admin/container-resource-groups",
     "method": "GET"
@@ -389,6 +413,22 @@ export const apiOperations = {
   },
   "getApiPlayAdminWorldsStatus": {
     "path": "/api/play-admin/worlds/status",
+    "method": "GET"
+  },
+  "getApiPlayerAi": {
+    "path": "/api/player-ai",
+    "method": "GET"
+  },
+  "getApiPlayerAiInternal": {
+    "path": "/api/player-ai-internal",
+    "method": "GET"
+  },
+  "getApiPlayerAiInternalPath": {
+    "path": "/api/player-ai-internal/{path}",
+    "method": "GET"
+  },
+  "getApiPlayerAiPath": {
+    "path": "/api/player-ai/{path}",
     "method": "GET"
   },
   "getApiPlayerAuthLoginRequired": {
@@ -523,6 +563,18 @@ export const apiOperations = {
     "path": "/api/play-admin/admins/{id}",
     "method": "PATCH"
   },
+  "patchApiPlayAdminAiProvidersControl": {
+    "path": "/api/play-admin/ai-providers/control",
+    "method": "PATCH"
+  },
+  "patchApiPlayAdminAiProvidersId": {
+    "path": "/api/play-admin/ai-providers/{id}",
+    "method": "PATCH"
+  },
+  "patchApiPlayAdminAiProvidersPath": {
+    "path": "/api/play-admin/ai-providers/{path}",
+    "method": "PATCH"
+  },
   "patchApiPlayAdminContainerResourceGroupsId": {
     "path": "/api/play-admin/container-resource-groups/{id}",
     "method": "PATCH"
@@ -549,6 +601,10 @@ export const apiOperations = {
   },
   "patchApiPlayAdminWorldsId": {
     "path": "/api/play-admin/worlds/{id}",
+    "method": "PATCH"
+  },
+  "patchApiPlayerAiPath": {
+    "path": "/api/player-ai/{path}",
     "method": "PATCH"
   },
   "patchApiPlayerAuthProfile": {
@@ -617,6 +673,10 @@ export const apiOperations = {
   },
   "postApiAgentV1State": {
     "path": "/api/agent/v1/state",
+    "method": "POST"
+  },
+  "postApiAiAction": {
+    "path": "/api/ai/{action}",
     "method": "POST"
   },
   "postApiAuthLogin": {
@@ -739,6 +799,26 @@ export const apiOperations = {
     "path": "/api/play-admin/admins",
     "method": "POST"
   },
+  "postApiPlayAdminAiProviders": {
+    "path": "/api/play-admin/ai-providers",
+    "method": "POST"
+  },
+  "postApiPlayAdminAiProvidersIdDefault": {
+    "path": "/api/play-admin/ai-providers/{id}/default",
+    "method": "POST"
+  },
+  "postApiPlayAdminAiProvidersIdModels": {
+    "path": "/api/play-admin/ai-providers/{id}/models",
+    "method": "POST"
+  },
+  "postApiPlayAdminAiProvidersIdTest": {
+    "path": "/api/play-admin/ai-providers/{id}/test",
+    "method": "POST"
+  },
+  "postApiPlayAdminAiProvidersPath": {
+    "path": "/api/play-admin/ai-providers/{path}",
+    "method": "POST"
+  },
   "postApiPlayAdminContainerResourceGroups": {
     "path": "/api/play-admin/container-resource-groups",
     "method": "POST"
@@ -809,6 +889,10 @@ export const apiOperations = {
   },
   "postApiPlayAdminVerify": {
     "path": "/api/play-admin/verify",
+    "method": "POST"
+  },
+  "postApiPlayerAiPath": {
+    "path": "/api/player-ai/{path}",
     "method": "POST"
   },
   "postApiPlayerAuthLogin": {
@@ -941,6 +1025,10 @@ export const apiOperations = {
   },
   "putApiPlayAdminSiteConfig": {
     "path": "/api/play-admin/site-config",
+    "method": "PUT"
+  },
+  "putApiPlayerAiPath": {
+    "path": "/api/player-ai/{path}",
     "method": "PUT"
   }
 } as const;
@@ -1099,6 +1187,30 @@ export class ApiClient {
     return this.unwrap(this.deleteApiPlayAdminAdminsIdRaw(...init));
   }
 
+  deleteApiPlayAdminAiProvidersIdRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{id}"]["DELETE"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers/{id}"].DELETE(...init);
+  }
+
+  deleteApiPlayAdminAiProvidersId(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{id}"]["DELETE"]>
+  ) {
+    return this.unwrap(this.deleteApiPlayAdminAiProvidersIdRaw(...init));
+  }
+
+  deleteApiPlayAdminAiProvidersPathRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{path}"]["DELETE"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers/{path}"].DELETE(...init);
+  }
+
+  deleteApiPlayAdminAiProvidersPath(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{path}"]["DELETE"]>
+  ) {
+    return this.unwrap(this.deleteApiPlayAdminAiProvidersPathRaw(...init));
+  }
+
   deleteApiPlayAdminContainerResourceGroupsIdRaw(
     ...init: Parameters<PathBasedClient<paths>["/api/play-admin/container-resource-groups/{id}"]["DELETE"]>
   ) {
@@ -1205,6 +1317,18 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/play-admin/worlds/{id}"]["DELETE"]>
   ) {
     return this.unwrap(this.deleteApiPlayAdminWorldsIdRaw(...init));
+  }
+
+  deleteApiPlayerAiPathRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai/{path}"]["DELETE"]>
+  ) {
+    return this.paths["/api/player-ai/{path}"].DELETE(...init);
+  }
+
+  deleteApiPlayerAiPath(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai/{path}"]["DELETE"]>
+  ) {
+    return this.unwrap(this.deleteApiPlayerAiPathRaw(...init));
   }
 
   deleteApiPlayPresenceRaw(
@@ -1915,6 +2039,42 @@ export class ApiClient {
     return this.unwrap(this.getApiPlayAdminAdminsRaw(...init));
   }
 
+  getApiPlayAdminAiProvidersRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers"]["GET"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers"].GET(...init);
+  }
+
+  getApiPlayAdminAiProviders(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiPlayAdminAiProvidersRaw(...init));
+  }
+
+  getApiPlayAdminAiProvidersControlRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/control"]["GET"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers/control"].GET(...init);
+  }
+
+  getApiPlayAdminAiProvidersControl(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/control"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiPlayAdminAiProvidersControlRaw(...init));
+  }
+
+  getApiPlayAdminAiProvidersPathRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{path}"]["GET"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers/{path}"].GET(...init);
+  }
+
+  getApiPlayAdminAiProvidersPath(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{path}"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiPlayAdminAiProvidersPathRaw(...init));
+  }
+
   getApiPlayAdminContainerResourceGroupsRaw(
     ...init: Parameters<PathBasedClient<paths>["/api/play-admin/container-resource-groups"]["GET"]>
   ) {
@@ -2135,6 +2295,54 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/play-admin/worlds/status"]["GET"]>
   ) {
     return this.unwrap(this.getApiPlayAdminWorldsStatusRaw(...init));
+  }
+
+  getApiPlayerAiRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai"]["GET"]>
+  ) {
+    return this.paths["/api/player-ai"].GET(...init);
+  }
+
+  getApiPlayerAi(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiPlayerAiRaw(...init));
+  }
+
+  getApiPlayerAiInternalRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai-internal"]["GET"]>
+  ) {
+    return this.paths["/api/player-ai-internal"].GET(...init);
+  }
+
+  getApiPlayerAiInternal(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai-internal"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiPlayerAiInternalRaw(...init));
+  }
+
+  getApiPlayerAiInternalPathRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai-internal/{path}"]["GET"]>
+  ) {
+    return this.paths["/api/player-ai-internal/{path}"].GET(...init);
+  }
+
+  getApiPlayerAiInternalPath(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai-internal/{path}"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiPlayerAiInternalPathRaw(...init));
+  }
+
+  getApiPlayerAiPathRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai/{path}"]["GET"]>
+  ) {
+    return this.paths["/api/player-ai/{path}"].GET(...init);
+  }
+
+  getApiPlayerAiPath(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai/{path}"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiPlayerAiPathRaw(...init));
   }
 
   getApiPlayerAuthLoginRequiredRaw(
@@ -2533,6 +2741,42 @@ export class ApiClient {
     return this.unwrap(this.patchApiPlayAdminAdminsIdRaw(...init));
   }
 
+  patchApiPlayAdminAiProvidersControlRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/control"]["PATCH"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers/control"].PATCH(...init);
+  }
+
+  patchApiPlayAdminAiProvidersControl(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/control"]["PATCH"]>
+  ) {
+    return this.unwrap(this.patchApiPlayAdminAiProvidersControlRaw(...init));
+  }
+
+  patchApiPlayAdminAiProvidersIdRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{id}"]["PATCH"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers/{id}"].PATCH(...init);
+  }
+
+  patchApiPlayAdminAiProvidersId(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{id}"]["PATCH"]>
+  ) {
+    return this.unwrap(this.patchApiPlayAdminAiProvidersIdRaw(...init));
+  }
+
+  patchApiPlayAdminAiProvidersPathRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{path}"]["PATCH"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers/{path}"].PATCH(...init);
+  }
+
+  patchApiPlayAdminAiProvidersPath(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{path}"]["PATCH"]>
+  ) {
+    return this.unwrap(this.patchApiPlayAdminAiProvidersPathRaw(...init));
+  }
+
   patchApiPlayAdminContainerResourceGroupsIdRaw(
     ...init: Parameters<PathBasedClient<paths>["/api/play-admin/container-resource-groups/{id}"]["PATCH"]>
   ) {
@@ -2615,6 +2859,18 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/play-admin/worlds/{id}"]["PATCH"]>
   ) {
     return this.unwrap(this.patchApiPlayAdminWorldsIdRaw(...init));
+  }
+
+  patchApiPlayerAiPathRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai/{path}"]["PATCH"]>
+  ) {
+    return this.paths["/api/player-ai/{path}"].PATCH(...init);
+  }
+
+  patchApiPlayerAiPath(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai/{path}"]["PATCH"]>
+  ) {
+    return this.unwrap(this.patchApiPlayerAiPathRaw(...init));
   }
 
   patchApiPlayerAuthProfileRaw(
@@ -2819,6 +3075,18 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/state"]["POST"]>
   ) {
     return this.unwrap(this.postApiAgentV1StateRaw(...init));
+  }
+
+  postApiAiActionRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/ai/{action}"]["POST"]>
+  ) {
+    return this.paths["/api/ai/{action}"].POST(...init);
+  }
+
+  postApiAiAction(
+    ...init: Parameters<PathBasedClient<paths>["/api/ai/{action}"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiAiActionRaw(...init));
   }
 
   postApiAuthLoginRaw(
@@ -3181,6 +3449,66 @@ export class ApiClient {
     return this.unwrap(this.postApiPlayAdminAdminsRaw(...init));
   }
 
+  postApiPlayAdminAiProvidersRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers"]["POST"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers"].POST(...init);
+  }
+
+  postApiPlayAdminAiProviders(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiPlayAdminAiProvidersRaw(...init));
+  }
+
+  postApiPlayAdminAiProvidersIdDefaultRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{id}/default"]["POST"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers/{id}/default"].POST(...init);
+  }
+
+  postApiPlayAdminAiProvidersIdDefault(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{id}/default"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiPlayAdminAiProvidersIdDefaultRaw(...init));
+  }
+
+  postApiPlayAdminAiProvidersIdModelsRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{id}/models"]["POST"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers/{id}/models"].POST(...init);
+  }
+
+  postApiPlayAdminAiProvidersIdModels(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{id}/models"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiPlayAdminAiProvidersIdModelsRaw(...init));
+  }
+
+  postApiPlayAdminAiProvidersIdTestRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{id}/test"]["POST"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers/{id}/test"].POST(...init);
+  }
+
+  postApiPlayAdminAiProvidersIdTest(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{id}/test"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiPlayAdminAiProvidersIdTestRaw(...init));
+  }
+
+  postApiPlayAdminAiProvidersPathRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{path}"]["POST"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers/{path}"].POST(...init);
+  }
+
+  postApiPlayAdminAiProvidersPath(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{path}"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiPlayAdminAiProvidersPathRaw(...init));
+  }
+
   postApiPlayAdminContainerResourceGroupsRaw(
     ...init: Parameters<PathBasedClient<paths>["/api/play-admin/container-resource-groups"]["POST"]>
   ) {
@@ -3395,6 +3723,18 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/play-admin/verify"]["POST"]>
   ) {
     return this.unwrap(this.postApiPlayAdminVerifyRaw(...init));
+  }
+
+  postApiPlayerAiPathRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai/{path}"]["POST"]>
+  ) {
+    return this.paths["/api/player-ai/{path}"].POST(...init);
+  }
+
+  postApiPlayerAiPath(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai/{path}"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiPlayerAiPathRaw(...init));
   }
 
   postApiPlayerAuthLoginRaw(
@@ -3791,6 +4131,18 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/play-admin/site-config"]["PUT"]>
   ) {
     return this.unwrap(this.putApiPlayAdminSiteConfigRaw(...init));
+  }
+
+  putApiPlayerAiPathRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai/{path}"]["PUT"]>
+  ) {
+    return this.paths["/api/player-ai/{path}"].PUT(...init);
+  }
+
+  putApiPlayerAiPath(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai/{path}"]["PUT"]>
+  ) {
+    return this.unwrap(this.putApiPlayerAiPathRaw(...init));
   }
 
 }

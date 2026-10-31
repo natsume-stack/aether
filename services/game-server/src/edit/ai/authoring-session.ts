@@ -31,7 +31,7 @@ export type ContentDomain = {
   apply(step: Result, expectedRevision: string): Promise<Result>;
   revert(undoToken: string, expectedRevision: string): Promise<Result>;
 };
-type Journal = { rows: { kind: string; runtimeId: string; payload: Result }[]; reserve(): void; append(kind: 'intent' | 'result' | 'event', runtimeId: string, payload: Result): void; history(limit?: number): unknown[]; loadProposals?(): Result[]; saveProposals?(proposals: Result[]): void };
+type Journal = { rows: { kind: string; runtimeId: string; payload: Result }[]; reserve(): void; append(kind: 'intent' | 'result' | 'event', runtimeId: string, payload: Result): void; history(limit?: number): unknown[]; loadProposals?(): Result[]; saveProposals?(proposals: Result[]): void; loadPlans?(): Result[]; savePlans?(plans: Result[]): void };
 
 /** Tool name → the panel's five coarse kinds. */
 function kindOf(tool: string): EventKind {
@@ -105,12 +105,18 @@ export class AuthoringSession {
         status: p.status === 'proposed' ? 'expired'
           : ['applying','reverting'].includes(p.status) ? 'unknown' : p.status });
     }
+    for (const plan of journal.loadPlans?.() || []) {
+      this.plans.set(plan.id, {...plan, status: plan.status === 'proposed' ? 'expired' : ['applying', 'reverting'].includes(plan.status) ? 'unknown' : plan.status} as Plan);
+    }
     this.journal = journal;
     this.checkpoint();
   }
 
   private checkpoint() {
-    try { this.journal?.saveProposals?.([...this.proposals.values()]); }
+    try {
+      this.journal?.saveProposals?.([...this.proposals.values()]);
+      this.journal?.savePlans?.([...this.plans.values()]);
+    }
     catch {
       this.journalFailed = true;
       for (const p of this.proposals.values()) {
@@ -168,6 +174,11 @@ export class AuthoringSession {
       this.checkpoint();
       return { success: false, code: 'CONTENT_OUTCOME_UNKNOWN', proposalId: p.id, inspectRequired: true, error: 'Content adapter omitted its verified revision' };
     }
+    // Domains whose inverse is only known after the write (terrain) return it here;
+    // ui/entity carry a deterministic inverse from prepare and return no undoToken.
+    if (!reverting && typeof result.undoToken === 'string' && result.undoToken && result.undoToken !== '[]') {
+      p.undo = [result.undoToken];
+    }
     p.revision = result.newRevision;
     p.status = reverting ? 'reverted' : 'applied';
     if (reverting) p.undo = [];
@@ -203,6 +214,7 @@ export class AuthoringSession {
     }
     const plan: Plan = { id: randomUUID(), members, status: 'proposed', appliedCount: 0, revisions: {} };
     this.plans.set(plan.id, plan);
+    this.checkpoint();
     return { success: true, runtimeId: this.runtimeId, planId: plan.id, status: plan.status, atomic: false,
       members: members.map(m => ({ proposalId: m.proposalId, domain: m.domain })),
       note: 'Members apply in order; a failure compensates the members already applied. This is not a cross-domain transaction.' };
@@ -246,6 +258,7 @@ export class AuthoringSession {
       }
     }
     plan.status = 'applying';
+    this.checkpoint();
     const applied: PlanMember[] = [];
     for (const m of plan.members) {
       const { p, domain } = this.memberProposal(m);
@@ -262,11 +275,16 @@ export class AuthoringSession {
         return { success: false, code: 'PLAN_MEMBER_FAILED', planId: id, compensated: applied.map(a => a.proposalId),
           error: result.error || `Member ${m.domain} refused`, inspectRequired: !!result.mutationStarted };
       }
+      // Terrain knows its inverse only after the write; backfill before revert/compensation.
+      if (typeof result.undoToken === 'string' && result.undoToken && result.undoToken !== '[]') {
+        p.undo = [result.undoToken];
+      }
       p.status = 'applied';
       p.revision = result.newRevision;
       plan.revisions[m.domain] = result.newRevision;
       applied.push(m);
       plan.appliedCount = applied.length;
+      this.checkpoint();
     }
     plan.status = 'applied';
     this.checkpoint();
@@ -310,6 +328,7 @@ export class AuthoringSession {
       }
     }
     plan.status = 'reverting';
+    this.checkpoint();
     for (const m of [...plan.members].reverse()) {
       const { p, domain } = this.memberProposal(m);
       let result: Result;
@@ -329,6 +348,7 @@ export class AuthoringSession {
       p.undo = [];
       p.revision = result.newRevision;
       plan.appliedCount -= 1;
+      this.checkpoint();
     }
     plan.status = 'reverted';
     plan.appliedCount = 0;
