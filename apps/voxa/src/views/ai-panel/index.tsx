@@ -50,7 +50,7 @@ const REASONING_OPTIONS: Array<{ value: Reasoning; label: string }> = [
   { value: 'high', label: '高' },
 ];
 const PHASE_TEXT: Record<string, string> = {
-  preparing: '读取模型上下文…',
+  preparing: '准备请求…',
   waiting: '等待模型响应…',
   generating: '模型正在生成…',
   parsing: '校验计划…',
@@ -397,13 +397,14 @@ export function VoxaAiPanel() {
       append({ id: nextId('system'), role: 'system', text: step > 0 ? `第 ${step + 1} 步：${text}` : text });
     }
     const assistantId = nextId('assistant');
-    append({ id: assistantId, role: 'assistant', text: '', phase: 'thinking', step });
+    append({ id: assistantId, role: 'assistant', text: '', phase: 'thinking', step, status: '读取模型上下文…' });
     const controller = new AbortController();
     abortRef.current = controller;
     try {
       const context = await session.panelContext();
       const modelContext = { ...(context as unknown as Record<string, unknown>) };
       delete modelContext.snapshot;
+      patchMessage(assistantId, { status: '准备请求…' });
       await savePreferences(providerId, model, autonomy, controller.signal);
       const reply = await streamPlan({
         providerId,
