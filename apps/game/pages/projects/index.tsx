@@ -425,6 +425,7 @@ export default function ProjectsPage({
           <CreatorModelLibrary
             voxaUrl={voxaUrl}
             canManageModels={creatorPermissions.includes('models.manage')}
+            canEditVoxa={creatorPermissions.includes('voxa.edit')}
           />
         )}
       </section>

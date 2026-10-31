@@ -9,7 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'GET') return res.status(405).end();
-  if (!await requireVoxaModelAccess(req, res, ['projects.edit', 'models.manage'])) return;
+  if (!await requireVoxaModelAccess(req, res, ['projects.edit', 'models.manage', 'voxa.edit'])) return;
   const hash = Array.isArray(req.query.hash) ? req.query.hash[0] : req.query.hash;
   const blob = hash ? getBlob(hash) : null;
   if (!blob) return res.status(404).end('文件不存在');

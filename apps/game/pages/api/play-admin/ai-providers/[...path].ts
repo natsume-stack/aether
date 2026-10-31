@@ -1,8 +1,10 @@
+import {listAiExecutionRuns} from '../../../../server/ai-execution-ledger';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 import { authorizePlayerAdmin } from '../../../../server/player-admin-authorization';
 import {
   AiProviderError,
+  shareAdminAiProvider,
   readAiExecutionPolicy,
   writeAiExecutionPolicy,
   createAdminAiProvider,
@@ -21,9 +23,9 @@ function segments(req: NextApiRequest) {
   const value = req.query.path;
   const parts = (Array.isArray(value) ? value : value ? [value] : []).map(String).filter(Boolean);
   if (parts.length > 2) return null;
-  if (parts.length === 1 && parts[0] === 'control') return parts;
+  if (parts.length === 1 && ['control','runs'].includes(parts[0])) return parts;
   if (parts.length >= 1 && !UUID.test(parts[0])) return null;
-  if (parts.length === 2 && !['default', 'test', 'models'].includes(parts[1])) return null;
+  if (parts.length === 2 && !['default', 'test', 'models','sharing'].includes(parts[1])) return null;
   return parts;
 }
 
@@ -49,6 +51,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const parts = segments(req);
   if (!parts) return res.status(404).json({ code: 'NOT_FOUND', message: '接口不存在' });
   try {
+    if(parts[0]==='runs') {
+      if(req.method!=='GET') {res.setHeader('Allow','GET');return res.status(405).end();}
+      return res.status(200).json({runs:await listAiExecutionRuns()});
+    }
     if (parts[0] === 'control') {
       if (req.method === 'GET') return res.status(200).json(await readAiExecutionPolicy());
       if (req.method === 'PATCH') return res.status(200).json(await writeAiExecutionPolicy(body(req)));
@@ -76,6 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.setHeader('Allow', 'POST');
       return res.status(405).end();
     }
+    if(parts[1]==='sharing') return res.status(200).json(await shareAdminAiProvider(id,body(req).userIds));
     if (parts[1] === 'default') {
       await setAdminDefaultAiProvider(id);
       return res.status(200).json({ success: true });

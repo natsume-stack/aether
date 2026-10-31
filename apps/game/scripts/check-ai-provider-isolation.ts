@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import {getPool} from '../server/local-player-identity';
-import {initializeAiProviderStore,createAiProvider,createAdminAiProvider,getAiProviderSecret,resolveAiProvider,listAiProviders,updateAiProvider,deleteAiProvider,writeAiPreference,deleteAdminAiProvider,assertSafeProviderUrl} from '../server/ai-provider-store';
+import {shareAdminAiProvider,initializeAiProviderStore,createAiProvider,createAdminAiProvider,getAiProviderSecret,resolveAiProvider,listAiProviders,updateAiProvider,deleteAiProvider,writeAiPreference,deleteAdminAiProvider,assertSafeProviderUrl} from '../server/ai-provider-store';
 
 async function main(){
   const url=new URL(process.env.BOX_DATABASE_URL || '');
@@ -29,8 +29,17 @@ async function main(){
     await db.query('UPDATE box_identity.ai_providers SET is_default=false WHERE id=$1',[admin]);
     await assert.rejects(getAiProviderSecret(users[1],admin),denied);
     await assert.rejects(resolveAiProvider(users[1]),(error:any)=>error.code==='AI_PROVIDER_NOT_CONFIGURED');
+    await shareAdminAiProvider(admin,[String(users[1])]);
+    assert.equal((await getAiProviderSecret(users[1],admin)).apiKey,'engineering-admin-key');
+    assert.equal((await listAiProviders(users[0])).some(p=>p.id===admin),false);
+    assert.equal((await listAiProviders(users[1])).some(p=>p.id===admin),true);
+    assert.equal(JSON.stringify(await listAiProviders(users[1])).includes('engineering-admin-key'),false);
+    await assert.rejects(updateAiProvider(users[1],admin,{name:'shared-but-not-owned'}),denied);
+    assert.equal(await deleteAiProvider(users[1],admin),false);
+    await shareAdminAiProvider(admin,[]);
+    await assert.rejects(getAiProviderSecret(users[1],admin),denied);
     await assert.rejects(assertSafeProviderUrl('https://[::ffff:7f00:1]/v1'),/private|私有|本地/i);
-    console.log(JSON.stringify({ok:true,checks:['cross-user-read','cross-user-resolve','cross-user-update','cross-user-delete','cross-user-preference','private-admin-fallback','mapped-ipv6']}));
+    console.log(JSON.stringify({ok:true,checks:['cross-user-read','cross-user-resolve','cross-user-update','cross-user-delete','cross-user-preference','private-admin-fallback','explicit-sharing','shared-channel-read-only','sharing-revocation','mapped-ipv6']}));
   }finally{
     for(const id of providers) await deleteAiProvider(users[0],id).catch(()=>undefined);
     if(admin) await deleteAdminAiProvider(admin).catch(()=>undefined);

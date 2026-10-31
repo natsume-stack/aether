@@ -463,7 +463,7 @@ export function HierarchyTimelines() {
  */
 function useUpdateTime(params: {
   calculateFrameByClientX: CalculateFrameByClientX;
-  scrollableElement: RefObject<HTMLDivElement>;
+  scrollableElement: RefObject<HTMLDivElement | null>;
   scrollThresholdX: SerializedVec2;
 }) {
   const { calculateFrameByClientX, scrollableElement, scrollThresholdX } =
@@ -550,7 +550,7 @@ function useUpdateTime(params: {
  * 管理框选
  */
 function useSelectRect(params: {
-  element: RefObject<HTMLDivElement>;
+  element: RefObject<HTMLDivElement | null>;
   calculateFrameByClientX: CalculateFrameByClientX;
   boneIds: string[];
   motion: Motion;
@@ -748,7 +748,7 @@ function useContextMenu() {
 
 function useDragKeyframes(params: {
   calculateFrameByClientX: CalculateFrameByClientX;
-  element: RefObject<HTMLDivElement>;
+  element: RefObject<HTMLDivElement | null>;
   scrollThresholdX: SerializedVec2;
 }) {
   const { calculateFrameByClientX, element, scrollThresholdX } = params;
@@ -761,7 +761,7 @@ function useDragKeyframes(params: {
   /**
    * 用于记录拖拽开始时，选中的关键帧
    */
-  const sourceKeyframes = useRef<NodeKeyframes | undefined>();
+  const sourceKeyframes = useRef<NodeKeyframes | undefined | undefined>(undefined);
 
   const editor = useContext(VoxelEditorContext);
 

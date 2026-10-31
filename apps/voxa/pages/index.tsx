@@ -10,7 +10,7 @@ import type { ClientRuntimeConfig } from '../configs/runtime-client';
 import type { UserInfo } from '../src/interface';
 import { LangType, MessagesType } from '../src/utils/i18n';
 import { setToken } from '../src/utils/token';
-import { resolveVoxaModelManagement, type VoxaModelManagementAccess } from '../server/model-management-access';
+import { resolveVoxaEditorAccess, type VoxaModelManagementAccess } from '../server/model-management-access';
 
 function loadLocaleData(locale: LangType) {
   return import(`../lang/build/${locale}.json`);
@@ -36,7 +36,7 @@ export const getServerSideProps: GetServerSideProps<{
     userId: 1,
     isAdmin: true,
   };
-  const access = await resolveVoxaModelManagement(
+  const access = await resolveVoxaEditorAccess(
     context.req as any,
     context.res as any,
   );
@@ -67,7 +67,7 @@ export const getServerSideProps: GetServerSideProps<{
 
 export type IndexProp = InferGetServerSidePropsType<typeof getServerSideProps>;
 
-function Index(props: IndexProp): JSX.Element {
+function Index(props: IndexProp): import('react').JSX.Element {
   const { locale, messages, clientEnv, userInfo, access } = props;
   const [ssrLocale, setLocale] = useState<LangType>(locale);
   const [ssrMessages, setMessages] = useState<MessagesType>(messages);
@@ -91,8 +91,8 @@ function Index(props: IndexProp): JSX.Element {
     const copy = access === 'unauthenticated'
       ? '请先登录创作者账号后再打开 VOXA。'
       : access === 'denied'
-        ? '当前账号没有“管理模型”权限，不能进入 VOXA 编辑模型。'
-        : '暂时无法验证模型管理权限，请确认玩家服务正在运行。';
+        ? '当前账号没有“VOXA 编辑器”权限。请在后台“创作权限管理”中为此账号开启该权限。'
+        : '暂时无法验证 VOXA 编辑器权限，请确认玩家服务正在运行。';
     return <main style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: 24, background: '#17181c', color: '#fff', fontFamily: 'system-ui, sans-serif' }}>
       <section style={{ width: 'min(440px, 100%)', padding: 28, borderRadius: 12, background: '#26282e', boxShadow: '0 16px 48px rgba(0,0,0,.28)' }}>
         <h1 style={{ margin: '0 0 10px', fontSize: 20 }}>无法打开 VOXA</h1>

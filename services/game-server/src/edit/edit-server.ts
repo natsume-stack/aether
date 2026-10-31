@@ -199,6 +199,7 @@ export class EditServer {
       openRouterApiKey: spec.openRouterApiKey,
       featureFlags: spec.featureFlags,
       aiModelMapping: spec.aiModelMapping,
+      projectId:spec.settings.containerName,
     });
 
     this.rpc = new EditRPCServer({

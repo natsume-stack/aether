@@ -14,7 +14,7 @@ const enum QueryKey {
 
 export default function AvatarView() {
   const canvas = useRef<HTMLCanvasElement>(null);
-  const avatar = useRef<Avatar>();
+  const avatar = useRef<Avatar | undefined>(undefined);
 
   useLayoutEffect(() => {
     if (!canvas.current) {

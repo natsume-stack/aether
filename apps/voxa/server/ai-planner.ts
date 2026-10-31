@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import {safeProviderFetch} from '../../../services/game-server/src/edit/ai/provider-http';
 
 export type VoxaAiCommand = {kind: string; args: Record<string, unknown>};
-const kinds = new Set(['paint', 'erase', 'paint_path', 'fill_box', 'set_color', 'trim', 'part_patch']);
+const kinds = new Set(['paint', 'erase', 'paint_path', 'fill_box', 'set_color', 'trim', 'part_patch', 'part_create', 'part_select', 'part_delete', 'part_group', 'part_move', 'palette_add', 'workspace_resize']);
 export function validateVoxaAiPlan(value: unknown): {message: string; commands: VoxaAiCommand[]} {
   if (!value || typeof value !== 'object') throw new Error('Invalid model plan');
   const plan = value as Record<string, unknown>;
@@ -40,9 +40,13 @@ export async function voxaAiIdentity(req: NextApiRequest, res: NextApiResponse) 
 }
 
 export async function authorizeVoxaAiWrite(req: NextApiRequest, res: NextApiResponse, modelId: unknown) {
+  if(!Number.isSafeInteger(Number(modelId)) || Number(modelId)<=0) throw new Error('Save the model before AI execution');
   const userId = await voxaAiIdentity(req, res);
+  if(req.body?.runId && ['after','complete','failed','cancelled','unknown'].includes(req.body.phase)) return internal('/api/player-ai-internal/execution',{userId,runId:req.body.runId,event:{phase:req.body.phase,action:req.body.action,snapshot:req.body.snapshot}},req,res);
   const result = await internal('/api/player-ai-internal/policy', {userId, mapId: `voxa:${String(modelId || '')}`}, req, res);
   if (result.allowed !== true) throw new Error('AI execution disabled by administrator');
+  const input=req.body;
+  return internal('/api/player-ai-internal/execution',input.runId?{userId,runId:input.runId,event:{phase:input.phase || 'before',action:input.action || 'voxa-batch',snapshot:input.snapshot || ''}}:{userId,scope:`voxa:${String(modelId)}`,mode:input.mode==='review'?'review':'autonomous',providerId:input.providerId,model:input.model},req,res);
 }
 
 export async function generateVoxaAiPlan(req: NextApiRequest, res: NextApiResponse) {
@@ -50,7 +54,7 @@ export async function generateVoxaAiPlan(req: NextApiRequest, res: NextApiRespon
   if (!input || typeof input.prompt !== 'string' || !input.prompt.trim() || input.prompt.length > 16000 || typeof input.providerId !== 'string' || !/^[0-9a-f-]{36}$/i.test(input.providerId) || typeof input.model !== 'string' || !input.model.trim() || input.model.length > 200 || JSON.stringify(input.context || {}).length > 200000) throw new Error('Invalid AI request');
   const userId = await voxaAiIdentity(req, res);
   const {provider} = await internal('/api/player-ai-internal/resolve', {userId, providerId: input.providerId}, req, res);
-  const system = `You are a VOXA voxel model coauthor. Return ONLY a JSON object {"message":"explanation in the user language", "commands":[{"kind":"...", "args":{}}]}. Never claim commands are applied. Use existing palette colorId and existing part IDs only. Commands: paint/erase {at:[x,y,z],colorId}, paint_path {points:[[x,y,z]],colorId,paceMs:0}, fill_box {from:[x,y,z],to:[x,y,z],colorId,hollow:false,paceMs:0}, set_color {id}, trim {}, part_patch {id,name?,position?:[x,y,z],scale?:[x,y,z]}. Maximum 32 commands, 8192 cells per fill and 4096 points per path. Coordinates are integer local voxel coordinates within the current shape. Do not generate scripts or arbitrary code. Empty commands for advice. Parts/context describe the currently open unsaved model.`;
+  const system = `You are a VOXA voxel model coauthor. Return ONLY a JSON object {"message":"explanation in the user language", "commands":[{"kind":"...", "args":{}}]}. Never claim commands are applied. Use existing palette colorId or create a palette color and reference its $alias as colorId (or set_color id). Existing part IDs come from context; newly created parts can be referenced by an alias starting with $ in later commands. Commands: paint/erase {at:[x,y,z],colorId}, paint_path {points:[[x,y,z]],colorId,paceMs:0}, fill_box {from:[x,y,z],to:[x,y,z],colorId,hollow:false,paceMs:0}, set_color {id}, trim {}, palette_add {alias:"$red",rgb:[255,0,0],emissive?:0} adds an RGB color (0..255), workspace_resize {size:[x,y,z]} resizes the active voxel canvas (axes 1..256, at most 1048576 cells; native resize recenters X/Z and may crop voxels), part_patch {id,name?,position?:[x,y,z],scale?:[x,y,z],pivot?:[x,y,z],rotationDegrees?:[x,y,z],alpha?:0.5} (rotation in degrees, alpha 0..1), part_create {alias:"$body",name?} creates a part and selects its voxel canvas, part_select {id} selects a part before painting, part_delete {id} removes an existing part or group, part_group {ids:[id,...],alias:"$group",name?} groups sibling parts, part_move {id,parentId} reparents a part/group into an existing group. Root nodes cannot be removed or moved; cyclic hierarchy is forbidden. Maximum 32 commands, 8192 cells per fill and 4096 points per path. Coordinates are integer local voxel coordinates within the current shape. Do not generate scripts or arbitrary code. Empty commands for advice. Parts/context describe the currently open unsaved model. voxelContext.cells are occupied cells of the active part only; truncated=true means missing cells are unknown, not empty. Select the correct part before editing.`;
   const prompt = JSON.stringify({request: input.prompt, context: input.context});
   const messages = [{role: 'user', content: prompt}];
   const headers: Record<string,string> = {'Content-Type':'application/json', ...(provider.headers || {})};
@@ -65,6 +69,8 @@ export async function generateVoxaAiPlan(req: NextApiRequest, res: NextApiRespon
     path='/messages';headers['x-api-key']=provider.apiKey;headers['anthropic-version']='2023-06-01';
     body={model:input.model,system,messages,max_tokens:4096};
   } else throw new Error('Unsupported AI protocol');
+  const {runId}=await internal('/api/player-ai-internal/execution',{userId,scope:`voxa:${String(input.context?.snapshot?.project?.modelId || 'planner')}`,mode:'review',providerId:provider.id,model:input.model},req,res);
+  let completed=false;let inputTokens=0;let outputTokens=0;
   const abort = new AbortController();
   const cancel = () => abort.abort();
   res.on('close',cancel);
@@ -73,11 +79,15 @@ export async function generateVoxaAiPlan(req: NextApiRequest, res: NextApiRespon
     const response=await safeProviderFetch(`${String(provider.baseUrl).replace(/\/$/,'')}${path}`, {method:'POST',headers,body:JSON.stringify(body),signal:abort.signal,redirect:'error'});
     if (!response.ok) throw new Error(`AI provider returned HTTP ${response.status}`);
     const data=await response.json();
+    inputTokens=Number(data.usage?.input_tokens ?? data.usage?.prompt_tokens ?? 0);outputTokens=Number(data.usage?.output_tokens ?? data.usage?.completion_tokens ?? 0);
     const text=provider.protocol==='chat-completions' ? data.choices?.[0]?.message?.content : provider.protocol==='responses' ? (data.output || []).flatMap((item:any)=>(item.content || []).filter((part:any)=>part.type==='output_text').map((part:any)=>part.text)).join('') : (data.content || []).filter((part:any)=>part.type==='text').map((part:any)=>part.text).join('');
     if (typeof text!=='string' || !text.trim() || text.length>250000) throw new Error('AI provider returned invalid content');
     const clean=text.trim().replace(/^```(?:json)?\s*/,'').replace(/\s*```$/,'');
     let value: unknown;
-    try {value=JSON.parse(clean);} catch {return {message:text,commands:[]};}
-    return validateVoxaAiPlan(value);
-  } finally {clearTimeout(timer);res.off('close',cancel);}
+    try {value=JSON.parse(clean);} catch {completed=true;return {message:text,commands:[]};}
+    const plan=validateVoxaAiPlan(value);completed=true;return plan;
+  } finally {
+    clearTimeout(timer);res.off('close',cancel);
+    await internal('/api/player-ai-internal/execution',{userId,runId,event:{phase:abort.signal.aborted?'cancelled':completed?'complete':'failed',action:'voxa-plan',inputTokens,outputTokens}},req,res).catch(()=>undefined);
+  }
 }

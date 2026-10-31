@@ -9,6 +9,7 @@ async function main(){
   const server=createServer((req,res)=>{
     if(req.url==='/redirect'){res.writeHead(302,{Location:'http://127.0.0.1/private'});res.end();return;}
     if(req.url==='/slow')return;
+    if(req.url==='/stream'){res.writeHead(200,{'Content-Type':'text/plain'});res.write('started');return;}
     res.setHeader('Content-Type','text/plain');res.write('po');res.end('ng');
   });
   await new Promise<void>(resolve=>server.listen(0,'127.0.0.1',resolve));
@@ -22,6 +23,9 @@ async function main(){
     await assert.rejects(safeProviderFetch(`${url}/redirect`),/redirect/);
     const abort=new AbortController();const pending=safeProviderFetch(`${url}/slow`,{signal:abort.signal});
     abort.abort();await assert.rejects(pending,/cancelled/);
+    const streamAbort=new AbortController();
+    const streamed=await safeProviderFetch(`${url}/stream`,{signal:streamAbort.signal});
+    const text=streamed.text();streamAbort.abort();await assert.rejects(text);
     process.env.NODE_ENV='production';
     await assert.rejects(safeProviderFetch(url),/HTTPS|private/);
     console.log(JSON.stringify({ok:true,checks:['private-ipv4-ipv6','stream-body','redirect-refusal','socket-cancel','production-private-opt-in-disabled']}));

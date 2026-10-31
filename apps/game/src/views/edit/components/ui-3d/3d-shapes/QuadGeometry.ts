@@ -1,8 +1,8 @@
-import { vec3, vec2 } from 'gl-matrix';
+import { vec3, vec2, type ReadonlyVec3 } from 'gl-matrix';
 
 const nor = vec3.create();
-const O = [0, 0, 0];
-export function QuadGeometry(n: vec3 | number[], r: number) {
+const O:ReadonlyVec3 = [0, 0, 0];
+export function QuadGeometry(n: ReadonlyVec3, r: number) {
   const indices: vec3[] = [];
   const vertices: vec3[] = [];
   const uv: vec2[] = [];

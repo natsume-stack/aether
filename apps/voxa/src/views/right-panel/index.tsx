@@ -130,7 +130,7 @@ export function RightPanel(props: { isShow: boolean }) {
   const { onTabDown: onParamTabDown } = useFocusTrap(paramRef);
 
   const [heights, setHeights] = useState<number[]>([]);
-  const dragStartState = useRef<DragStartState>();
+  const dragStartState = useRef<DragStartState | undefined>(undefined);
   // 面板折叠前的高度
   const heightCache = useRef<{
     [id: number]: number | undefined;

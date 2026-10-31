@@ -7,7 +7,7 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:
  * the plaintext during migration.
  */
 const ALGORITHM = 'aes-256-gcm';
-const KEY_VERSION = 1;
+const LEGACY_KEY_VERSION = 1;
 const IV_BYTES = 12;
 
 export type EncryptedProviderKey = {
@@ -18,20 +18,24 @@ export type EncryptedProviderKey = {
   hint: string;
 };
 
-function providerSecret() {
-  const value = (process.env.AI_PROVIDER_SECRET || '').trim();
-  if (value.length < 32) {
-    throw new Error('AI_PROVIDER_SECRET must contain at least 32 characters');
+export function aiProviderKeyVersion():number {
+  const version=Number(process.env.AI_PROVIDER_SECRET_VERSION || 1);
+  if(!Number.isSafeInteger(version) || version<1 || version>2147483647) throw new Error('Invalid AI provider key version');
+  return version;
+}
+function providerKey(version=aiProviderKeyVersion()) {
+  let secret=(process.env.AI_PROVIDER_SECRET || '').trim();
+  if(version!==aiProviderKeyVersion()) {
+    let previous:unknown;
+    try {previous=JSON.parse(process.env.AI_PROVIDER_SECRET_PREVIOUS || '{}');} catch {throw new Error('Invalid AI provider keyring configuration');}
+    if(!previous || typeof previous!=='object' || Array.isArray(previous)) throw new Error('Invalid AI provider keyring configuration');
+    secret=String((previous as Record<string,unknown>)[String(version)] || '').trim();
   }
-  return value;
+  if(secret.length<32) throw new Error('AI provider encryption key version is unavailable');
+  return createHash('sha256').update(secret,'utf8').digest();
 }
-
-function providerKey() {
-  return createHash('sha256').update(providerSecret(), 'utf8').digest();
-}
-
 export function isAiProviderSecretConfigured() {
-  return (process.env.AI_PROVIDER_SECRET || '').trim().length >= 32;
+  try {providerKey();return true;} catch {return false;}
 }
 
 export function aiProviderKeyHint(plaintext: string) {
@@ -46,7 +50,7 @@ export function encryptAiProviderKey(plaintext: string): EncryptedProviderKey {
   const cipher = createCipheriv(ALGORITHM, providerKey(), iv);
   const ciphertext = Buffer.concat([cipher.update(value, 'utf8'), cipher.final()]);
   return {
-    version: KEY_VERSION,
+    version: aiProviderKeyVersion(),
     ciphertext,
     iv,
     tag: cipher.getAuthTag(),
@@ -60,10 +64,9 @@ export function decryptAiProviderKey(row: {
   iv: Buffer | Uint8Array;
   tag: Buffer | Uint8Array;
 }) {
-  if (Number(row.key_version ?? KEY_VERSION) !== KEY_VERSION) {
-    throw new Error(`Unsupported AI provider key version: ${row.key_version}`);
-  }
-  const decipher = createDecipheriv(ALGORITHM, providerKey(), Buffer.from(row.iv));
+  const version=Number(row.key_version ?? LEGACY_KEY_VERSION);
+  if(!Number.isSafeInteger(version) || version<1) throw new Error('Invalid AI provider key version');
+  const decipher = createDecipheriv(ALGORITHM, providerKey(version), Buffer.from(row.iv));
   decipher.setAuthTag(Buffer.from(row.tag));
   return Buffer.concat([
     decipher.update(Buffer.from(row.ciphertext)),

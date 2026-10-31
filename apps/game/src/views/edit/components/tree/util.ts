@@ -112,7 +112,7 @@ export function isValidName(text: string) {
   }
 
   // 命名中允许使用的字符：中文、大小写英文、数字、空格和部分符号
-  const validName = new RegExp(/^[\p{Unified_Ideograph}\w_ ()'（）-]+$/, 'gu');
+  const validName = new RegExp(/^[\p{Unified_Ideograph}\w_ ()'（）-]+$/u, 'gu');
   return validName.test(text);
 }
 

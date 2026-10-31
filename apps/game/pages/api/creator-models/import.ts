@@ -24,7 +24,7 @@ async function readBody(req: NextApiRequest) {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (!await allowAuthenticatedCreatorApi(req, res, 'models.manage')) return;
+  if (!await allowAuthenticatedCreatorApi(req, res, ['models.manage', 'voxa.edit'])) return;
   if (req.method !== 'POST') return res.status(405).end();
   try {
     const body = await readBody(req);

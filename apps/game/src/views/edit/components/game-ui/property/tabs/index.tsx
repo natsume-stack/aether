@@ -95,7 +95,7 @@ function PropertyTabsView(props: Props, ref: Ref<HTMLDivElement | null>) {
 
   const innerRef = useRef<HTMLDivElement | null>(null);
 
-  useImperativeHandle(ref, () => innerRef.current, []);
+  useImperativeHandle(ref, () => {if(!innerRef.current) throw new Error('Panel has not mounted');return innerRef.current;}, []);
 
   const { gameUIEditor } = useEdit();
 

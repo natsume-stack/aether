@@ -67,7 +67,7 @@ export type Actions =
 
 type ActionCallback<Payload> = (payload: Payload, isForward: boolean) => void;
 
-const isObject = (o: any) => typeof o === 'object';
+const isObject = (o: any) => o !== null && typeof o === 'object';
 
 const isEmptyObject = (o: any) => isObject(o) && Object.keys(o).length === 0;
 

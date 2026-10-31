@@ -299,6 +299,10 @@ export const apiOperations = {
     "path": "/api/local-projects/asset-distribution",
     "method": "GET"
   },
+  "getApiLocalProjectsIdAiPublications": {
+    "path": "/api/local-projects/{id}/ai-publications",
+    "method": "GET"
+  },
   "getApiLocalProjectsIdExport": {
     "path": "/api/local-projects/{id}/export",
     "method": "GET"
@@ -337,6 +341,10 @@ export const apiOperations = {
   },
   "getApiPlayAdminAiProvidersPath": {
     "path": "/api/play-admin/ai-providers/{path}",
+    "method": "GET"
+  },
+  "getApiPlayAdminAiProvidersRuns": {
+    "path": "/api/play-admin/ai-providers/runs",
     "method": "GET"
   },
   "getApiPlayAdminContainerResourceGroups": {
@@ -739,6 +747,10 @@ export const apiOperations = {
     "path": "/api/creator/v1/projects/{projectId}/scene/session",
     "method": "POST"
   },
+  "postApiInternalAiPublication": {
+    "path": "/api/internal/ai-publication",
+    "method": "POST"
+  },
   "postApiInternalMapAuthoringProjectIdPreview": {
     "path": "/api/internal/map-authoring/{projectId}/preview",
     "method": "POST"
@@ -769,6 +781,10 @@ export const apiOperations = {
   },
   "postApiLocalProjects": {
     "path": "/api/local-projects",
+    "method": "POST"
+  },
+  "postApiLocalProjectsIdAiPublications": {
+    "path": "/api/local-projects/{id}/ai-publications",
     "method": "POST"
   },
   "postApiLocalProjectsIdMaps": {
@@ -809,6 +825,10 @@ export const apiOperations = {
   },
   "postApiPlayAdminAiProvidersIdModels": {
     "path": "/api/play-admin/ai-providers/{id}/models",
+    "method": "POST"
+  },
+  "postApiPlayAdminAiProvidersIdSharing": {
+    "path": "/api/play-admin/ai-providers/{id}/sharing",
     "method": "POST"
   },
   "postApiPlayAdminAiProvidersIdTest": {
@@ -1955,6 +1975,18 @@ export class ApiClient {
     return this.unwrap(this.getApiLocalProjectsAssetDistributionRaw(...init));
   }
 
+  getApiLocalProjectsIdAiPublicationsRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/local-projects/{id}/ai-publications"]["GET"]>
+  ) {
+    return this.paths["/api/local-projects/{id}/ai-publications"].GET(...init);
+  }
+
+  getApiLocalProjectsIdAiPublications(
+    ...init: Parameters<PathBasedClient<paths>["/api/local-projects/{id}/ai-publications"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiLocalProjectsIdAiPublicationsRaw(...init));
+  }
+
   getApiLocalProjectsIdExportRaw(
     ...init: Parameters<PathBasedClient<paths>["/api/local-projects/{id}/export"]["GET"]>
   ) {
@@ -2073,6 +2105,18 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{path}"]["GET"]>
   ) {
     return this.unwrap(this.getApiPlayAdminAiProvidersPathRaw(...init));
+  }
+
+  getApiPlayAdminAiProvidersRunsRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/runs"]["GET"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers/runs"].GET(...init);
+  }
+
+  getApiPlayAdminAiProvidersRuns(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/runs"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiPlayAdminAiProvidersRunsRaw(...init));
   }
 
   getApiPlayAdminContainerResourceGroupsRaw(
@@ -3269,6 +3313,18 @@ export class ApiClient {
     return this.unwrap(this.postApiCreatorV1ProjectsProjectIdSceneSessionRaw(...init));
   }
 
+  postApiInternalAiPublicationRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/internal/ai-publication"]["POST"]>
+  ) {
+    return this.paths["/api/internal/ai-publication"].POST(...init);
+  }
+
+  postApiInternalAiPublication(
+    ...init: Parameters<PathBasedClient<paths>["/api/internal/ai-publication"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiInternalAiPublicationRaw(...init));
+  }
+
   postApiInternalMapAuthoringProjectIdPreviewRaw(
     ...init: Parameters<PathBasedClient<paths>["/api/internal/map-authoring/{projectId}/preview"]["POST"]>
   ) {
@@ -3363,6 +3419,18 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/local-projects"]["POST"]>
   ) {
     return this.unwrap(this.postApiLocalProjectsRaw(...init));
+  }
+
+  postApiLocalProjectsIdAiPublicationsRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/local-projects/{id}/ai-publications"]["POST"]>
+  ) {
+    return this.paths["/api/local-projects/{id}/ai-publications"].POST(...init);
+  }
+
+  postApiLocalProjectsIdAiPublications(
+    ...init: Parameters<PathBasedClient<paths>["/api/local-projects/{id}/ai-publications"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiLocalProjectsIdAiPublicationsRaw(...init));
   }
 
   postApiLocalProjectsIdMapsRaw(
@@ -3483,6 +3551,18 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{id}/models"]["POST"]>
   ) {
     return this.unwrap(this.postApiPlayAdminAiProvidersIdModelsRaw(...init));
+  }
+
+  postApiPlayAdminAiProvidersIdSharingRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{id}/sharing"]["POST"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers/{id}/sharing"].POST(...init);
+  }
+
+  postApiPlayAdminAiProvidersIdSharing(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{id}/sharing"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiPlayAdminAiProvidersIdSharingRaw(...init));
   }
 
   postApiPlayAdminAiProvidersIdTestRaw(

@@ -9,6 +9,7 @@ export interface PopupProps {
 }
 
 interface Props extends PopupProps {
+  children?: import('react').ReactNode;
   popup: React.ReactNode;
   disableClick?: boolean;
   rightClick?: boolean;

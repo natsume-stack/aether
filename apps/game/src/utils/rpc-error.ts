@@ -6,7 +6,7 @@
  * so be careful to import other modules here.
  */
 
-import { I18n_Error } from 'react-intl';
+type I18n_Error = string;
 type ErrorType = {
     i18n:I18n_Error;
     data?:any;

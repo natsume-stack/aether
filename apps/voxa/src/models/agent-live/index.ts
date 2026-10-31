@@ -1,4 +1,9 @@
-import { vec3 } from 'gl-matrix';
+import {ProjectNodeType} from '../../redux/animator-slice';
+import {ROOT_ID,ROOT_BONE_ID,ROOT_SKIN_ID} from '../../defs';
+import {loadAiSnapshot, storeAiSnapshot, removeAiSnapshot} from './panel-snapshot';
+import { vec3, quat } from 'gl-matrix';
+import {RGBToHsv} from '../../utils/color';
+import {DEFAULT_GROUP_ID} from '../../defs';
 import {projectSchemaToBytes, projectV10} from '@box/voxa-project';
 
 import type { VoxelEditor } from '../editor';
@@ -164,16 +169,33 @@ export class VoxaAgentLiveSession {
 
   public async panelContext() {
     const data = await this.editor.projectManager.getData();
-    const parts = Object.entries(data.nodes).slice(0,128).map(([id,node]) => ({id,name:node.name,type:node.type,parentId:node.parentId,position:Array.from(node.position),scale:Array.from(node.scale)}));
-    return {fingerprint:await this.panelFingerprint(data),snapshot:this.snapshot(),parts,palette:this.paletteInfo({limit:64}),revision:this.modelRevision,humanEpoch:this.humanEpoch,undoDepth:this.voxaDepth().undo};
+    const parts = Object.entries(data.nodes).slice(0,128).map(([id,node]) => ({id,name:node.name,type:node.type,parentId:node.parentId,position:Array.from(node.position),scale:Array.from(node.scale),pivot:Array.from(node.pivot),rotationDegrees:Array.from(node.euler),alpha:node.alpha}));
+    const shape=this.shape();
+    const voxels=this.model().voxels;
+    const cells:number[][]=[];
+    let scanned=0;
+    const volume=shape[0]*shape[1]*shape[2];
+    scan: for(let x=0;x<shape[0];x++) for(let y=0;y<shape[1];y++) for(let z=0;z<shape[2];z++) {
+      if(scanned>=262144 || cells.length>=2048) break scan;
+      scanned++;
+      const colorId=voxels.getVoxel(x,y,z);
+      if(colorId>0) cells.push([x,y,z,colorId]);
+    }
+    return {voxelContext:{partId:store.getState().app.editingSkinPartId,shape,cells,scanned,totalCells:volume,truncated:scanned<volume,order:'x,y,z; each cell [x,y,z,colorId]'},fingerprint:await this.panelFingerprint(data),snapshot:this.snapshot(),parts,palette:this.paletteInfo({limit:64}),revision:this.modelRevision,humanEpoch:this.humanEpoch,undoDepth:this.voxaDepth().undo};
   }
 
-  public async executePanelPlan(commands: Array<{kind:string;args:Record<string,unknown>}>, expected: {revision:number;humanEpoch:number;undoDepth:number;fingerprint:string}, signal:AbortSignal) {
+  public async executePanelPlan(commands: Array<{kind:string;args:Record<string,unknown>}>, expected: {revision:number;humanEpoch:number;undoDepth:number;fingerprint:string}, signal:AbortSignal,metadata:{providerId?:string;model?:string;mode?:'review'|'autonomous'}={}) {
     if(this.panelBusy) throw new Error('AI plan already running');
     if(this.modelRevision!==expected.revision || this.humanEpoch!==expected.humanEpoch || this.voxaDepth().undo!==expected.undoDepth) throw new Error('Model changed after planning; generate a new plan');
     if(commands.length>32) throw new Error('AI plan exceeds command budget');
     this.panelBusy=true;
     let mutated=false;
+    let executionRunId:string|undefined;
+    const record=async(phase:string,action:string,snapshot='')=>{
+      const response=await fetch('/api/ai/authorize',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({modelId:store.getState().app.projectId,runId:executionRunId,phase,action,snapshot,...metadata}),signal:phase==='before'?signal:undefined});
+      if(!response.ok) throw new Error('AI execution quota or administrator policy refused request');
+      const value=await response.json();executionRunId=value.runId || executionRunId;
+    };
     let currentFingerprint=expected.fingerprint;
     try {
       const source=await this.editor.projectManager.getData();
@@ -181,9 +203,12 @@ export class VoxaAgentLiveSession {
       this.panelUndo=projectV10.ProjectDataV10Schema.clone(source);
       this.panelRollbackFingerprint='';
       const shape=this.shape();
+      const aliases=new Map<string,string>();
+      const colorAliases=new Map<string,number>();
+      const resolveId=(value:unknown) => aliases.get(String(value)) || String(value || '');
       let cells=0;
       const coordinate=(value:unknown) => {
-        if(!Array.isArray(value) || value.length!==3 || value.some((n,i)=>!Number.isSafeInteger(n) || n<0 || n>=shape[i])) throw new Error('Invalid or out-of-bounds voxel coordinates');
+        if(!Array.isArray(value) || value.length!==3 || value.some(n=>!Number.isSafeInteger(n) || n<0 || n>=256)) throw new Error('Invalid or out-of-bounds voxel coordinates');
         return value as number[];
       };
       for(const command of commands) {
@@ -203,57 +228,150 @@ export class VoxaAgentLiveSession {
       const before=await this.editor.projectManager.saveProject({autoSave:false});
       if(!before.isSuccess) throw new Error('Cannot save model snapshot');
       if(await this.panelFingerprint(await this.editor.projectManager.getData())!==expected.fingerprint) throw new Error('Model changed while saving snapshot');
+      await record('before','voxa-batch',currentFingerprint);
       await this.run('observe',{});
+      await storeAiSnapshot(String(store.getState().app.projectId), this.panelUndo, currentFingerprint);
       for(const command of commands) {
         if(signal.aborted) throw new Error('AI plan cancelled');
-        const response=await fetch('/api/ai/authorize',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({modelId:store.getState().app.projectId}),signal});
-        if(!response.ok) throw new Error('AI execution is disabled or unavailable');
-        if(await this.panelFingerprint(await this.editor.projectManager.getData())!==currentFingerprint) throw new Error('Model changed during AI execution');
+        if(this.humanEpoch!==expected.humanEpoch) throw new Error('Human edits interrupted the AI batch');
+        await record('before',command.kind,currentFingerprint);
+        if(await this.panelFingerprint(await this.editor.projectManager.getData())!==currentFingerprint || this.humanEpoch!==expected.humanEpoch) throw new Error('Model changed during AI execution');
         this.ensureWriteAllowed('paint');
         mutated=true;
-        if(command.kind==='part_patch') {
+        if(command.kind==='palette_add') {
+          const rgb=command.args.rgb;
+          const alias=String(command.args.alias || '');
+          const emissive=command.args.emissive ?? 0;
+          if(!/^\$[a-zA-Z][a-zA-Z0-9_]{0,31}$/.test(alias) || colorAliases.has(alias)) throw new Error('A unique color $alias is required');
+          if(!Array.isArray(rgb) || rgb.length!==3 || rgb.some(v=>!Number.isInteger(v) || v<0 || v>255) || typeof emissive!=='number' || !Number.isFinite(emissive) || emissive<0 || emissive>255) throw new Error('Invalid palette color');
+          let ids:number[]=[];
+          this.commitVoxels(()=>{ids=this.editor.palette.addGroupItems({id:DEFAULT_GROUP_ID,items:[{rgb:rgb as Vec3Tuple,hsv:RGBToHsv(rgb[0],rgb[1],rgb[2]),material:{emissive}}]});});
+          if(ids.length!==1) throw new Error('Palette capacity exceeded');
+          colorAliases.set(alias,ids[0]);
+          this.modelRevision++;this.observedUndoDepth=this.voxaDepth().undo;
+        } else if(command.kind==='workspace_resize') {
+          const size=command.args.size;
+          if(!Array.isArray(size) || size.length!==3 || size.some(v=>!Number.isInteger(v) || v<1 || v>256) || size.reduce((v,n)=>v*n,1)>1048576) throw new Error('Workspace exceeds AI size budget');
+          // Native resize recenters X/Z and can crop voxels; the persisted pre-batch snapshot is the recovery path.
+          this.commitVoxels(()=>this.editor.voxelApp.updateSpaceSize(vec3.fromValues(size[0],size[1],size[2])));
+          this.modelRevision++;this.observedUndoDepth=this.voxaDepth().undo;
+        } else if(['part_create','part_select','part_delete','part_group','part_move'].includes(command.kind)) {
+          if(!store.getState().permission.editParts) throw new Error('Part editing is not allowed');
+          const manager=this.editor.animatorApp.nodeManager;
+          const hierarchy=store.getState().animator.hierarchyData;
+          const id=resolveId(command.args.id);
+          const protectedIds=[ROOT_ID,ROOT_BONE_ID,ROOT_SKIN_ID];
+          let createdId='';
+          if(['part_create','part_group'].includes(command.kind)) {
+            const alias=String(command.args.alias || '');
+            if(!/^\$[a-zA-Z][a-zA-Z0-9_]{0,31}$/.test(alias) || aliases.has(alias)) throw new Error('A unique $alias is required for new parts');
+            if(command.args.name!==undefined && (typeof command.args.name!=='string' || !command.args.name.trim() || command.args.name.length>64)) throw new Error('Invalid part name');
+          }
+          this.commitVoxels(()=>{
+            if(command.kind==='part_create') {
+              if(Object.keys(hierarchy).length>=256) throw new Error('AI part budget exceeded');
+              createdId=manager.addSkinPart({toRename:false}).uuid;
+              this.editor.switchToVoxel(createdId);
+            } else if(command.kind==='part_select') {
+              if(hierarchy[id]?.type!==ProjectNodeType.SkinPart) throw new Error('Select an existing voxel part');
+              this.editor.switchToVoxel(id);
+            } else if(command.kind==='part_delete') {
+              if(!hierarchy[id] || protectedIds.includes(id)) throw new Error('Cannot remove this part');
+              this.editor.switchToAnimator();
+              manager.removeNodes([id]);
+            } else if(command.kind==='part_group') {
+              if(!Array.isArray(command.args.ids) || !command.args.ids.length || command.args.ids.length>32) throw new Error('Invalid group members');
+              const ids=command.args.ids.map(resolveId);
+              if(new Set(ids).size!==ids.length || ids.some(v=>!hierarchy[v] || protectedIds.includes(v) || ![ProjectNodeType.SkinPart,ProjectNodeType.Group].includes(hierarchy[v].type))) throw new Error('Invalid group members');
+              if(ids.some(v=>hierarchy[v].parentId!==hierarchy[ids[0]].parentId)) throw new Error('Group members must be siblings');
+              this.editor.switchToAnimator();
+              createdId=manager.addGroup(ids).uuid;
+            } else {
+              const parentId=resolveId(command.args.parentId);
+              if(!hierarchy[id] || protectedIds.includes(id) || ![ProjectNodeType.SkinPart,ProjectNodeType.Group].includes(hierarchy[id].type) || !hierarchy[parentId] || (hierarchy[parentId].type!==ProjectNodeType.Group && parentId!==ROOT_SKIN_ID)) throw new Error('Invalid reparent operation');
+              const seen=new Set<string>();let ancestor:string|undefined=parentId;
+              while(ancestor) {if(ancestor===id || seen.has(ancestor)) throw new Error('Cyclic hierarchy is forbidden');seen.add(ancestor);ancestor=hierarchy[ancestor]?.parentId;}
+              this.editor.switchToAnimator();manager.setActiveIds([id]);manager.moveActiveSkinNodes(parentId,'box');
+              if(store.getState().animator.hierarchyData[id]?.parentId!==parentId) throw new Error('Reparent operation was refused');
+            }
+          });
+          if(createdId) {
+            const alias=String(command.args.alias || '');
+            if(!/^\$[a-zA-Z][a-zA-Z0-9_]{0,31}$/.test(alias) || aliases.has(alias)) throw new Error('A unique $alias is required for new parts');
+            aliases.set(alias,createdId);
+            if(command.args.name!==undefined) {
+              if(typeof command.args.name!=='string' || !command.args.name.trim() || command.args.name.length>64) throw new Error('Invalid part name');
+              const data=await this.editor.projectManager.getData();data.nodes[createdId].name=command.args.name;
+              this.commitVoxels(()=>this.editor.projectManager.restoreAiSnapshot(data));
+              if(command.kind==='part_create') this.commitVoxels(()=>this.editor.switchToVoxel(createdId));
+            }
+          }
+          this.modelRevision++;this.observedUndoDepth=this.voxaDepth().undo;this.observedHumanEpoch=expected.humanEpoch;
+        } else if(command.kind==='part_patch') {
           if(!store.getState().permission.editParts) throw new Error('Part editing is not allowed');
           const data=await this.editor.projectManager.getData();
           if(await this.panelFingerprint(data)!==currentFingerprint) throw new Error('Part data changed during AI execution');
-          const node=data.nodes[String(command.args.id || '')];
+          const node=data.nodes[resolveId(command.args.id)];
           if(!node) throw new Error('Unknown part ID');
           if(command.args.name!==undefined) {if(typeof command.args.name!=='string' || !command.args.name.trim() || command.args.name.length>64) throw new Error('Invalid part name');node.name=command.args.name;}
-          for(const key of ['position','scale'] as const) {
+          for(const key of ['position','scale','pivot','rotationDegrees'] as const) {
             const value=command.args[key];
             if(value!==undefined) {
               if(!Array.isArray(value) || value.length!==3 || value.some(v=>typeof v!=='number' || !Number.isFinite(v) || Math.abs(v)>10000 || (key==='scale' && v<=0))) throw new Error('Invalid part transform');
-              node[key].set(value);
+              if(key==='rotationDegrees') {node.euler.set(value);quat.fromEuler(node.quaternion,value[0],value[1],value[2]);}
+              else node[key].set(value);
             }
           }
-          this.editor.projectManager.restoreAiSnapshot(data);
+          if(command.args.alpha!==undefined) {const alpha=command.args.alpha;if(typeof alpha!=='number' || !Number.isFinite(alpha) || alpha<0 || alpha>1) throw new Error('Invalid part opacity');node.alpha=alpha;}
+          this.commitVoxels(()=>this.editor.projectManager.restoreAiSnapshot(data));
           this.modelRevision++;
           this.observedUndoDepth=this.voxaDepth().undo;
         } else {
           if(!['paint','erase','paint_path','fill_box','set_color','trim'].includes(command.kind)) throw new Error('Unsupported panel command');
-          await this.run(command.kind,{...command.args,paceMs:0});
+          const args={...command.args,paceMs:0} as Record<string,unknown>;
+          for(const key of ['id','colorId']) if(typeof args[key]==='string' && String(args[key]).startsWith('$')) {const color=colorAliases.get(String(args[key]));if(color===undefined) throw new Error('Unknown palette alias');args[key]=color;}
+          await this.run(command.kind,args);
         }
         currentFingerprint=await this.panelFingerprint(await this.editor.projectManager.getData());
+        await storeAiSnapshot(String(store.getState().app.projectId), this.panelUndo!, currentFingerprint);
+        await record('after',command.kind,currentFingerprint);
       }
       const saved=await this.editor.projectManager.saveProject({autoSave:false});
       if(!saved.isSuccess) throw new Error('Model changed but save failed; inspect before retry');
       if(await this.panelFingerprint(await this.editor.projectManager.getData())!==currentFingerprint) throw new Error('Model changed during AI save');
       this.panelRollbackFingerprint=currentFingerprint;
+      await record('complete','voxa-batch',currentFingerprint);
+      executionRunId=undefined;
       return {success:true,commands:commands.length};
     } finally {
-      if(mutated) this.panelRollbackFingerprint=currentFingerprint;
+      if(executionRunId) await record(signal.aborted?'cancelled':'failed','voxa-batch',currentFingerprint).catch(()=>undefined);
+      if(mutated) {
+        // Capture partial writes as well; rollback is still guarded by full-source CAS.
+        if(this.humanEpoch===expected.humanEpoch) {
+          currentFingerprint=await this.panelFingerprint(await this.editor.projectManager.getData());
+          this.panelRollbackFingerprint=currentFingerprint;
+          await storeAiSnapshot(String(store.getState().app.projectId),this.panelUndo!,currentFingerprint);
+        } else this.panelRollbackFingerprint='';
+      }
       this.panelBusy=false;
     }
   }
 
   public async rollbackPanelPlan() {
-    if(this.panelBusy || !this.panelUndo) throw new Error('No AI snapshot available');
+    if(this.panelBusy) throw new Error('AI plan is running');
+    if(!this.panelUndo) {
+      const saved=await loadAiSnapshot(String(store.getState().app.projectId));
+      if(saved) {this.panelUndo=saved.data;this.panelRollbackFingerprint=saved.fingerprint;}
+    }
+    if(!this.panelUndo) throw new Error('No AI snapshot available');
     if(!this.panelRollbackFingerprint || await this.panelFingerprint(await this.editor.projectManager.getData())!==this.panelRollbackFingerprint) throw new Error('Model changed after AI execution; rollback would overwrite later edits');
-    this.editor.projectManager.restoreAiSnapshot(this.panelUndo);
-    this.panelUndo=undefined;
+    this.commitVoxels(()=>this.editor.projectManager.restoreAiSnapshot(this.panelUndo!));
     this.modelRevision++;
     this.observedUndoDepth=this.voxaDepth().undo;
     const saved=await this.editor.projectManager.saveProject({autoSave:false});
     if(!saved.isSuccess) throw new Error('Snapshot restored but save failed');
+    this.panelUndo=undefined;
+    await removeAiSnapshot(String(store.getState().app.projectId));
   }
 
   public start() {

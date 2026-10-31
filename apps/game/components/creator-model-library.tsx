@@ -47,9 +47,10 @@ function editorHref(voxaUrl: string, model?: CreatorModel, editType?: 0 | 1) {
   return `${voxaUrl.replace(/\/$/, '')}/?${query}`;
 }
 
-export function CreatorModelLibrary({ voxaUrl, canManageModels }: {
+export function CreatorModelLibrary({ voxaUrl, canManageModels, canEditVoxa = false }: {
   voxaUrl: string;
   canManageModels: boolean;
+  canEditVoxa?: boolean;
 }) {
   const [models, setModels] = useState<CreatorModel[]>([]);
   const [serviceState, setServiceState] = useState<ServiceState>('loading');
@@ -85,12 +86,12 @@ export function CreatorModelLibrary({ voxaUrl, canManageModels }: {
   }, []);
 
   useEffect(() => {
-    if (!canManageModels) return;
+    if (!canManageModels && !canEditVoxa) return;
     void refreshModels();
     const handleFocus = () => void refreshModels(true);
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, [canManageModels, refreshModels]);
+  }, [canManageModels, canEditVoxa, refreshModels]);
 
   useEffect(() => {
     if (!notice) return undefined;
@@ -107,7 +108,7 @@ export function CreatorModelLibrary({ voxaUrl, canManageModels }: {
   }, [models, query, type]);
 
   const openEditor = (model?: CreatorModel, editType?: 0 | 1) => {
-    if (!canManageModels || serviceState !== 'ready' || !voxaUrl) return;
+    if (!canEditVoxa || serviceState !== 'ready' || !voxaUrl) return;
     window.open(editorHref(voxaUrl, model, editType), '_blank', 'noopener,noreferrer');
   };
 
@@ -118,8 +119,8 @@ export function CreatorModelLibrary({ voxaUrl, canManageModels }: {
     try {
       const data = (await apiClient.postApiCreatorModelsImport({
         headers: { 'Content-Type': file.type || 'application/vnd.box.voxaproject+zip' },
-        body: file,
-        bodySerializer: (body) => body,
+        body: file as never,
+        bodySerializer: () => file,
       })) as { requiresResourceResave?: boolean; modelName?: string };
       setNotice(data.requiresResourceResave
         ? `已导入“${data.modelName || file.name}”。此旧工程未包含模型资源，请在 VOXA 中打开并保存一次后再放置。`
@@ -209,23 +210,23 @@ export function CreatorModelLibrary({ voxaUrl, canManageModels }: {
           if (file) void importModel(file);
         }}
       />
-      <button className={styles.secondaryButton} disabled={serviceState !== 'ready'} onClick={() => openEditor(undefined, 1)}>
+      <button className={styles.secondaryButton} disabled={!canEditVoxa || serviceState !== 'ready'} onClick={() => openEditor(undefined, 1)}>
         <Shirt size={16} />新建皮肤
       </button>
-      <button className={styles.primaryButton} disabled={serviceState !== 'ready'} onClick={() => openEditor(undefined, 0)}>
+      <button className={styles.primaryButton} disabled={!canEditVoxa || serviceState !== 'ready'} onClick={() => openEditor(undefined, 0)}>
         <Plus size={17} />新建模型
       </button>
     </div>
   </div>;
 
-  if (!canManageModels) {
+  if (!canManageModels && !canEditVoxa) {
     return <section className={`${styles.library} creatorLibrary`}>
       <div className={styles.servicePanel} aria-live="polite">
         <div className={styles.serviceIcon}><ServerOff size={24} /></div>
         <div className={styles.serviceCopy}>
           <span className={styles.serviceLabel}>模型管理未授权</span>
           <h2>当前账号不能管理 VOXA 模型</h2>
-          <p>地图仍可正常使用已有模型；如需导入、编辑或导出模型，请让服主授予“管理模型”权限。</p>
+          <p>地图仍可正常使用已有模型；编辑模型需“VOXA 编辑器”权限，管理模型库需“管理模型”权限。</p>
         </div>
       </div>
     </section>;
@@ -274,7 +275,7 @@ export function CreatorModelLibrary({ voxaUrl, canManageModels }: {
       <RefreshCw size={20} />正在读取模型列表…
     </div> : visibleModels.length ? <div className={styles.grid}>
       {visibleModels.map((model) => <article className={styles.card} key={model.modelId}>
-        <button className={styles.cardLink} aria-label={`编辑${model.modelName}`} onClick={() => openEditor(model)} />
+        <button disabled={!canEditVoxa} className={styles.cardLink} aria-label={`编辑${model.modelName}`} onClick={() => openEditor(model)} />
         <div className={styles.preview}>
           {model.modelPreviewUrl
             ? <img src={model.modelPreviewUrl} alt="" />
@@ -300,9 +301,9 @@ export function CreatorModelLibrary({ voxaUrl, canManageModels }: {
             <MoreHorizontal size={18} />
           </button>
           {menuModel === model.modelId && <div className={styles.menu}>
-            <button onClick={() => openEditDialog(model)}><Pencil size={14} />修改信息</button>
+            <button disabled={!canManageModels} onClick={() => openEditDialog(model)}><Pencil size={14} />修改信息</button>
             <a href={`/api/creator-models/${model.modelId}/export`} download><Download size={14} />导出工程</a>
-            <button className={styles.deleteAction} onClick={() => { setDeletingModel(model); setDialogError(''); setMenuModel(null); }}><Trash2 size={14} />删除</button>
+            <button disabled={!canManageModels} className={styles.deleteAction} onClick={() => { setDeletingModel(model); setDialogError(''); setMenuModel(null); }}><Trash2 size={14} />删除</button>
           </div>}
         </div>
       </article>)}

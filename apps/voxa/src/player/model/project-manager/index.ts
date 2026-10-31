@@ -44,6 +44,7 @@ export class ProjectManager {
       return;
     }
 
+    if (!modelFileHash) throw new Error('模型缺少文件哈希，无法打开');
     const result = await this.getModelFile(modelFileHash, options.params);
 
     if (!result) {

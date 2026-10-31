@@ -15,8 +15,10 @@ for (const [relativePath, guard] of [
   ['models/[id].ts', 'requireVoxaModelAccess'],
   ['blobs/[hash].ts', 'requireVoxaModelAccess'],
   ['default-skin.ts', 'requireVoxaModelAccess'],
-  ['models/[id]/snapshots.ts', 'requireVoxaModelManagement'],
-  ['models/[id]/export.ts', 'requireVoxaModelManagement'],
+  ['models/[id]/snapshots.ts', 'requireVoxaEditorAccess'],
+  ['models/[id]/edit-lock.ts', 'requireVoxaEditorAccess'],
+  ['models/[id]/model.ts', 'requireVoxaEditorAccess'],
+  ['models/[id]/export.ts', 'requireVoxaModelAccess'],
 ] as const) {
   assert.match(
     fs.readFileSync(path.join(routeRoot, relativePath), 'utf8'),
@@ -28,7 +30,7 @@ for (const [relativePath, guard] of [
 assert.equal(
   canManageVoxaModels({ creatorAccess: true, creatorPermissions: ['models.manage'] }),
   true,
-  'a creator with the model-management capability must be allowed into VOXA',
+  'the model-management capability still covers model-library administration',
 );
 assert.equal(
   canManageVoxaModels({ creatorAccess: true, creatorPermissions: ['projects.edit'] }),

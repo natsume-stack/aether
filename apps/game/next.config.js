@@ -262,8 +262,8 @@ const config = {
   ],
 
   typescript: {
-    ignoreBuildErrors: true,
-    tsconfigPath: process.env.NEXT_TSCONFIG_PATH || 'tsconfig.json',
+    ignoreBuildErrors: false,
+    tsconfigPath: process.env.NEXT_TSCONFIG_PATH || 'tsconfig.runtime.json',
   },
 
   // TODO GameClient 通过 useEffect 初始化但没有提供 unmount，这里不能打开

@@ -22,6 +22,7 @@ import {
   EditType,
   setSourceMapId,
   setProfilerEnabled,
+  setEditLock,
 } from '../redux/app-slice';
 import { store } from '../redux/store';
 import { AnimatorApp } from './animator-app';
@@ -73,6 +74,8 @@ import {
   voxelShapeToObjSize,
 } from '../utils/math';
 import { VoxaProfiler } from './profiler';
+import { startEditSession, type EditSession } from '../utils/edit-session';
+import { getEditActor } from '../utils/edit-lock';
 
 export type VoxelEditorOptions = {
   regl: Regl;
@@ -126,6 +129,8 @@ export class VoxelEditor {
   private readonly modelLoader: Loader;
 
   public readonly profiler: VoxaProfiler;
+
+  private editSession?: EditSession;
 
   constructor(options: VoxelEditorOptions) {
     const { regl } = options;
@@ -228,15 +233,15 @@ export class VoxelEditor {
 
     this.toggleEventListeners(true);
 
+    if (typeof window !== 'undefined') {
+      window.addEventListener('pagehide', () => {
+        void this.editSession?.close();
+      });
+    }
+
     this.switchToAnimator();
 
-    this.aiModel = new AIModel({
-      history: this.history,
-      animatorApp: this.animatorApp,
-      voxelApp: this.voxelApp,
-      palette: this.palette,
-      shapELoader: this.shapELoader,
-    });
+    this.aiModel = new AIModel();
 
     this.modelLoader = new Loader({ regl: regl });
   }
@@ -607,6 +612,9 @@ export class VoxelEditor {
     const result = await this.launchEditor();
 
     if (result.isSuccess) {
+      const projectId = store.getState().app.projectId;
+      if (projectId > 0) this.startModelEditSession(projectId);
+
       store.dispatch(setLaunchState(LaunchState.Success));
 
       if (this.iframeTool.isInIframe()) {
@@ -687,6 +695,39 @@ export class VoxelEditor {
   };
 
   /**
+   * Holds the model edit lock and follows the revision feed for the life of
+   * the tab. The engine-side CLI writes through the same API, so a human tab
+   * sees those commits without a manual refresh.
+   */
+  private startModelEditSession(modelId: number) {
+    void this.editSession?.close();
+    this.editSession = startEditSession({
+      modelId,
+      actor: getEditActor(),
+      reload: () => this.projectManager.load({ id: modelId }),
+      onLock: (lock) => store.dispatch(setEditLock(lock)),
+      onConflict: (lock) => {
+        Toast.info({
+          content: `模型正在由 ${lock.actor || '其他编辑者'} 编辑，当前只读同步`,
+        });
+      },
+      onReloaded: (event) => {
+        Toast.info({
+          content: `模型已被 ${event.actor} 更新（revision ${event.revision}），已重新载入`,
+        });
+      },
+      onError: (error) => console.error('Model edit session failed', error),
+    });
+  }
+
+  public closeEditSession = async () => {
+    const session = this.editSession;
+    this.editSession = undefined;
+    await session?.close();
+    store.dispatch(setEditLock(null));
+  };
+
+  /**
    * 在启动（launch）过程中，加载作品的流程。
    */
   private async loadProjectOnLaunch(): Promise<IResult<undefined, string>> {
@@ -701,7 +742,7 @@ export class VoxelEditor {
           contentId,
         );
 
-        if (info.contentType !== ContentType.Model) {
+        if (info.contentType !== 1) {
           return {
             isSuccess: false,
             body: 'invalidContentType',

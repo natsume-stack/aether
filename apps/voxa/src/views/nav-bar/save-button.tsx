@@ -4,6 +4,7 @@ import { Button } from '@box/box-design';
 import { VoxelEditorContext } from '../../internals';
 import { SaveState } from '../../redux/app-slice';
 import { useAppSelector } from '../../redux/store';
+import { isEditLockedByOther } from '../../utils/edit-lock';
 import styles from './style.module.scss';
 
 function SaveButtonView() {
@@ -14,6 +15,7 @@ function SaveButtonView() {
     saveState: app.saveState,
     isPublishing: app.isPublishing,
   }));
+  const editLock = useAppSelector(({ app }) => app.editLock);
 
   const save = useCallback(() => {
     if (!editor) {
@@ -51,7 +53,7 @@ function SaveButtonView() {
       className={[styles.button, styles.save].join(' ')}
       type="secondary"
       onClick={onClick}
-      disabled={isPublishing}
+      disabled={isPublishing || isEditLockedByOther(editLock)}
       loading={loading}
     >
       {text}

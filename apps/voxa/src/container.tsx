@@ -34,6 +34,7 @@ import { isMobile } from './utils/devices';
 import { clientConfig } from './config/client';
 import { ProfilePanel } from './views/profile-panel';
 import { useFloatMenu } from './views/float-menu';
+import { startVoxaAgentLive } from './models/agent-live';
 
 // motion面板默认高度
 const MOTION_DEFAULT_HEIGHT = 197;
@@ -73,6 +74,7 @@ export default function VoxelBuilderContainer() {
 
     const { toolType, mode } = store.getState().editing;
     let disposeEditor: Function;
+    let disposeAgentLive: (() => void) | undefined;
     initRendering(canvas.current).then((res) => {
       const { editor, setRendering, destroy } = res;
 
@@ -90,6 +92,7 @@ export default function VoxelBuilderContainer() {
       setRendering(true);
 
       disposeEditor = () => {
+        void editor.closeEditSession();
         destroy();
       };
 
@@ -98,12 +101,24 @@ export default function VoxelBuilderContainer() {
       });
 
       /**
+       * 活体通道：让远端 AI 接上这台编辑器。
+       * AI 的每个动作都走真人同一条路径（相机 / 体素光标 / destination 体素），
+       * 所以人能看到建模过程，而不是刷新后模型突然变了。
+       */
+      if (!isMobile()) {
+        disposeAgentLive = startVoxaAgentLive(editor);
+      }
+
+      /**
        * 初始化结束后，读取地址栏中的参数进行加载。
        */
       editor.launch();
     });
 
     return () => {
+      disposeAgentLive?.();
+      disposeAgentLive = undefined;
+
       if (disposeEditor) {
         disposeEditor();
       }
@@ -175,7 +190,7 @@ export default function VoxelBuilderContainer() {
 
   const dragStartState = useRef<
     { startY: number; startHeight: number; maxHeight: number } | undefined
-  >();
+  >(undefined);
 
   const onDragStart = useCallback(
     (e: React.MouseEvent) => {

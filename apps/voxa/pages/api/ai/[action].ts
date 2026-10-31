@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import {requireVoxaModelManagement} from '../../../server/model-management-access';
+import {requireVoxaEditorAccess} from '../../../server/model-management-access';
 import {setLocalCors} from '../../../server/local-cors';
 import {generateVoxaAiPlan, authorizeVoxaAiWrite} from '../../../server/ai-planner';
 export const config={api:{bodyParser:{sizeLimit:'256kb'}}};
@@ -7,10 +7,10 @@ export default async function handler(req:NextApiRequest,res:NextApiResponse) {
   res.setHeader('Cache-Control','no-store');
   if (!setLocalCors(req,res)) return res.status(403).end();
   if (req.method!=='POST') {res.setHeader('Allow','POST');return res.status(405).end();}
-  if (!await requireVoxaModelManagement(req,res)) return;
+  if (!await requireVoxaEditorAccess(req,res)) return;
   try {
     if(req.query.action==='plan') return res.status(200).json(await generateVoxaAiPlan(req,res));
-    if(req.query.action==='authorize') {await authorizeVoxaAiWrite(req,res,req.body?.modelId);return res.status(200).json({allowed:true});}
+    if(req.query.action==='authorize') {const lease=await authorizeVoxaAiWrite(req,res,req.body?.modelId);return res.status(200).json({allowed:true,...lease});}
     return res.status(404).end();
   } catch(error) {
     const message=error instanceof Error ? error.message : 'AI request failed';

@@ -1,12 +1,12 @@
-import { vec3 } from 'gl-matrix';
+import { vec3, type ReadonlyVec3 } from 'gl-matrix';
 
 //http://geomalgorithms.com/a07-_distance.html
 
 const EPSILON = 1e-6;
 
 export type Line = {
-  origin:vec3|number[],
-  dir:vec3|number[],
+  origin:ReadonlyVec3,
+  dir:ReadonlyVec3,
 };
 
 export function distanceLineToLine(L1:Line, L2:Line) {
@@ -41,8 +41,8 @@ export function distanceLineToLine(L1:Line, L2:Line) {
 }
 
 export type Segment = {
-  start:vec3|number[],
-  end:vec3|number[],
+  start:ReadonlyVec3,
+  end:ReadonlyVec3,
 };
 
 export function distanceSegmentToSegment(S1:Segment, S2:Segment) {

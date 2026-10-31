@@ -1,0 +1,28 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2020"
+  },
+  "include": [
+    ".next-player-service/types/**/*.ts",
+    ".next/types/**/*.ts",
+    "components/**/*.ts",
+    "components/**/*.tsx",
+    "next-env.d.ts",
+    "pages/**/*.ts",
+    "pages/**/*.tsx",
+    "src/**/*.d.ts",
+    "types/**/*.d.ts",
+    ".next-ai-build/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "build",
+    "public",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "**/*.stories.tsx"
+  ]
+}

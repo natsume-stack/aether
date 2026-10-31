@@ -223,7 +223,7 @@ export class PlayClient extends EngineClient {
       `${clientConfig.ARENA_URL}/api/getMapInfo?hash=${hash}&mode=play`,
       {
         headers: {
-          authorization: getToken(),
+          authorization: getToken() || '',
         },
         credentials: 'include',
       },

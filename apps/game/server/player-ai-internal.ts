@@ -1,8 +1,10 @@
+import {beginAiExecution, recordAiExecution} from './ai-execution-ledger';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 import { isInternalIdentityRequest, resolvePlayerIdentity } from './local-player-identity';
 import {
   AiProviderError,
+  isAiExecutionUserActive,
   readAiExecutionPolicy,
   createAiProvider,
   deleteAiProvider,
@@ -47,6 +49,11 @@ export async function handlePlayerAiInternal(req: NextApiRequest, res: NextApiRe
   // caller's user id explicitly and never accepts a browser session, so only
   // the shared internal secret can reach the decrypted key.
   const parts = pathSegments(req);
+  if(parts[0]==='execution' && parts.length===1) {
+    if(req.method!=='POST') return res.status(405).end();
+    if(!isInternalIdentityRequest(req)) return res.status(401).end();
+    try {const input=body(req);return res.status(200).json(input.runId ? await recordAiExecution(input.userId,input.runId,input.event) : await beginAiExecution(input.userId,input.scope,input.mode,{providerId:input.providerId,model:input.model}));} catch(error) {return fail(res,error);}
+  }
   if (parts[0] === 'policy' && parts.length === 1) {
     if (req.method !== 'POST') return res.status(405).end();
     if (!isInternalIdentityRequest(req)) return res.status(401).end();
@@ -54,7 +61,7 @@ export async function handlePlayerAiInternal(req: NextApiRequest, res: NextApiRe
       const input = body(req);
       if (!/^[1-9][0-9]{0,18}$/.test(String(input.userId || ''))) throw new AiProviderError('INVALID_USER', 'Invalid user');
       const policy = await readAiExecutionPolicy();
-      return res.status(200).json({allowed: policy.enabled && !policy.blockedUsers.includes(String(input.userId)) && !policy.blockedMaps.includes(String(input.mapId || ''))});
+      return res.status(200).json({allowed: await isAiExecutionUserActive(input.userId) && policy.enabled && !policy.blockedUsers.includes(String(input.userId)) && !policy.blockedMaps.includes(String(input.mapId || ''))});
     } catch (error) { return fail(res, error); }
   }
   if (parts[0] === 'resolve') {

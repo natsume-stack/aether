@@ -22,7 +22,8 @@
     "test": "jest",
     "test:realtime": "npm --prefix ../../packages/realtime-client run build && npm --prefix ../../packages/realtime-client test && jest --runInBand --runTestsByPath server/creator-scene-websocket.test.ts server/realtime-tickets.test.ts server/realtime-session.test.ts server/request-websocket-protocol.test.ts shared/websocket-url.test.ts src/utils/remote-game-server.test.ts src/views/edit/components/nav-bar/right-control/scene-connection.test.ts --reporters=default",
     "test:realtime-postgres": "ts-node --transpile-only --compiler-options '{\"module\":\"commonjs\",\"moduleResolution\":\"node\"}' scripts/regression-player-change-feed.ts",
-    "test:local-runtime-session": "node -r ts-node/register scripts/regression-local-runtime-session.ts"
+    "test:local-runtime-session": "node -r ts-node/register scripts/regression-local-runtime-session.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.runtime.json"
   },
   "browserslist": [
     "defaults"

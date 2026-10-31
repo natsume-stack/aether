@@ -1,3 +1,4 @@
+import type {JSONValue} from '@box/schema/api/common';
 import { EventBus } from '@box/utils/event';
 import type { RemoteChannelClient } from '../remote-channel/channel-client';
 

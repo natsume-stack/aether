@@ -40,7 +40,7 @@ function Scrollbar() {
   const ref = useRef<HTMLDivElement>(null);
 
   const onChange = useCallback(
-    ([x]) => {
+    ([x]: SerializedVec2) => {
       const newScrollLeft = Math.ceil(x);
 
       setScrollbar((state) => ({

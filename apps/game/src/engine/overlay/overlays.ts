@@ -434,6 +434,7 @@ function computeBubbleContent(
       return;
     }
   }
+  return undefined;
 }
 
 function drawWebGIFSticker(

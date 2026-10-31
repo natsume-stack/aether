@@ -19,7 +19,7 @@ export function SkeletonPanel() {
   const newMotions = useAppSelector((state) => state.app.newMotions);
   const dispatch = useDispatch();
 
-  const tempBVH = useRef<string>();
+  const tempBVH = useRef<string | undefined>(undefined);
   const [showImportBVH, setShowImportBVH] = useState(false);
 
   const [motionName, setMotionName] = useState<string>();

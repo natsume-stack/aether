@@ -1,7 +1,7 @@
-import { vec3 } from 'gl-matrix';
+import { vec3, type ReadonlyVec3 } from 'gl-matrix';
 
 // Möller-Trumbore algorithm
-export function rayTriangle (tri:vec3[]|number[][], ray:{origin:vec3|number[], dir:vec3|number[]}) {
+export function rayTriangle (tri:ReadonlyVec3[], ray:{origin:ReadonlyVec3, dir:ReadonlyVec3}) {
   const EPSILON = 0.000001;
   const edge1 = vec3.create();
   const edge2 = vec3.create();

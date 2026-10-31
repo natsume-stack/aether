@@ -86,7 +86,7 @@ function identitySchema() {
   return value;
 }
 
-function table(name: string) {
+export function aiProviderTable(name: string) {
   return `"${identitySchema().replace(/"/g, '""')}"."${name.replace(/"/g, '""')}"`;
 }
 
@@ -96,15 +96,15 @@ function database(): Pool {
   return pool;
 }
 
-async function ensureStore() {
+export async function ensureAiProviderStore() {
   if (!initialized) {    initialized = (async () => {
       const db = database();
-      await db.query(`CREATE TABLE IF NOT EXISTS ${table('ai_execution_policy')} (id integer PRIMARY KEY CHECK (id = 1), enabled boolean NOT NULL DEFAULT true, blocked_users jsonb NOT NULL DEFAULT '[]', blocked_maps jsonb NOT NULL DEFAULT '[]', updated_at timestamptz NOT NULL DEFAULT NOW())`);
-      await db.query(`INSERT INTO ${table('ai_execution_policy')} (id) VALUES (1) ON CONFLICT DO NOTHING`);
+      await db.query(`CREATE TABLE IF NOT EXISTS ${aiProviderTable('ai_execution_policy')} (id integer PRIMARY KEY CHECK (id = 1), enabled boolean NOT NULL DEFAULT true, blocked_users jsonb NOT NULL DEFAULT '[]', blocked_maps jsonb NOT NULL DEFAULT '[]', updated_at timestamptz NOT NULL DEFAULT NOW())`);
+      await db.query(`INSERT INTO ${aiProviderTable('ai_execution_policy')} (id) VALUES (1) ON CONFLICT DO NOTHING`);
       await db.query(`
-        CREATE TABLE IF NOT EXISTS ${table('ai_providers')} (
+        CREATE TABLE IF NOT EXISTS ${aiProviderTable('ai_providers')} (
           id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-          user_id integer REFERENCES ${table('users')}(id) ON DELETE CASCADE,
+          user_id integer REFERENCES ${aiProviderTable('users')}(id) ON DELETE CASCADE,
           is_default boolean NOT NULL DEFAULT false,
           name text NOT NULL,
           protocol text NOT NULL,
@@ -127,21 +127,22 @@ async function ensureStore() {
       `);
       await db.query(`
         CREATE UNIQUE INDEX IF NOT EXISTS ai_providers_user_name
-        ON ${table('ai_providers')} (user_id, name) WHERE user_id IS NOT NULL
+        ON ${aiProviderTable('ai_providers')} (user_id, name) WHERE user_id IS NOT NULL
       `);
       await db.query(`
         CREATE UNIQUE INDEX IF NOT EXISTS ai_providers_admin_name
-        ON ${table('ai_providers')} (name) WHERE user_id IS NULL
+        ON ${aiProviderTable('ai_providers')} (name) WHERE user_id IS NULL
       `);
       await db.query(`
         CREATE UNIQUE INDEX IF NOT EXISTS ai_providers_one_default
-        ON ${table('ai_providers')} (is_default) WHERE is_default = true
+        ON ${aiProviderTable('ai_providers')} (is_default) WHERE is_default = true
       `);
+      await db.query(`CREATE TABLE IF NOT EXISTS ${aiProviderTable('ai_provider_grants')} (provider_id uuid NOT NULL REFERENCES ${aiProviderTable('ai_providers')}(id) ON DELETE CASCADE,user_id integer NOT NULL REFERENCES ${aiProviderTable('users')}(id) ON DELETE CASCADE,PRIMARY KEY(provider_id,user_id))`);
       await db.query(`
-        CREATE TABLE IF NOT EXISTS ${table('ai_preferences')} (
-          user_id integer NOT NULL REFERENCES ${table('users')}(id) ON DELETE CASCADE,
+        CREATE TABLE IF NOT EXISTS ${aiProviderTable('ai_preferences')} (
+          user_id integer NOT NULL REFERENCES ${aiProviderTable('users')}(id) ON DELETE CASCADE,
           workflow text NOT NULL,
-          provider_id uuid REFERENCES ${table('ai_providers')}(id) ON DELETE SET NULL,
+          provider_id uuid REFERENCES ${aiProviderTable('ai_providers')}(id) ON DELETE SET NULL,
           model text NOT NULL DEFAULT '',
           autonomy text NOT NULL DEFAULT 'review',
           updated_at timestamptz NOT NULL DEFAULT NOW(),
@@ -157,7 +158,7 @@ async function ensureStore() {
 }
 
 export async function initializeAiProviderStore() {
-  await ensureStore();
+  await ensureAiProviderStore();
 }
 
 function numericUserId(value: string | number) {
@@ -343,18 +344,18 @@ function rowSecret(row: any): AiProviderSecret {
 
 async function readRow(db: Pool, userId: number, id: string, includeAdmin: boolean) {
   const result = await db.query(
-    `SELECT * FROM ${table('ai_providers')}
-     WHERE id = $1 AND (user_id = $2 ${includeAdmin ? 'OR (user_id IS NULL AND is_default = true)' : ''})`,
+    `SELECT * FROM ${aiProviderTable('ai_providers')}
+     WHERE id = $1 AND (user_id = $2 ${includeAdmin ? `OR (user_id IS NULL AND (is_default = true OR id IN (SELECT provider_id FROM ${aiProviderTable('ai_provider_grants')} WHERE user_id=$2)))` : ''})`,
     [id, userId],
   );
   return result.rows[0] || null;
 }
 
 export async function listAiProviders(userId: string | number): Promise<AiProviderPublic[]> {
-  await ensureStore();
+  await ensureAiProviderStore();
   const result = await database().query(
-    `SELECT * FROM ${table('ai_providers')}
-     WHERE user_id = $1 OR (user_id IS NULL AND is_default = true)
+    `SELECT * FROM ${aiProviderTable('ai_providers')}
+     WHERE user_id = $1 OR (user_id IS NULL AND (is_default = true OR id IN (SELECT provider_id FROM ${aiProviderTable('ai_provider_grants')} WHERE user_id=$1)))
      ORDER BY (user_id IS NULL), name`,
     [numericUserId(userId)],
   );
@@ -362,7 +363,7 @@ export async function listAiProviders(userId: string | number): Promise<AiProvid
 }
 
 export async function createAiProvider(userId: string | number, input: AiProviderInput): Promise<AiProviderPublic> {
-  await ensureStore();
+  await ensureAiProviderStore();
   const id = numericUserId(userId);
   const name = text(input.name, '渠道名', 64);
   const protocol = normalizeProtocol(input.protocol);
@@ -375,7 +376,7 @@ export async function createAiProvider(userId: string | number, input: AiProvide
   const capabilities = normalizeCapabilities(input.capabilities);
   try {
     const result = await database().query(
-      `INSERT INTO ${table('ai_providers')}
+      `INSERT INTO ${aiProviderTable('ai_providers')}
        (user_id, name, protocol, base_url, api_key_cipher, api_key_iv, api_key_tag, key_version, key_hint,
         default_model, models, headers, capabilities, enabled)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb,$12::jsonb,$13::jsonb,$14)
@@ -394,7 +395,7 @@ export async function createAiProvider(userId: string | number, input: AiProvide
 }
 
 export async function updateAiProvider(userId: string | number, id: string, input: AiProviderInput): Promise<AiProviderPublic> {
-  await ensureStore();
+  await ensureAiProviderStore();
   const uid = numericUserId(userId);
   const current = await readRow(database(), uid, id, false);
   if (!current) throw new AiProviderError('AI_PROVIDER_NOT_FOUND', '渠道不存在', 404);
@@ -421,7 +422,7 @@ export async function updateAiProvider(userId: string | number, id: string, inpu
   values.push(id, uid);
   try {
     const result = await database().query(
-      `UPDATE ${table('ai_providers')} SET ${sets.join(', ')}, updated_at = NOW()
+      `UPDATE ${aiProviderTable('ai_providers')} SET ${sets.join(', ')}, updated_at = NOW()
        WHERE id = $${values.length - 1} AND user_id = $${values.length} RETURNING *`,
       values,
     );
@@ -436,16 +437,16 @@ export async function updateAiProvider(userId: string | number, id: string, inpu
 }
 
 export async function deleteAiProvider(userId: string | number, id: string) {
-  await ensureStore();
+  await ensureAiProviderStore();
   const result = await database().query(
-    `DELETE FROM ${table('ai_providers')} WHERE id = $1 AND user_id = $2`,
+    `DELETE FROM ${aiProviderTable('ai_providers')} WHERE id = $1 AND user_id = $2`,
     [id, numericUserId(userId)],
   );
   return (result.rowCount || 0) > 0;
 }
 
 export async function getAiProviderSecret(userId: string | number, id: string): Promise<AiProviderSecret> {
-  await ensureStore();
+  await ensureAiProviderStore();
   const row = await readRow(database(), numericUserId(userId), id, true);
   if (!row || row.enabled === false) {
     throw new AiProviderError('AI_PROVIDER_NOT_FOUND', '渠道不存在或已停用', 404);
@@ -455,18 +456,18 @@ export async function getAiProviderSecret(userId: string | number, id: string): 
 }
 
 export async function resolveAiProvider(userId: string | number, providerId?: string): Promise<AiProviderSecret> {
-  await ensureStore();
+  await ensureAiProviderStore();
   const uid = numericUserId(userId);
   if (providerId) {
     return getAiProviderSecret(uid, providerId);
   }
   const own = await database().query(
-    `SELECT * FROM ${table('ai_providers')} WHERE user_id = $1 AND enabled = true ORDER BY created_at LIMIT 1`,
+    `SELECT * FROM ${aiProviderTable('ai_providers')} WHERE user_id = $1 AND enabled = true ORDER BY created_at LIMIT 1`,
     [uid],
   );
   if (own.rows[0]) { await assertSafeProviderUrl(own.rows[0].base_url); return rowSecret(own.rows[0]); }
   const fallback = await database().query(
-    `SELECT * FROM ${table('ai_providers')} WHERE user_id IS NULL AND is_default = true AND enabled = true LIMIT 1`,
+    `SELECT * FROM ${aiProviderTable('ai_providers')} WHERE user_id IS NULL AND is_default = true AND enabled = true LIMIT 1`,
   );
   if (!fallback.rows[0]) {
     throw new AiProviderError('AI_PROVIDER_NOT_CONFIGURED', '尚未配置可用的 AI 渠道', 409);
@@ -476,28 +477,28 @@ export async function resolveAiProvider(userId: string | number, providerId?: st
 }
 
 export async function markAiProviderTest(userId: string | number, id: string, status: string) {
-  await ensureStore();
+  await ensureAiProviderStore();
   const uid = numericUserId(userId);
   await database().query(
-    `UPDATE ${table('ai_providers')} SET last_tested_at = NOW(), last_test_status = $3, updated_at = NOW()
+    `UPDATE ${aiProviderTable('ai_providers')} SET last_tested_at = NOW(), last_test_status = $3, updated_at = NOW()
      WHERE id = $1 AND (user_id = $2 OR (user_id IS NULL AND is_default = true AND enabled = true))`,
     [id, uid, String(status).slice(0, 200)],
   );
 }
 
 export async function markAdminAiProviderTest(id: string, status: string) {
-  await ensureStore();
+  await ensureAiProviderStore();
   await database().query(
-    `UPDATE ${table('ai_providers')} SET last_tested_at = NOW(), last_test_status = $2, updated_at = NOW()
+    `UPDATE ${aiProviderTable('ai_providers')} SET last_tested_at = NOW(), last_test_status = $2, updated_at = NOW()
      WHERE id = $1 AND user_id IS NULL`,
     [id, String(status).slice(0, 200)],
   );
 }
 
 export async function readAiPreferences(userId: string | number): Promise<Record<string, AiPreference>> {
-  await ensureStore();
+  await ensureAiProviderStore();
   const result = await database().query(
-    `SELECT workflow, provider_id, model, autonomy, updated_at FROM ${table('ai_preferences')} WHERE user_id = $1`,
+    `SELECT workflow, provider_id, model, autonomy, updated_at FROM ${aiProviderTable('ai_preferences')} WHERE user_id = $1`,
     [numericUserId(userId)],
   );
   const preferences: Record<string, AiPreference> = {};
@@ -517,7 +518,7 @@ export async function writeAiPreference(
   userId: string | number,
   input: { workflow?: unknown; providerId?: unknown; model?: unknown; autonomy?: unknown },
 ): Promise<AiPreference> {
-  await ensureStore();
+  await ensureAiProviderStore();
   const uid = numericUserId(userId);
   const workflow = String(input.workflow || 'map.coauthor');
   if (!WORKFLOW_PATTERN.test(workflow)) throw new AiProviderError('INVALID_WORKFLOW', 'workflow 不合法');
@@ -526,7 +527,7 @@ export async function writeAiPreference(
   const model = String(input.model || '').slice(0, 200);
   const autonomy = normalizeAutonomy(input.autonomy);
   const result = await database().query(
-    `INSERT INTO ${table('ai_preferences')} (user_id, workflow, provider_id, model, autonomy, updated_at)
+    `INSERT INTO ${aiProviderTable('ai_preferences')} (user_id, workflow, provider_id, model, autonomy, updated_at)
      VALUES ($1,$2,$3,$4,$5,NOW())
      ON CONFLICT (user_id, workflow) DO UPDATE
      SET provider_id = EXCLUDED.provider_id, model = EXCLUDED.model, autonomy = EXCLUDED.autonomy, updated_at = NOW()
@@ -546,17 +547,17 @@ export async function writeAiPreference(
 // ── admin default channels ────────────────────────────────────────────────
 
 export async function listAdminAiProviders(): Promise<AiProviderPublic[]> {
-  await ensureStore();
+  await ensureAiProviderStore();
   const result = await database().query(
-    `SELECT * FROM ${table('ai_providers')} WHERE user_id IS NULL ORDER BY is_default DESC, name`,
+    `SELECT p.*, ARRAY(SELECT g.user_id::text FROM ${aiProviderTable('ai_provider_grants')} g WHERE g.provider_id=p.id ORDER BY g.user_id) AS shared_user_ids FROM ${aiProviderTable('ai_providers')} p WHERE user_id IS NULL ORDER BY is_default DESC, name`,
   );
-  return result.rows.map(rowPublic);
+  return result.rows.map(row=>({...rowPublic(row),sharedUserIds:row.shared_user_ids as string[]}));
 }
 
 export async function getAdminAiProviderSecret(id: string): Promise<AiProviderSecret> {
-  await ensureStore();
+  await ensureAiProviderStore();
   const result = await database().query(
-    `SELECT * FROM ${table('ai_providers')} WHERE id = $1 AND user_id IS NULL`,
+    `SELECT * FROM ${aiProviderTable('ai_providers')} WHERE id = $1 AND user_id IS NULL`,
     [id],
   );
   if (!result.rows[0]) throw new AiProviderError('AI_PROVIDER_NOT_FOUND', '管理员渠道不存在', 404);
@@ -564,7 +565,7 @@ export async function getAdminAiProviderSecret(id: string): Promise<AiProviderSe
 }
 
 export async function createAdminAiProvider(input: AiProviderInput): Promise<AiProviderPublic> {
-  await ensureStore();
+  await ensureAiProviderStore();
   const name = text(input.name, '渠道名', 64);
   const protocol = normalizeProtocol(input.protocol);
   const baseUrl = await assertSafeProviderUrl(text(input.baseUrl, 'Base URL', 2048));
@@ -579,10 +580,10 @@ export async function createAdminAiProvider(input: AiProviderInput): Promise<AiP
   try {
     await client.query('BEGIN');
     await client.query("SELECT pg_advisory_xact_lock(hashtext('box.ai.admin-default'))");
-    const existing = await client.query(`SELECT id FROM ${table('ai_providers')} WHERE user_id IS NULL LIMIT 1`);
+    const existing = await client.query(`SELECT id FROM ${aiProviderTable('ai_providers')} WHERE user_id IS NULL LIMIT 1`);
     const makeDefault = existing.rowCount === 0;
     const result = await client.query(
-      `INSERT INTO ${table('ai_providers')}
+      `INSERT INTO ${aiProviderTable('ai_providers')}
        (user_id, is_default, name, protocol, base_url, api_key_cipher, api_key_iv, api_key_tag, key_version, key_hint,
         default_model, models, headers, capabilities, enabled)
        VALUES (NULL,$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb,$12::jsonb,$13::jsonb,$14)
@@ -605,9 +606,9 @@ export async function createAdminAiProvider(input: AiProviderInput): Promise<AiP
 }
 
 export async function updateAdminAiProvider(id: string, input: AiProviderInput): Promise<AiProviderPublic> {
-  await ensureStore();
+  await ensureAiProviderStore();
   const db = database();
-  const current = await db.query(`SELECT * FROM ${table('ai_providers')} WHERE id = $1 AND user_id IS NULL`, [id]);
+  const current = await db.query(`SELECT * FROM ${aiProviderTable('ai_providers')} WHERE id = $1 AND user_id IS NULL`, [id]);
   if (!current.rows[0]) throw new AiProviderError('AI_PROVIDER_NOT_FOUND', '管理员渠道不存在', 404);
   const sets: string[] = [];
   const values: unknown[] = [];
@@ -631,7 +632,7 @@ export async function updateAdminAiProvider(id: string, input: AiProviderInput):
   if (!sets.length) return rowPublic(current.rows[0]);
   values.push(id);
   const result = await db.query(
-    `UPDATE ${table('ai_providers')} SET ${sets.join(', ')}, updated_at = NOW()
+    `UPDATE ${aiProviderTable('ai_providers')} SET ${sets.join(', ')}, updated_at = NOW()
      WHERE id = $${values.length} AND user_id IS NULL RETURNING *`,
     values,
   );
@@ -639,16 +640,16 @@ export async function updateAdminAiProvider(id: string, input: AiProviderInput):
 }
 
 export async function setAdminDefaultAiProvider(id: string) {
-  await ensureStore();
+  await ensureAiProviderStore();
   const db = database();
   const client = await db.connect();
   try {
     await client.query('BEGIN');
     await client.query("SELECT pg_advisory_xact_lock(hashtext('box.ai.admin-default'))");
-    const exists = await client.query(`SELECT id FROM ${table('ai_providers')} WHERE id = $1 AND user_id IS NULL AND enabled = true`, [id]);
+    const exists = await client.query(`SELECT id FROM ${aiProviderTable('ai_providers')} WHERE id = $1 AND user_id IS NULL AND enabled = true`, [id]);
     if (!exists.rows[0]) throw new AiProviderError('AI_PROVIDER_NOT_FOUND', '管理员渠道不存在', 404);
-    await client.query(`UPDATE ${table('ai_providers')} SET is_default = false WHERE user_id IS NULL`);
-    await client.query(`UPDATE ${table('ai_providers')} SET is_default = true, updated_at = NOW() WHERE id = $1`, [id]);
+    await client.query(`UPDATE ${aiProviderTable('ai_providers')} SET is_default = false WHERE user_id IS NULL`);
+    await client.query(`UPDATE ${aiProviderTable('ai_providers')} SET is_default = true, updated_at = NOW() WHERE id = $1`, [id]);
     await client.query('COMMIT');
     return true;
   } catch (error) {
@@ -660,22 +661,22 @@ export async function setAdminDefaultAiProvider(id: string) {
 }
 
 export async function deleteAdminAiProvider(id: string) {
-  await ensureStore();
+  await ensureAiProviderStore();
   const result = await database().query(
-    `DELETE FROM ${table('ai_providers')} WHERE id = $1 AND user_id IS NULL`,
+    `DELETE FROM ${aiProviderTable('ai_providers')} WHERE id = $1 AND user_id IS NULL`,
     [id],
   );
   return (result.rowCount || 0) > 0;
 }
 
 export async function readAiExecutionPolicy() {
-  await ensureStore();
-  const result = await database().query(`SELECT enabled, blocked_users, blocked_maps FROM ${table('ai_execution_policy')} WHERE id = 1`);
+  await ensureAiProviderStore();
+  const result = await database().query(`SELECT enabled, blocked_users, blocked_maps FROM ${aiProviderTable('ai_execution_policy')} WHERE id = 1`);
   const row = result.rows[0];
   return {enabled: row.enabled === true, blockedUsers: row.blocked_users as string[], blockedMaps: row.blocked_maps as string[]};
 }
 export async function writeAiExecutionPolicy(input: Record<string, unknown>) {
-  await ensureStore();
+  await ensureAiProviderStore();
   const ids = (value: unknown): string[] => {
     if (!Array.isArray(value) || value.length > 1000 || value.some(id => typeof id !== 'string' || !/^[a-zA-Z0-9_.:-]{1,128}$/.test(id))) {
       throw new AiProviderError('INVALID_POLICY', 'Invalid blocked IDs');
@@ -683,7 +684,31 @@ export async function writeAiExecutionPolicy(input: Record<string, unknown>) {
     return [...new Set(value)];
   };
   if (typeof input.enabled !== 'boolean') throw new AiProviderError('INVALID_POLICY', 'enabled must be boolean');
-  await database().query(`UPDATE ${table('ai_execution_policy')} SET enabled = $1, blocked_users = $2::jsonb, blocked_maps = $3::jsonb, updated_at = NOW() WHERE id = 1`,
+  await database().query(`UPDATE ${aiProviderTable('ai_execution_policy')} SET enabled = $1, blocked_users = $2::jsonb, blocked_maps = $3::jsonb, updated_at = NOW() WHERE id = 1`,
     [input.enabled, JSON.stringify(ids(input.blockedUsers ?? [])), JSON.stringify(ids(input.blockedMaps ?? []))]);
   return readAiExecutionPolicy();
+}
+
+/** Owner-managed explicit sharing; grants expose metadata and server-side use, never the secret to a browser. */
+export async function shareAdminAiProvider(id:string,userIds:unknown) {
+  await ensureAiProviderStore();
+  if(!Array.isArray(userIds) || userIds.length>1000 || userIds.some(v=>typeof v!=='string' || !/^[1-9][0-9]{0,9}$/.test(v) || Number(v)>2147483647)) throw new AiProviderError('INVALID_SHARING','Invalid sharing user IDs');
+  const ids=[...new Set(userIds as string[])];const client=await database().connect();
+  try {
+    await client.query('BEGIN');
+    const provider=await client.query(`SELECT id FROM ${aiProviderTable('ai_providers')} WHERE id=$1 AND user_id IS NULL FOR UPDATE`,[id]);
+    if(!provider.rows.length) throw new AiProviderError('AI_PROVIDER_NOT_FOUND','Admin provider not found',404);
+    const users=await client.query(`SELECT id FROM ${aiProviderTable('users')} WHERE id=ANY($1::integer[])`,[ids]);
+    if(users.rows.length!==ids.length) throw new AiProviderError('INVALID_SHARING','A sharing user does not exist');
+    await client.query(`DELETE FROM ${aiProviderTable('ai_provider_grants')} WHERE provider_id=$1`,[id]);
+    if(ids.length) await client.query(`INSERT INTO ${aiProviderTable('ai_provider_grants')}(provider_id,user_id) SELECT $1,unnest($2::integer[])`,[id,ids]);
+    await client.query('COMMIT');return {success:true};
+  } catch(error) {await client.query('ROLLBACK');throw error;} finally {client.release();}
+}
+
+export async function isAiExecutionUserActive(value:unknown) {
+  await ensureAiProviderStore();
+  const userId=Number(value);if(!Number.isSafeInteger(userId) || userId<1 || userId>2147483647) return false;
+  const result=await database().query(`SELECT 1 FROM ${aiProviderTable('users')} WHERE id=$1 AND status='active'`,[userId]);
+  return result.rows.length===1;
 }

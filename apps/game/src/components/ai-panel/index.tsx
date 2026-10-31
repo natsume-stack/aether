@@ -1,4 +1,5 @@
 'use client';
+import {PublicationHistory} from './publication-history';
 
 import { UIMessage, useChat } from '@ai-sdk/react';
 import { CopyEvent, SourceType } from '@box/apis';
@@ -439,7 +440,7 @@ export const AiPanel = () => {
         const saved = preferenceData.preferences?.[WORKFLOW_ID];
         setSelection(defaultSelection(list, saved));
       } catch (error) {
-        // 未登录或后端未配置时保留环境默认的 FAST/PRO，不阻塞对话面板
+        // 配置失败时保留设置入口，发送前明确提示渠道状态。
         console.warn('[AI Panel] provider bootstrap failed', error);
       } finally {
         if (alive) setProvidersLoading(false);
@@ -473,7 +474,7 @@ export const AiPanel = () => {
   );
   const modelSelectorLabel = selectedProviderOption
     ? `${selectedProviderOption.provider.name} · ${selectedProviderOption.model.name || selectedProviderOption.model.id}`
-    : (MODELS.find((item) => item.id === selection.model)?.name || 'FAST');
+    : '配置 AI 渠道';
 
   /** 输入是否暂停（与游戏输入协调） */
   const [isInputPause, setInputPause] = useState<boolean>(false);
@@ -535,19 +536,21 @@ export const AiPanel = () => {
         return;
       }
 
-      if (message.files?.length) {
-        toast.success('Files attached', {
-          description: `${message.files.length} file(s) attached to message`,
-        });
+      if(providersLoading) {toast.error('正在读取 AI 渠道，请稍候');return;}
+      if(!selection.providerId || !selection.model || !providers.some(p=>p.id===selection.providerId && p.enabled)) {
+        toast.error('请先配置并选择可用的 AI 渠道和模型');setSettingsOpen(true);return;
+      }
+      if(hasAttachments && !providers.find(p=>p.id===selection.providerId)?.capabilities.vision) {
+        toast.error('当前渠道未启用视觉能力，请选择支持图片的渠道');return;
       }
 
       sendMessage(
-        { text: message.text || 'Sent with attachments' },
+        { text: message.text || '请分析附件', ...(hasAttachments ? {files:message.files} : {}) },
         { body: { model: encodeSelection(selection) } },
       );
       setText('');
     },
-    [sendMessage, selection],
+    [sendMessage, selection, providers, providersLoading],
   );
 
   // ==================== 渲染 ====================
@@ -573,6 +576,8 @@ export const AiPanel = () => {
         </Button>
       </div>
 
+      <PublicationHistory/>
+      {selectedProviderOption?.provider.capabilities.tools===false && <p className="border-b p-2 text-xs text-muted-foreground">当前渠道仅提供对话建议，未启用地图写入工具。</p>}
       {/* 输入暂停提示（当聚焦输入框时显示） */}
       {isInputPause && (
         <InputPause flags={InputPauseFlags.ALL} change={inputPauseChange} />
@@ -802,11 +807,11 @@ export const AiPanel = () => {
                         管理 AI 接入…
                       </DropdownMenu.Item>
                       <DropdownMenu.Item
-                        onSelect={() => persistSelection({ providerId: '', model: MODELS[0].id, autonomy: selection.autonomy })}
+                        onSelect={() => {const next=defaultSelection(providers);persistSelection({...next,autonomy:selection.autonomy});}}
                         className="relative flex w-full cursor-pointer select-none items-center gap-2 rounded-lg px-2 py-2 text-xs outline-none transition-colors hover:bg-accent"
                       >
                         <Zap size={14} />
-                        使用环境默认（FAST）
+                        使用可用默认渠道
                       </DropdownMenu.Item>
                     </DropdownMenu.Content>
                   </DropdownMenu.Portal>

@@ -10,7 +10,7 @@ import {
 } from '../../../../server/creator-model-service';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (!await allowAuthenticatedCreatorApi(req, res, ['projects.edit', 'models.manage'])) return;
+  if (!await allowAuthenticatedCreatorApi(req, res, ['projects.edit', 'models.manage', 'voxa.edit'])) return;
   if (req.method !== 'GET') return res.status(405).end();
   const hash = String(Array.isArray(req.query.hash) ? req.query.hash[0] : req.query.hash || '');
   if (!/^Qm[1-9A-HJ-NP-Za-km-z]{44}$/.test(hash)) {

@@ -37,7 +37,7 @@ export function Palette(props: PaletteProps) {
 
   const groupElements = useMemo(() => {
     return palette.groupList.map((groupId) => {
-      const items: JSX.Element[] = [];
+      const items: import('react').JSX.Element[] = [];
 
       const group = palette.groups[groupId];
 

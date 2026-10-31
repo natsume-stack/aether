@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 
 import { storeBlob } from '../../../server/local-voxa-store';
 import { setLocalCors } from '../../../server/local-cors';
-import { requireVoxaModelManagement } from '../../../server/model-management-access';
+import { requireVoxaEditorAccess } from '../../../server/model-management-access';
 
 export const config = {
   api: { bodyParser: false },
@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).end();
-  if (!await requireVoxaModelManagement(req, res)) return;
+  if (!await requireVoxaEditorAccess(req, res)) return;
   let data: Buffer;
   try {
     data = await readBody(req);

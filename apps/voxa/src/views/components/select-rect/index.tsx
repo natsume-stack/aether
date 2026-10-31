@@ -137,7 +137,7 @@ export function SelectRect(props: SelectRectOptions) {
  */
 export function useGlobalSelectRect(editor?: VoxelEditor) {
   const pointers = useRef<PointerEvent[]>([]);
-  const pointerDownTimer = useRef<number>();
+  const pointerDownTimer = useRef<number | undefined>(undefined);
 
   const { appMode, pivotMode, pointerAction, mode, toolType } = useAppSelector(
     (state) => ({

@@ -183,7 +183,7 @@ export function useProjectPublisher(options: Options) {
         current ? { ...current, phase: 'downloading', percent: 65, total, filename } : current,
       );
       if (packageResult.data) {
-        const reader = packageResult.data.getReader();
+        const reader = packageResult.response.body!.getReader();
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;

@@ -21,6 +21,10 @@ type StoredModel = {
   projectFileUUID: string;
   projectFileUrl: string;
   updatedAt: string;
+  /** Monotonic per-model write counter used by the editor live-reload channel. */
+  revision: number;
+  /** Actor of the most recent revision bump (`cli:...` or `web-...`). */
+  lastEditActor: string;
   mapId?: number;
   snapshots: Array<Record<string, unknown>>;
 };
@@ -133,7 +137,13 @@ function blobURL(hash: string) {
 
 function publicModel(model: StoredModel) {
   const { snapshots: _snapshots, ...value } = model;
-  return value;
+  // Records written before revisions existed still need to look like revision
+  // 0 to clients and the SSE channel.
+  return {
+    ...value,
+    revision: model.revision || 0,
+    lastEditActor: model.lastEditActor || '',
+  };
 }
 
 export function matchesMapFilter(
@@ -205,6 +215,8 @@ export async function saveModel(input: Record<string, any>) {
         projectFileUUID: '',
         projectFileUrl: '',
         updatedAt: now,
+        revision: 0,
+        lastEditActor: '',
         snapshots: [],
       };
       index.models.push(model);
@@ -234,12 +246,65 @@ export async function saveModel(input: Record<string, any>) {
     model.modelPreviewUUID = model.modelPreviewHash;
     model.modelPreviewUrl = blobURL(model.modelPreviewHash);
     model.updatedAt = now;
+    // Every committed payload is a new revision so other editor tabs can
+    // detect the write through the SSE feed, not only CLI `replaceModelPayload`.
+    model.revision = (model.revision || 0) + 1;
+    model.lastEditActor = String(input.actor ?? '').trim().slice(0, 120);
     if (input.mapId !== undefined) model.mapId = Number(input.mapId);
 
     model.snapshots.unshift({
       snapshotId: index.nextSnapshotId++,
       createdAt: now,
       autoSave: Boolean(input.autoSave),
+      modelFileHash: model.modelFileHash,
+      modelFileUUID: model.modelFileHash,
+      modelPreviewHash: model.modelPreviewHash,
+      modelPreviewUUID: model.modelPreviewHash,
+      projectFileHash: model.projectFileHash,
+      projectFileUUID: model.projectFileHash,
+    });
+    model.snapshots = model.snapshots.slice(0, 100);
+    return publicModel(model);
+  });
+}
+
+/**
+ * Atomically replaces the blob graph of an existing model and bumps its
+ * revision. Blobs are content addressed and must already be stored by the
+ * caller; this function only flips the index in one queued write.
+ */
+export async function replaceModelPayload(input: {
+  id: number;
+  actor: string;
+  projectFileHash: string;
+  modelFileHash: string;
+  modelPreviewHash?: string;
+}) {
+  return mutate((index) => {
+    const model = index.models.find((item) => item.modelId === input.id);
+    if (!model) return null;
+
+    const now = new Date().toISOString();
+    model.projectFileHash = input.projectFileHash;
+    model.projectFileUUID = input.projectFileHash;
+    model.projectFileUrl = blobURL(input.projectFileHash);
+    model.modelFileHash = input.modelFileHash;
+    model.modelFileUUID = input.modelFileHash;
+    model.modelFileUrl = blobURL(input.modelFileHash);
+    model.fileHash = input.modelFileHash;
+    if (input.modelPreviewHash !== undefined) {
+      model.modelPreviewHash = input.modelPreviewHash;
+      model.modelPreviewUUID = input.modelPreviewHash;
+      model.modelPreviewUrl = blobURL(input.modelPreviewHash);
+    }
+    model.updatedAt = now;
+    model.revision = (model.revision || 0) + 1;
+    model.lastEditActor = input.actor;
+
+    model.snapshots.unshift({
+      snapshotId: index.nextSnapshotId++,
+      createdAt: now,
+      autoSave: false,
       modelFileHash: model.modelFileHash,
       modelFileUUID: model.modelFileHash,
       modelPreviewHash: model.modelPreviewHash,

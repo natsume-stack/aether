@@ -53,7 +53,7 @@ export function VoxaAiPanel() {
     const session=getVoxaAgentLiveSession();
     if(!session) throw new Error('模型编辑器尚未就绪');
     const controller=new AbortController();abort.current=controller;
-    await session.executePanelPlan(value.commands,value.context,controller.signal);
+    await session.executePanelPlan(value.commands,value.context,controller.signal,{providerId,model,mode:autonomy});
     setPlan(undefined);setNote(`已执行并保存 ${value.commands.length} 项修改，可回滚最近批次。`);
   }
   async function send() {

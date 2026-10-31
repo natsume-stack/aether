@@ -222,7 +222,13 @@ export function createGLTexture(
   result.data = req.image;
   result.width = imgModel.width;
   result.height = imgModel.height;
-  result.texture = regl.texture({ data: result.data });
+  let textureData:HTMLCanvasElement | HTMLImageElement;
+  if(typeof ImageBitmap!=='undefined' && req.image instanceof ImageBitmap) {
+    const canvas=document.createElement('canvas');canvas.width=req.image.width;canvas.height=req.image.height;
+    const context=canvas.getContext('2d');if(!context) throw new Error('Cannot prepare model texture');
+    context.drawImage(req.image,0,0);textureData=canvas;
+  } else textureData=req.image as HTMLImageElement;
+  result.texture = regl.texture({ data: textureData });
   cache.imageIndex[hash] = result;
 }
 

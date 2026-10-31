@@ -1,4 +1,4 @@
-import { vec3 } from 'gl-matrix';
+import { vec3, type ReadonlyVec3 } from 'gl-matrix';
 
 export type TestCone = {
   cosa:number,    //he half angle between the axis and the surface
@@ -7,7 +7,7 @@ export type TestCone = {
   tipPos:vec3,
 };
 
-export function intersectCone(cone:TestCone, ray:{origin:vec3|number[], dir:vec3|number[]}) {
+export function intersectCone(cone:TestCone, ray:{origin:ReadonlyVec3, dir:ReadonlyVec3}) {
   const co = vec3.sub(vec3.create(), ray.origin, cone.tipPos);
   const rDir_dot_axis = vec3.dot(ray.dir, cone.axis);
   const co_dot_axis = vec3.dot(co, cone.axis);

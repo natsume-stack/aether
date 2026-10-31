@@ -263,7 +263,7 @@ function PropertyCardsView(props: Props, ref: Ref<HTMLDivElement | null>) {
 
   const innerRef = useRef<HTMLDivElement>(null);
 
-  useImperativeHandle(ref, () => innerRef.current, []);
+  useImperativeHandle(ref, () => {if(!innerRef.current) throw new Error('Panel has not mounted');return innerRef.current;}, []);
 
   const itemsRef = useRef<HTMLDivElement>(null);
 

@@ -16,6 +16,7 @@ export type ResolvedProvider = {
   headers: Record<string, string>;
   defaultModel: string;
   models: Array<{ id: string; name?: string }>;
+  capabilities?: { tools: boolean; json: boolean; vision: boolean };
 };
 export type ModelSelection = {
   providerId?: string;
@@ -23,8 +24,6 @@ export type ModelSelection = {
   autonomy?: 'review' | 'autonomous';
 };
 
-const CACHE_TTL_MS = 30_000;
-const cache = new Map<string, { at: number; provider: ResolvedProvider }>();
 
 function internalPlayerServiceUrl() {
   const value = (process.env.BOX_PLAYER_SERVICE_INTERNAL_URL || '').trim();
@@ -47,9 +46,6 @@ export async function resolveUserProvider(
   providerId: string | undefined,
   logger?: Logger,
 ): Promise<ResolvedProvider> {
-  const cacheKey = `${userId}:${providerId || ''}`;
-  const hit = cache.get(cacheKey);
-  if (hit && Date.now() - hit.at < CACHE_TTL_MS) return hit.provider;
   let response: Response;
   try {
     response = await fetch(`${internalPlayerServiceUrl()}/api/player-ai-internal/resolve`, {
@@ -75,8 +71,6 @@ export async function resolveUserProvider(
   if (!provider?.id || !provider.apiKey || !provider.baseUrl || !provider.protocol) {
     throw new Error('AI 渠道解析返回不完整');
   }
-  if (cache.size >= 256) cache.delete(cache.keys().next().value!);
-  cache.set(cacheKey, { at: Date.now(), provider });
   return provider;
 }
 
@@ -140,4 +134,13 @@ export async function assertAiExecutionAllowed(userId: string, mapId: string): P
   if (!response.ok) throw new Error('AI execution policy unavailable');
   const result = await response.json() as {allowed?: boolean};
   if (result.allowed !== true) throw new Error('AI execution disabled by administrator');
+}
+
+export async function aiExecutionEvent(userId:string,input:Record<string,unknown>):Promise<{runId?:string}> {
+  const response=await fetch(`${internalPlayerServiceUrl()}/api/player-ai-internal/execution`,{
+    method:'POST',headers:{Authorization:`Bearer ${internalSecret()}`,'Content-Type':'application/json'},
+    body:JSON.stringify({userId,...input}),signal:AbortSignal.timeout(5000),redirect:'error',
+  });
+  if(!response.ok) throw new Error(`AI execution ledger refused request (HTTP ${response.status})`);
+  return response.json() as Promise<{runId?:string}>;
 }

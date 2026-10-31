@@ -4,7 +4,7 @@ import { getModelMetaData, migrateProject, projectSchemaToBytes } from '@box/vox
 import { saveModel, storeBlob } from '../../../../server/local-voxa-store';
 import { setLocalCors } from '../../../../server/local-cors';
 import { readModelProjectBundle } from '../../../../server/local-voxa-project-bundle';
-import { requireVoxaModelManagement } from '../../../../server/model-management-access';
+import { requireVoxaModelAccess } from '../../../../server/model-management-access';
 
 export const config = { api: { bodyParser: false, responseLimit: false } };
 
@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).end();
-  if (!await requireVoxaModelManagement(req, res)) return;
+  if (!await requireVoxaModelAccess(req, res, ['voxa.edit', 'models.manage'])) return;
 
   try {
     const body = await readBody(req);
@@ -59,6 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       modelName: bundle.projectName,
       modelDescription: '',
       modelType: 0,
+      animated: project.animations.length > 0,
       creativeMode: bundle.editType === 1 ? 2 : 1,
       modelFileHash,
       modelProjectFileHash: projectFileHash,
@@ -66,6 +67,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
     return res.status(201).json({
       ...created,
+      editorUrl: `/?modelId=${created.modelId}&editType=${bundle.editType}`,
       // Older .voxaproject files contained only project.bin. They remain
       // editable, but require one VOXA save to regenerate their model blobs
       // and preview before they can be placed in a map.

@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { requireVoxaModelManagement } from '../../../server/model-management-access';
+import { requireVoxaEditorAccess } from '../../../server/model-management-access';
 import { setLocalCors } from '../../../server/local-cors';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.setHeader('Allow', 'GET, POST, PATCH, PUT, DELETE');
     return res.status(405).end();
   }
-  if (!await requireVoxaModelManagement(req, res)) return;
+  if (!await requireVoxaEditorAccess(req, res)) return;
   const parts = segments(req);
   if (!parts) return res.status(404).json({ code: 'NOT_FOUND', message: '接口不存在' });
   try {

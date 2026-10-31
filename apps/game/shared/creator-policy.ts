@@ -1,7 +1,7 @@
 /** Creator authorization is owned by Player Service, never by CLI clients. */
 export const CREATOR_CAPABILITIES = [
   'projects.view', 'projects.create', 'projects.edit', 'projects.delete',
-  'projects.import', 'projects.export', 'models.manage',
+  'projects.import', 'projects.export', 'models.manage', 'voxa.edit',
 ] as const;
 export type CreatorCapability = typeof CREATOR_CAPABILITIES[number];
 
@@ -12,7 +12,8 @@ export const CREATOR_CAPABILITY_META: Readonly<Record<CreatorCapability, Readonl
   'projects.delete': { label: '删除地图', description: '删除地图或地图组，不可恢复' },
   'projects.import': { label: '导入工程', description: '导入创作工程和副地图' },
   'projects.export': { label: '导出工程', description: '导出创作工程或游玩包' },
-  'models.manage': { label: '管理模型', description: '导入、修改和导出 VOXA 模型工程' },
+  'models.manage': { label: '管理模型', description: '管理模型库、导入导出工程、修改资料和删除模型，不授予编辑器访问权' },
+  'voxa.edit': { label: 'VOXA 编辑器', description: '打开 VOXA，新建、编辑、保存模型与皮肤，使用编辑锁和版本恢复；不授予删除模型库权限' },
 });
 export const FULL_CREATOR_CAPABILITIES = [...CREATOR_CAPABILITIES] as CreatorCapability[];
 

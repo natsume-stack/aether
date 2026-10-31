@@ -17,7 +17,7 @@ type ModelRow = {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Editors place existing models; model managers operate the library. Either
   // capability may read metadata and preview assets, but mutations stay gated.
-  if (!await allowAuthenticatedCreatorApi(req, res, ['projects.edit', 'models.manage'])) return;
+  if (!await allowAuthenticatedCreatorApi(req, res, ['projects.edit', 'models.manage', 'voxa.edit'])) return;
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
     return res.status(405).end();

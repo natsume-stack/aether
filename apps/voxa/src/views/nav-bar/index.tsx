@@ -33,6 +33,7 @@ import { FileMenu } from '../file-menu';
 import { SaveButton } from './save-button';
 import { useFocusTrap } from '../hooks';
 import { SerializedVec3, voxelShapeToObjSize } from '../../utils/math';
+import { isEditLockedByOther } from '../../utils/edit-lock';
 import { isValidName, MAX_NAME_LENGTH, MAX_VOXEL_SIZE } from '../../defs';
 import { AnimatorModeButtons } from './animator-mode-btns';
 import { hasBoneWithoutSkin } from '../../models/animator-app/util';
@@ -78,6 +79,8 @@ export function NavBar(props: TopBarProps) {
     projectName: app.projectName,
     editType: app.editType,
   }));
+  const editLock = useAppSelector(({ app }) => app.editLock);
+  const lockedByOther = isEditLockedByOther(editLock);
   const dispatch = useDispatch();
 
   const [showFileMenu, setShowFileMenu] = useState(false);
@@ -774,9 +777,14 @@ export function NavBar(props: TopBarProps) {
           }}
         />
         <SaveButton />
+        {editLock?.locked && (
+          <span className={styles.editLock} title={`编辑锁：${editLock.actor || ''}`}>
+            {lockedByOther ? `${editLock.actor} 编辑中` : '已锁定'}
+          </span>
+        )}
       </div>
     );
-  }, [dispatch, onProjectInfoTabDown, projectName]);
+  }, [dispatch, editLock, lockedByOther, onProjectInfoTabDown, projectName]);
 
   return (
     <div className={styles.navBar} onMouseLeave={() => setDisplayed(false)}>

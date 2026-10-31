@@ -123,7 +123,7 @@ export function useDelayView(
 
   const element = useMemo(() => {
     return toShow ? node : undefined;
-  }, [node, toShow].concat(updateDeps));
+  }, [node, toShow, ...updateDeps]);
 
   function setTimer() {
     clearTimeout(timer.current);
@@ -246,7 +246,7 @@ export function useDragAbort() {
 
   const abortRef = useRef<(oldState?: RootState) => void>(() => {});
 
-  const oldStateRef = useRef<RootState | undefined>();
+  const oldStateRef = useRef<RootState | undefined | undefined>(undefined);
 
   const editor = useContext(VoxelEditorContext);
 

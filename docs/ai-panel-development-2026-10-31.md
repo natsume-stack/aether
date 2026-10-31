@@ -28,6 +28,22 @@ Commands: game-server tsc; check-ai-execution-policy.ts; check-ai-provider-isola
 - Rate limiting is per-process; no distributed token accounting or staged-user rollout dashboard is included.
 - No third-party credentials were requested or used and no manual product acceptance was performed.
 
+## 创作权限：VOXA 编辑器独立授权（2026-10-31 增补）
+
+- 创作权限新增 `voxa.edit`（后台显示“VOXA 编辑器”），与 `models.manage`（“管理模型”）分离：
+  前者允许打开 VOXA、新建/编辑/保存模型与皮肤、使用编辑锁与版本恢复；后者只管理模型库与工程导入导出，不授予编辑器访问权。
+- 后台“创作权限管理”的勾选项直接来自 `apps/game/shared/creator-policy.ts` 的 `CREATOR_CAPABILITIES`，
+  服务端 `apps/game/server/player-admin-validation.ts` 用同一常量做 zod 枚举校验，因此新增权限无需再改白名单。
+- VOXA 页面 `apps/voxa/pages/index.tsx` 使用 `resolveVoxaEditorAccess`（`voxa.edit`）；
+  模型写入类接口（`/api/local/blob`、`/api/local/models/[id]`、`edit-lock`、`snapshots`、`model`）统一走 `requireVoxaEditorAccess`；
+  模型库删除仍要求 `models.manage`。
+- 兼容性说明：升级后仅持有 `models.manage` 的账号仍可管理模型库，但打开 VOXA 会被拒绝（403）并提示开通“VOXA 编辑器”；
+  管理员需在后台为需要编辑的账号单独勾选该权限。此改动为有意收紧，不做自动补授。
+- 开发栈注意：`box3-dev` 内的 ts-node 鉴权进程不会热重载该常量，修改权限清单后必须
+  `systemctl --user restart box3-dev` 才会接受新权限值。
+- 回归：`apps/voxa/scripts/regression-voxa-editor-permission.ts`（权限矩阵与入口/接口分离），
+  以及 `apps/game/scripts/check-creator-capabilities.ts`（后台可授值与规范化）。
+
 ## Runtime
 
 Source of truth: /home/natsume/box3-dev/repo/box3-local-engine, branch dev/server-2026-10-31. Use box3-dev user systemd unit; do not touch production ports 3121–3127. Restart rebuilds dependencies. Admin AI view: ?view=ai-providers. Creator and VOXA use their existing public origins.

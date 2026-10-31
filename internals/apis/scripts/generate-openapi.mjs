@@ -30,6 +30,8 @@ const manualRoutes = [
   ['engine-web', '/api/play-admin/ai-providers/{id}/test', ['POST'], 'apps/game/pages/api/play-admin/ai-providers/[...path].ts'],
   ['engine-web', '/api/play-admin/ai-providers/{id}/models', ['POST'], 'apps/game/pages/api/play-admin/ai-providers/[...path].ts'],
   ['engine-web', '/api/play-admin/ai-providers/{id}/default', ['POST'], 'apps/game/pages/api/play-admin/ai-providers/[...path].ts'],
+  ['engine-web', '/api/play-admin/ai-providers/runs', ['GET'], 'apps/game/pages/api/play-admin/ai-providers/[...path].ts'],
+  ['engine-web', '/api/play-admin/ai-providers/{id}/sharing', ['POST'], 'apps/game/pages/api/play-admin/ai-providers/[...path].ts'],
   ['engine-web', '/api/play-admin/ai-providers/control', ['GET', 'PATCH'], 'apps/game/pages/api/play-admin/ai-providers/[...path].ts'],
   // Next optional catch-all also serves the collection path without an id.
   [

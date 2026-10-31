@@ -128,7 +128,7 @@ export function useProjectTransfer(options: Options) {
       const chunks: Uint8Array[] = [];
       setExportProgress((current) => current ? { ...current, phase: 'downloading', percent: 35, total, filename } : current);
       if (result.data) {
-        const reader = result.data.getReader();
+        const reader = result.response.body!.getReader();
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;

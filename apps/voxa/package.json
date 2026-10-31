@@ -18,7 +18,8 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --cache --cache-location .next/cache/eslint/.eslintcache",
     "start": "next start -p 3001",
     "ts-watch": "tsc --noEmit --incremental --watch",
-    "update-i18n": "formatjs extract 'src/**/*.ts*' --ignore='**.*.d.ts' --out-file lang/src/en.json && node lang/update-locales.mjs"
+    "update-i18n": "formatjs extract 'src/**/*.ts*' --ignore='**.*.d.ts' --out-file lang/src/en.json && node lang/update-locales.mjs",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@box/deployment-routing": "workspace:0.1.0",

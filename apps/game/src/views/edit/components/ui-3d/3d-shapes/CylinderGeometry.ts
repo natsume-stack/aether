@@ -1,7 +1,7 @@
 import { vec3, vec2 } from 'gl-matrix';
 
 const nor = vec3.create();
-const O = [0, 0, 0];
+const O:vec3 = [0, 0, 0];
 export function CylinderGeometry(
   n: vec3,
   radiusTop: number,

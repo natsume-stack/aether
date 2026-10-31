@@ -47,6 +47,11 @@ export class EditingHistory {
     return this.lastGroupId;
   }
 
+  /** Current undo/redo stack sizes. Used by the live agent to avoid undoing a human's edit. */
+  public getDepth() {
+    return { undo: this.undoStack.length, redo: this.redoStack.length };
+  }
+
   /**
    * 存储体素视图的历史记录
    * @param data 体素数据

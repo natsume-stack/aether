@@ -7,7 +7,7 @@ type RuntimeIdentity = {
   creatorPermissions?: unknown;
 };
 
-export type VoxaCreatorCapability = 'projects.edit' | 'models.manage';
+export type VoxaCreatorCapability = 'projects.edit' | 'models.manage' | 'voxa.edit';
 
 type RuntimeIdentityResponse = {
   identity?: RuntimeIdentity;
@@ -141,4 +141,15 @@ export async function requireVoxaModelManagement(
   res: NextApiResponse,
 ) {
   return requireVoxaModelAccess(req, res, 'models.manage');
+}
+
+/** Editor access is separate from model-library administration. */
+export function canEditVoxaModels(identity: RuntimeIdentity) {
+  return canAccessVoxaModels(identity, 'voxa.edit');
+}
+export function resolveVoxaEditorAccess(req: NextApiRequest, res: NextApiResponse) {
+  return resolveVoxaModelAccess(req, res, 'voxa.edit');
+}
+export function requireVoxaEditorAccess(req: NextApiRequest, res: NextApiResponse) {
+  return requireVoxaModelAccess(req, res, 'voxa.edit');
 }

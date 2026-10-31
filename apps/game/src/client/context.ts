@@ -20,8 +20,4 @@ export const getContext = <T>() => {
 };
 
 export const GameContext = createContext<GameClient>(undefined as never);
-export const useGame = useContext.bind<
-  undefined,
-  Context<GameClient>,
-  GameClient
->(undefined, GameContext);
+export const useGame = () => useContext(GameContext);

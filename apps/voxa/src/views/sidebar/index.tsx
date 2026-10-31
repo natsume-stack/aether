@@ -32,7 +32,7 @@ export function Sidebar(props: SidebarProps) {
   const editor = useContext(VoxelEditorContext);
   const intl = useIntl();
 
-  const triggerEffect = useRef<ReturnType<OnTrigger>>();
+  const triggerEffect = useRef<ReturnType<OnTrigger> | undefined>(undefined);
 
   const selection: string | undefined = useAppSelector((state) => {
     if (state.app.mode === AppMode.Animator) {

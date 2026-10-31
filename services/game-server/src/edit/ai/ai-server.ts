@@ -20,7 +20,9 @@ import { createEntityTools, createScriptTools } from './entity-tools';
 import { createMapAuthoringTools } from './map-authoring-tools';
 import { coordinateAuthoring } from './authoring-tools';
 import { executionTools, type ExecutionMode } from './execution-policy';
-import { assertAiExecutionAllowed } from './provider-gateway';
+import {publicationTools} from './publication-tools';
+import {parseAiMessages} from './message-validation';
+import { assertAiExecutionAllowed, aiExecutionEvent } from './provider-gateway';
 import {
   parseModelSelection,
   providerLanguageModel,
@@ -111,6 +113,8 @@ When writing scripts, strictly follow these API definitions.
     modelFactory?: (model: string) => ReturnType<typeof providerLanguageModel>,
     providerLabel?: string,
     mode: ExecutionMode = 'review',
+    supportsTools = true,
+    providerId?:string,
   ): Promise<void> {
     const sessionId = client.sessionId;
     const abortController = new AbortController();
@@ -123,7 +127,11 @@ When writing scripts, strictly follow these API definitions.
     const timeout = setTimeout(() => abortController.abort(), 180_000);
     let outputStarted = false;
     let toolStarted = false;
+    let runId:string|undefined;let completed=false;let inputTokens=0;let outputTokens=0;
+    const userId=String(this.state.replica.sessionPermission[sessionId]?.userId || '');
     try {
+    runId=(await aiExecutionEvent(userId,{scope:this.projectId,mode,providerId,model:candidateModels[0]})).runId;
+    if(!runId) throw new Error('AI execution lease missing');
 
     let lastError: any;
 
@@ -157,24 +165,29 @@ When writing scripts, strictly follow these API definitions.
         );
 
         const shape = this.state.replica.project.voxels.shape;
-        const systemPrompt = this.getSystemPrompt(shape) + (mode === 'review'
+        const systemPrompt = this.getSystemPrompt(shape) + (!supportsTools
+          ? '\nThis channel does not support tools. Answer with explanations and suggested code only. You cannot inspect or change the project. Never claim to have edited or saved it.'
+          : mode === 'review'
           ? '\nCreate proposals and plans only. Explain them and wait for the human to approve in the review panel. Do not claim changes have been applied.'
           : '\nUse authoring proposals and apply tools to edit. Writes are snapshotted and saved automatically. Stop after any uncertain result.');
 
         // 调用 Vercel AI SDK Agent
         const settings = {
           model: aiModel,
-          tools: executionTools(this.tools, {
+          tools: supportsTools ? executionTools({...this.tools,...publicationTools(userId,this.projectId)}, {
             mode, signal: abortController.signal, maxCalls: 100,
             authorizeWrite: async () => {
               if (!this.canUseAI(sessionId)) throw new Error('AI permission revoked');
               if (this.state.game.state.replica.running) throw new Error('Stop preview before AI writes');
-              await assertAiExecutionAllowed(String(this.state.replica.sessionPermission[sessionId]?.userId || ''), String(this.gameId));
+              await assertAiExecutionAllowed(String(this.state.replica.sessionPermission[sessionId]?.userId || ''), this.projectId);
               toolStarted = true;
             },
             save: () => this.replica.saveProject(Number(this.state.replica.sessionPermission[sessionId]?.userId || 0)),
-            audit: (event) => this.logger.info({sessionId, requestId, mode, ...event}, 'AI execution audit'),
-          }),
+            audit: async (event) => {
+              await aiExecutionEvent(userId,{runId,event});
+              this.logger.info({sessionId, requestId, mode, ...event}, 'AI execution audit');
+            },
+          }) : undefined,
           system: systemPrompt,
           stopWhen: stepCountIs(20),
           maxOutputTokens: 16384,
@@ -232,6 +245,8 @@ When writing scripts, strictly follow these API definitions.
         this.logger.info({ sessionId, requestId, model }, 'AI generation completed');
 
         // Success, return
+        const usage=await result.totalUsage;inputTokens=usage.inputTokens || 0;outputTokens=usage.outputTokens || 0;
+        completed=true;
         return;
       } catch (err: any) {
         lastError = err;
@@ -266,7 +281,11 @@ When writing scripts, strictly follow these API definitions.
       }
     }
 
+    } catch(error) {
+      client.message.error({requestId,message:'AI 请求未能启动或执行，请检查渠道配置、配额和管理员开关'});
+      this.logger.warn({sessionId,errorName:(error as Error)?.name},'AI execution failed');
     } finally {
+      if(runId) {try {await aiExecutionEvent(userId,{runId,event:{phase:abortController.signal.aborted?'cancelled':completed?'complete':'failed',inputTokens,outputTokens}});} catch {this.logger.warn({sessionId,runId},'AI completion audit unavailable');}}
       clearTimeout(timeout);
       if (abortController.signal.aborted) {
         client.message.streamChunk({ requestId, chunk: '', done: true });
@@ -274,6 +293,8 @@ When writing scripts, strictly follow these API definitions.
       this.abortControllers.delete(requestKey);
     }
   }
+
+  private projectId:string;
 
   constructor(spec: {
     server: MuServer;
@@ -285,10 +306,12 @@ When writing scripts, strictly follow these API definitions.
     openRouterApiKey: string;
     featureFlags?: string[];
     aiModelMapping: Record<string, string[]>;
+    projectId:string;
   }) {
     this.logger = spec.logger;
     this.gameId = spec.gameId;
     this.state = spec.state;
+    this.projectId=spec.projectId;
     this.replica = spec.replica;
     this.protocol = spec.server.protocol(AiProtocol);
     this.modelMapping = spec.aiModelMapping;
@@ -368,9 +391,11 @@ When writing scripts, strictly follow these API definitions.
 
           // 解析消息历史
           let modelMessages: ModelMessage[] = [];
+          let hasImages=false;
           try {
-            const uiMessages: UIMessage[] = JSON.parse(messages);
-            modelMessages = convertToModelMessages(uiMessages);
+            const parsed=parseAiMessages(messages);
+            hasImages=parsed.hasImages;
+            modelMessages = convertToModelMessages(parsed.messages);
           } catch (e) {
             this.logger.error(
               { sessionId, error: e },
@@ -394,6 +419,7 @@ When writing scripts, strictly follow these API definitions.
                 selection.providerId,
                 this.logger,
               );
+              if(hasImages && provider.capabilities?.vision!==true) throw new Error('当前渠道未启用图片能力');
               const selectedModel = selection.model || provider.defaultModel || provider.models[0]?.id || '';
               if (!selectedModel) {
                 client.message.error({ requestId, message: '请先为渠道选择模型' });
@@ -412,6 +438,8 @@ When writing scripts, strictly follow these API definitions.
                 (requested) => providerLanguageModel(provider, requested),
                 `${provider.owner}:${provider.protocol}:${provider.name}`,
                 selection.autonomy,
+                provider.capabilities?.tools !== false,
+                provider.id,
               );
               return;
             } catch (error) {
@@ -424,6 +452,7 @@ When writing scripts, strictly follow these API definitions.
             }
           }
 
+          if(hasImages) {client.message.error({requestId,message:'请使用启用了视觉能力的渠道发送图片'});return;}
           let candidateModels: string[] = [];
           if (this.modelMapping[selection.model || model]) {
             candidateModels = this.modelMapping[selection.model || model];

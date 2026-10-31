@@ -1,3 +1,4 @@
+import type {ReadonlyVec3} from 'gl-matrix';
 import { GameClientState } from '../game-client-schema';
 import { pixelToRay } from '../camera/camera-controller';
 import { vec3, vec2, mat4 } from 'gl-matrix';
@@ -402,11 +403,11 @@ function handlePoint(
 
 function sizeFixedTransform(
   out: vec3,
-  eye: vec3 | number[],
+  eye: ReadonlyVec3,
   M: mat4,
-  p: vec3 | number[],
+  p: ReadonlyVec3,
   size: number,
-  offset: vec3 | number[],
+  offset: ReadonlyVec3,
 ) {
   vec3.transformMat4(out, p, M);
   const scale = vec3.distance(eye, out);
@@ -420,12 +421,12 @@ function sizeFixedTransform(
 
 function sizeFixedTransformWithCenter(
   out: vec3,
-  eye: vec3 | number[],
+  eye: ReadonlyVec3,
   M: mat4,
-  p: vec3 | number[],
-  relateP: vec3 | number[],
+  p: ReadonlyVec3,
+  relateP: ReadonlyVec3,
   size: number,
-  offset: vec3 | number[],
+  offset: ReadonlyVec3,
 ) {
   const scale = vec3.distance(eye, relateP);
   vec3.transformMat4(out, vec3.scale(out, p, scale / size), M);
@@ -708,7 +709,7 @@ function handleRing(
     vec3.add(p3, vec3.transformMat4(p3, ring.vertices[2], M), ring.offset);
     vec3.add(p4, vec3.transformMat4(p4, ring.vertices[3], M), ring.offset);
   }
-  const c = [
+  const c:vec3 = [
     (p1[0] + p2[0] + p3[0] + p4[0]) / 4,
     (p1[1] + p2[1] + p3[1] + p4[1]) / 4,
     (p1[2] + p2[2] + p3[2] + p4[2]) / 4,

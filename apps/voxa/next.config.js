@@ -4,6 +4,7 @@ const path = require('path');
 
 const nextConfig = {
   output: 'standalone',
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   outputFileTracingRoot: path.join(__dirname, '../..'),
   productionBrowserSourceMaps: false,
   eslint: {
@@ -44,8 +45,7 @@ const nextConfig = {
     ]
   },
   typescript: {
-    // 升级 react 前临时使用
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   webpack: (config, options) => {
     config.module.rules.push({

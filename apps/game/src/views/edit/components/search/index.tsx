@@ -38,7 +38,7 @@ function usePrevious(value: string) {
   return ref.current;
 }
 
-export const SearchFC: React.RefForwardingComponent<SearchHandle, Props> = (
+export const SearchFC: React.ForwardRefRenderFunction<SearchHandle, Props> = (
   props,
   ref,
 ) => {

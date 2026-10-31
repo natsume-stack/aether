@@ -43,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!/^[a-z0-9][a-z0-9-]{0,62}$/.test(id)) {
     return res.status(400).json({ message: 'Invalid project ID' });
   }
-  const mode: RuntimeMode = req.body?.mode === 'play' ? 'play' : 'edit';
+  const mode: RuntimeMode = (req.method==='GET'?req.query.mode:req.body?.mode) === 'play' ? 'play' : 'edit';
 
   try {
     const status = await runtimeControl(id, mode, req.method === 'POST' ? 'start' : 'status');

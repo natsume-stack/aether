@@ -1,6 +1,29 @@
-import { ApiClient, Permissions } from '@box/apis';
+import { ApiClient, Permissions, ModelResp, ModelSnapshotResp } from '@box/apis';
 
 import { getToken } from '../utils/token';
+
+
+type RequestOptions = { signal?: AbortSignal; timeout?: number };
+
+function decodeModel(value: unknown): ModelResp {
+  if (!value || typeof value !== 'object') throw new Error('模型响应格式无效');
+  const model = value as Record<string, unknown>;
+  const strings = ['createdAt', 'updatedAt', 'fileHash', 'modelDescription', 'modelFileHash', 'modelFileUUID', 'modelFileUrl', 'modelName', 'modelPreviewHash', 'modelPreviewUUID', 'modelPreviewUrl', 'projectFileHash', 'projectFileUUID', 'projectFileUrl'];
+  if (strings.some(key => typeof model[key] !== 'string') || typeof model.animated !== 'boolean' || !Number.isSafeInteger(model.modelId) || ![1, 2].includes(Number(model.creativeMode)) || ![0,1,2,3].includes(Number(model.modelType))) {
+    throw new Error('模型响应缺少必要字段');
+  }
+  return model as unknown as ModelResp;
+}
+
+function decodeSnapshots(value: unknown): ModelSnapshotResp[] {
+  if (!Array.isArray(value)) throw new Error('历史版本响应格式无效');
+  return value.map(item => {
+    if (!item || typeof item !== 'object' || !Number.isSafeInteger(item.snapshotId) || ['modelFileHash', 'modelFileUUID', 'modelPreviewHash', 'modelPreviewUUID', 'projectFileHash', 'projectFileUUID'].some(key => typeof item[key] !== 'string')) throw new Error('历史版本缺少必要字段');
+    const time = typeof item.createdAt === 'string' ? Date.parse(item.createdAt) : Number(item.createdAt?.time);
+    if (!Number.isFinite(time)) throw new Error('历史版本时间无效');
+    return { ...item, createdAt: {time} } as ModelSnapshotResp;
+  });
+}
 
 const unauthorizedHandlers = new Set<() => void>();
 
@@ -131,8 +154,8 @@ async function retrieveBlob(hash: string, config: Record<string, unknown> = {}) 
   return { data: parent.data };
 }
 
-async function saveModel(input: Record<string, unknown>) {
-  return apiClient().postApiLocalModels({ body: input });
+async function saveModel(input: Record<string, unknown>, options: RequestOptions = {}): Promise<ModelResp> {
+  return decodeModel(await apiClient().postApiLocalModels({ body: input, signal: options.timeout ? (options.signal ? AbortSignal.any([options.signal,AbortSignal.timeout(options.timeout)]) : AbortSignal.timeout(options.timeout)) : options.signal }));
 }
 
 export const apis = {
@@ -140,38 +163,38 @@ export const apis = {
     async getUserByTokenUsingGet() {
       return { avatar: '', userId: 1, permission: 0, language: 'zh-CN' };
     },
-    async setUserLanguage() {
+    async setUserLanguage(_language?: string) {
       return true;
     },
   },
   model: {
     async getModelDetailUsingGet(modelId: number, params: Record<string, unknown> = {}) {
-      return apiClient().getApiLocalModelsId({
+      return decodeModel(await apiClient().getApiLocalModelsId({
         ...params,
         params: { path: { id: String(modelId) } },
-      });
+      }));
     },
     async getSnapshotsUsingGet(
       modelId: number,
       query: { autoSave: boolean },
       params: Record<string, unknown> = {},
     ) {
-      return apiClient().getApiLocalModelsIdSnapshots({
+      return decodeSnapshots(await apiClient().getApiLocalModelsIdSnapshots({
         ...params,
         params: {
           path: { id: String(modelId) },
           query: { autoSave: String(query.autoSave) },
         },
-      });
+      }));
     },
-    async saveModelUsingPostV1(input: Record<string, unknown>) {
-      return saveModel(input);
+    async saveModelUsingPostV1(input: Record<string, unknown>, options: RequestOptions = {}) {
+      return saveModel(input, options);
     },
-    async saveProjectSharedModelUsingPost(input: Record<string, unknown>) {
-      return saveModel(input);
+    async saveProjectSharedModelUsingPost(input: Record<string, unknown>, options: RequestOptions = {}) {
+      return saveModel(input, options);
     },
-    async saveSharedSkinUsingPost(input: Record<string, unknown>) {
-      return saveModel(input);
+    async saveSharedSkinUsingPost(input: Record<string, unknown>, options: RequestOptions = {}) {
+      return saveModel(input, options);
     },
   },
   models: {
@@ -195,7 +218,7 @@ export const apis = {
     },
   },
   openApisAuth: {
-    async checkPermission() {
+    async checkPermission(_input?: {permissions: Permissions[]}) {
       return [
         Permissions.UserVoxelEditor,
         Permissions.UserVoxelEditorMultiObj,
@@ -206,9 +229,9 @@ export const apis = {
   openApisContent: {
     async getContentInfoByToken(value: string) {
       const modelId = Number(value);
-      const model = await apiClient().getApiLocalModelsId({
+      const model = decodeModel(await apiClient().getApiLocalModelsId({
         params: { path: { id: String(modelId) } },
-      });
+      }));
       return {
         contentType: 1,
         modelInfo: model,

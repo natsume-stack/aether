@@ -1,3 +1,5 @@
+/** Both renderer queues retain the geometry produced by their matching chunk backend. */
+function enqueueGeometry<T extends unknown[]>(queue:T,geometry:T[number]) {queue.push(geometry);}
 import { MuBuffer, allocBuffer, freeBuffer } from '@box/mudb/stream';
 import {
   CHUNK_SHIFT,
@@ -984,10 +986,10 @@ export function prepareVoxels(state: GameClientState) {
           ) {
             geom.distance = d;
             if (d <= parallaxDistance) {
-              parallaxChunks.push(geom);
+              enqueueGeometry(parallaxChunks,geom);
               voxels.parallaxChunksKey += `${chunkIdx}`;
             } else {
-              noParallaxChunks.push(geom);
+              enqueueGeometry(noParallaxChunks,geom);
               voxels.noParallaxChunksKey += `${chunkIdx}`;
             }
           }
@@ -1007,10 +1009,10 @@ export function prepareVoxels(state: GameClientState) {
           ) {
             alphaGeom.distance = d;
             if (d <= parallaxDistance) {
-              alphaParallaxChunks.push(alphaGeom);
+              enqueueGeometry(alphaParallaxChunks,alphaGeom);
               voxels.alphaParallaxChunksKey += `${chunkIdx}`;
             } else {
-              alphaNoParallaxChunks.push(alphaGeom);
+              enqueueGeometry(alphaNoParallaxChunks,alphaGeom);
               voxels.alphaNoParallaxChunksKey += `${chunkIdx}`;
             }
           }
@@ -1029,7 +1031,7 @@ export function prepareVoxels(state: GameClientState) {
             )
           ) {
             fluidGeom.distance = d;
-            fluidChunks.push(fluidGeom);
+            enqueueGeometry(fluidChunks,fluidGeom);
             voxels.fluidChunksKey += `${chunkIdx}`;
           }
         }
@@ -1183,7 +1185,7 @@ function renderVoxelsShadow(
             ))
         ) {
           geom.distance = dirX * ix + dirY * iy + dirZ * iz;
-          shadowChunks.push(geom);
+          enqueueGeometry(shadowChunks,geom);
           voxels.shadowChunksKey += `${i}`;
         }
       }

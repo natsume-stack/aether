@@ -325,7 +325,7 @@ function PaletteEmissive() {
     [editor, itemId],
   );
 
-  const inputOldState = useRef<RootState | undefined>();
+  const inputOldState = useRef<RootState | undefined | undefined>(undefined);
 
   const input = useMemo(() => {
     return (

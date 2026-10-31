@@ -26,6 +26,8 @@ const moderationRecord = object({
 })
 
 const contracts = {
+  'post /api/play-admin/ai-providers/{id}/sharing': object({success:{type:'boolean'}}),
+  'get /api/play-admin/ai-providers/runs': object({runs:array('AiExecutionRun')}),
   'get /api/play-admin/ai-providers': object({success:{type:'boolean'},providers:array('AiProvider')}),
   'post /api/play-admin/ai-providers': object({success:{type:'boolean'},provider:ref('AiProvider')}),
   'patch /api/play-admin/ai-providers/{id}': object({success:{type:'boolean'},provider:ref('AiProvider')}),
@@ -100,6 +102,8 @@ const contracts = {
 }
 
 const requestContracts = {
+  'post /api/play-admin/ai-providers/{id}/sharing': object({userIds:{type:'array',maxItems:1000,items:{type:'string',pattern:'^[1-9][0-9]{0,9}$'}}}),
+  'post /api/local-projects/{id}/runtime': object({mode:{type:'string',enum:['edit','play']}},[]),
   'post /api/play-admin/ai-providers': ref('AiProviderInput'),
   'patch /api/play-admin/ai-providers/{id}': ref('AiProviderInput'),
   'post /api/play-admin/ai-providers/{id}/test': object({model:{type:'string'}},[]),

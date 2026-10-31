@@ -15,6 +15,7 @@ import {
     message,
 } from 'antd';
 
+import type {components} from '@box/apis';
 import { playerAdminApi as api } from '../../player-admin-api';
 
 type Provider = {
@@ -28,6 +29,7 @@ type Provider = {
     enabled:boolean;
     isDefault:boolean;
     lastTestStatus:string;
+    sharedUserIds?:string[];
 };
 type Values = {
     name:string;
@@ -41,17 +43,21 @@ type Values = {
 
 export function AiProvidersPage() {
     const [providers, setProviders] = useState<Provider[]>([]);
+    const [runs,setRuns]=useState<components['schemas']['AiExecutionRun'][]>([]);
     const [busy, setBusy] = useState(false);
     const [policy, setPolicy] = useState({
         enabled: true,
         blockedUsers: [] as string[],
         blockedMaps: [] as string[],
     });
+    const [sharing,setSharing]=useState<Provider>();
+    const [sharedUsers,setSharedUsers]=useState('');
     const [editing, setEditing] = useState<Provider | null | undefined>();
     const [form] = Form.useForm<Values>();
     const load = useCallback(async () => {
         const result = await api.getApiPlayAdminAiProviders();
         setProviders(result.providers);
+        setRuns((await api.getApiPlayAdminAiProvidersRuns()).runs);
         setPolicy(await api.getApiPlayAdminAiProvidersControl());
     }, []);
     const run = async (action:() => Promise<void>) => {
@@ -197,7 +203,7 @@ export function AiProvidersPage() {
                 loading={busy}
                 dataSource={providers}
                 scroll={{ x: 1000 }}
-                columns={[
+                columns={[{title:'共享',render:(_,record)=><Button size="small" onClick={()=>{setSharing(record);setSharedUsers((record.sharedUserIds || []).join('\n'));}}>管理共享</Button>},
                     {
                         title: '渠道',
                         dataIndex: 'name',
@@ -262,6 +268,28 @@ export function AiProvidersPage() {
                     },
                 ]}
             />
+            <Card title="最近 AI 执行记录（最多 100 条）" extra={<Space><Button disabled={busy} onClick={()=>void run(load)}>刷新</Button><Button disabled={busy || !runs.length} onClick={()=>{
+                const blob=new Blob([JSON.stringify({exportedAt:new Date().toISOString(),runs},null,2)],{type:'application/json'});
+                const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=`ai-execution-audit-${new Date().toISOString().slice(0,10)}.json`;link.click();window.setTimeout(()=>URL.revokeObjectURL(url),1000);
+            }}>导出当前记录</Button></Space>}>
+                <p>每用户最多 3 个并发、每分钟 10 次、24 小时 200 次，累计一百万 token。超时任务显示为 interrupted；VOXA 操作记录由已登录编辑器上报。</p>
+                <Table rowKey="id" dataSource={runs} size="small" pagination={{pageSize:10}} columns={[
+                    {title:'用户',dataIndex:'userId'},{title:'地图 / 模型',dataIndex:'scope'},
+                    {title:'模式',dataIndex:'mode'},{title:'状态',dataIndex:'status'},
+                    {title:'模型',dataIndex:'model'},
+                    {title:'输入 / 输出 token',render:(_,row)=>`${row.inputTokens || 0} / ${row.outputTokens || 0}`},
+                    {title:'耗时（ms）',dataIndex:'durationMs'},
+                    {title:'开始时间',dataIndex:'startedAt'},
+                ]} expandable={{expandedRowRender:row=><pre style={{whiteSpace:'pre-wrap'}}>{JSON.stringify(row.events,null,2)}</pre>}}/>
+            </Card>
+            <Modal title={`共享渠道：${sharing?.name || ''}`} open={Boolean(sharing)} onCancel={()=>setSharing(undefined)} confirmLoading={busy} onOk={()=>void run(async()=>{
+                if(!sharing) return;
+                await api.postApiPlayAdminAiProvidersIdSharing({params:{path:{id:sharing.id}},body:{userIds:sharedUsers.split(/[,\s]+/).filter(Boolean)}});
+                setSharing(undefined);await load();
+            })}>
+                <p>填写可使用此渠道的用户 ID，以空格、逗号或换行分隔。共享用户只能使用渠道，无法查看密钥或修改配置。清空列表可撤销共享；平台默认渠道仍面向全体用户。</p>
+                <Input.TextArea rows={5} value={sharedUsers} onChange={e=>setSharedUsers(e.target.value)}/>
+            </Modal>
             <Modal
                 title={editing ? '编辑 AI 渠道' : '新增 AI 渠道'}
                 open={editing !== undefined}

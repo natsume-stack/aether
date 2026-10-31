@@ -50,7 +50,7 @@ function Root(props: { setLocale: (locale: LangType) => void }) {
     return <Launcher />;
   }, [launchState]);
 
-  const [container, setContainer] = useState<JSX.Element>();
+  const [container, setContainer] = useState<import('react').JSX.Element>();
   /**
    * 当动态加载container失败时，把“重试”改为重试动态加载。
    */

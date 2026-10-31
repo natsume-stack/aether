@@ -73,7 +73,14 @@ export const ColorItem = memo(function ColorItemView(
   }
 
   return (
-    <div className={styles.item} style={{ backgroundColor }} onClick={onClick}>
+    <div className={styles.item} style={{ backgroundColor }} onClick={onClick}
+      role="button" tabIndex={0} aria-label={`色板 ${id} · RGB ${r}, ${g}, ${b}`}
+      aria-pressed={selected} onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onClick();
+        }
+      }}>
       {selectionBox}
       {emissiveIcon}
     </div>
