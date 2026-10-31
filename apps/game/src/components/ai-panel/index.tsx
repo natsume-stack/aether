@@ -916,6 +916,15 @@ export const AiPanel = () => {
                     </ModelSelectorList>
                   </ModelSelectorContent>
                 </ModelSelector> */}
+              <button
+                type="button"
+                onClick={() => setSettingsOpen(true)}
+                className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground hover:text-foreground hover:bg-accent px-2 py-1 rounded-md transition-colors"
+                title="管理 API 渠道"
+              >
+                <Settings2 size={12} />
+                API 渠道
+              </button>
               </PromptInputTools>
 
               {/* 提交按钮（流式响应时变为停止按钮） */}

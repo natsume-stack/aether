@@ -74,3 +74,14 @@ Source of truth: /home/natsume/box3-dev/repo/box3-local-engine, branch dev/serve
 
 - 回归脚本调用方式有环境差异：`apps/game/scripts/check-ai-providers.ts` 不能加载 `.env`（开发 `.env` 打开了 `AI_PROVIDER_ALLOW_PRIVATE`，会改变 URL 策略断言）；`services/game-server/scripts/check-*.ts` 需 `TS_NODE_TRANSPILE_ONLY=true` 与 `TS_NODE_COMPILER_OPTIONS={"preserveConstEnums":true,"isolatedModules":false}`，否则 ts-node 报 TS5091。
 - 整项目删除仍未开放给 AI（仅保留可回滚的实体/UI/脚本/地形删除与发布回滚）。
+
+## Agent 面板与工作流（2026-10-31 二轮）
+
+- VOXA 面板按站点视觉规范重做：使用 `colors.module.scss` 设计令牌，新增对话流、逐条工具卡片（待执行/执行中/完成/失败）、审核与自主切换、停止与回滚、渠道 Tab。
+- 渠道自助：面板内直接新增/编辑/测试/拉取模型/删除玩家自己的渠道；密钥由玩家服务加密保存，选择与模型写入 `voxa.model` 偏好，下次打开自动复用。
+- 规划器升级为多步 agent 契约：`/api/ai/plan` 接受 `history`、`toolResults`、`step`，返回 `{message, commands, done}`；模型据执行结果修复失败或继续下一步，最多 3 个客户端步（服务端上限 4）。
+- 执行反馈：`executePanelPlan` 新增 `command-start/command-done/command-error/batch-done` 事件，面板逐条更新状态；失败时可直接“让 AI 修复”。
+- 地图侧面板在输入区新增常驻“API 渠道”入口，渠道管理与工具调用/思维链沿用既有 AI Elements 表现。
+- 安全与钩子不变：每次写入仍经过管理员策略、执行租约/配额、全源快照、人工编辑中断、逐命令审计与保存后回滚点。
+
+验证：VOXA 全量 `tsc`、Creator 运行图 `tsc`、VOXA 生产构建通过；使用 mock provider 实测“规划 → 执行结果回传 → 下一步 done”两步链路；`apps/voxa/scripts/check-agent-plan-contract.ts` 覆盖 done 语义与命令白名单。

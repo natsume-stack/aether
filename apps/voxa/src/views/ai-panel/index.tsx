@@ -1,102 +1,611 @@
-import {useEffect,useRef,useState} from 'react';
-import {getVoxaAgentLiveSession} from '../../models/agent-live';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { getVoxaAgentLiveSession } from '../../models/agent-live';
 import styles from './style.module.scss';
 
-type Provider={id:string;owner:'user'|'admin';name:string;protocol:string;baseUrl:string;defaultModel:string;models:Array<{id:string}>;enabled:boolean;keyHint:string};
-type Command={kind:string;args:Record<string,unknown>};
-type Context=Awaited<ReturnType<NonNullable<ReturnType<typeof getVoxaAgentLiveSession>>['panelContext']>>;
-type Plan={message:string;commands:Command[];context:Context};
-type Draft={id?:string;name:string;protocol:string;baseUrl:string;apiKey:string;defaultModel:string;models:string};
-const empty:Draft={name:'',protocol:'chat-completions',baseUrl:'https://api.openai.com/v1',apiKey:'',defaultModel:'',models:''};
-async function request<T>(url:string,method='GET',body?:unknown,signal?:AbortSignal):Promise<T> {
-  const response=await fetch(url,{method,headers:{'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body),signal,credentials:'same-origin'});
-  const value=await response.json();
-  if(!response.ok) throw new Error(value.message || `请求失败（${response.status}）`);
-  return value;
+type Provider = {
+  id: string;
+  owner: 'user' | 'admin';
+  name: string;
+  protocol: string;
+  baseUrl: string;
+  defaultModel: string;
+  models: Array<{ id: string; name?: string }>;
+  enabled: boolean;
+  keyHint: string;
+};
+type Command = { kind: string; args: Record<string, unknown> };
+type Context = Awaited<ReturnType<NonNullable<ReturnType<typeof getVoxaAgentLiveSession>>['panelContext']>>;
+type ToolStatus = 'pending' | 'running' | 'success' | 'error' | 'cancelled';
+type ToolCard = { index: number; kind: string; args: Record<string, unknown>; status: ToolStatus; error?: string };
+type ToolResult = { kind: string; ok: boolean; error?: string };
+type Phase = 'thinking' | 'planned' | 'executing' | 'done' | 'error' | 'cancelled';
+type ChatMessage = {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  text: string;
+  phase?: Phase;
+  tools?: ToolCard[];
+  results?: ToolResult[];
+  done?: boolean;
+  step?: number;
+  context?: Context;
+};
+type PlanReply = { message: string; commands: Command[]; done: boolean };
+type Draft = { id?: string; name: string; protocol: string; baseUrl: string; apiKey: string; defaultModel: string; models: string };
+type Tab = 'chat' | 'channels';
+
+const emptyDraft: Draft = { name: '', protocol: 'chat-completions', baseUrl: 'https://api.openai.com/v1', apiKey: '', defaultModel: '', models: '' };
+const PROTOCOLS: Array<{ value: string; label: string }> = [
+  { value: 'chat-completions', label: 'Chat Completions' },
+  { value: 'responses', label: 'OpenAI Responses' },
+  { value: 'anthropic-messages', label: 'Anthropic Messages' },
+];
+const TOOL_LABELS: Record<string, string> = {
+  paint: '体素上色',
+  erase: '擦除体素',
+  paint_path: '路径上色',
+  fill_box: '区域填充',
+  set_color: '切换颜色',
+  trim: '裁掉空白',
+  palette_add: '新增调色板颜色',
+  workspace_resize: '调整画布尺寸',
+  part_create: '新建部件',
+  part_select: '切换部件',
+  part_delete: '删除部件',
+  part_group: '组合部件',
+  part_move: '移动部件',
+  part_patch: '修改部件',
+};
+const STATUS_LABELS: Record<ToolStatus, string> = {
+  pending: '待执行',
+  running: '执行中',
+  success: '完成',
+  error: '失败',
+  cancelled: '已取消',
+};
+
+let messageSeq = 0;
+function nextId(prefix: string) {
+  messageSeq += 1;
+  return `${prefix}-${Date.now().toString(36)}-${messageSeq}`;
+}
+
+async function request<T>(url: string, method = 'GET', body?: unknown, signal?: AbortSignal): Promise<T> {
+  const response = await fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: body === undefined ? undefined : JSON.stringify(body),
+    signal,
+    credentials: 'same-origin',
+  });
+  const value = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error((value as { message?: string }).message || `请求失败（${response.status}）`);
+  return value as T;
+}
+
+function coordinate(value: unknown) {
+  return Array.isArray(value) && value.length === 3 ? `(${value.join(',')})` : '';
+}
+
+function summarize(kind: string, args: Record<string, unknown>) {
+  if (kind === 'paint' || kind === 'erase') return `${coordinate(args.at)} 颜色 ${String(args.colorId ?? '')}`;
+  if (kind === 'paint_path') return `${Array.isArray(args.points) ? args.points.length : 0} 个点 · 颜色 ${String(args.colorId ?? '')}`;
+  if (kind === 'fill_box') return `${coordinate(args.from)} → ${coordinate(args.to)} 颜色 ${String(args.colorId ?? '')}`;
+  if (kind === 'set_color') return `颜色 ${String(args.id ?? '')}`;
+  if (kind === 'palette_add') return `${String(args.alias ?? '')} · RGB ${Array.isArray(args.rgb) ? args.rgb.join(',') : '?'}`;
+  if (kind === 'workspace_resize') return `尺寸 ${Array.isArray(args.size) ? args.size.join(' × ') : '?'}`;
+  if (kind === 'part_create' || kind === 'part_group') return [String(args.alias ?? ''), String(args.name ?? '')].filter(Boolean).join(' · ');
+  if (kind === 'part_patch') {
+    const fields = ['name', 'position', 'scale', 'pivot', 'rotationDegrees', 'alpha'].filter((key) => args[key] !== undefined);
+    return `${String(args.id ?? '')}${fields.length ? ` · ${fields.join('/')}` : ''}`;
+  }
+  if (kind === 'part_delete' || kind === 'part_select') return String(args.id ?? '');
+  if (kind === 'part_move') return `${String(args.id ?? '')} → ${String(args.parentId ?? '')}`;
+  return Object.keys(args).slice(0, 3).map((key) => `${key}: ${JSON.stringify(args[key])}`).join(', ');
+}
+
+type IconName = 'spark' | 'send' | 'stop' | 'settings' | 'rollback' | 'close' | 'chevron' | 'check' | 'alert' | 'plus';
+
+function Icon({ name, size = 16 }: { name: IconName; size?: number }) {
+  const paths: Record<IconName, string> = {
+    spark: 'M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z',
+    send: 'M4 12l16-8-6 8 6 8-16-8z',
+    stop: 'M7 7h10v10H7z',
+    settings: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm8.4 4.9l1.7 1.3-1.6 2.8-2-.8a8 8 0 0 1-1.7 1l-.3 2.1h-3.2l-.3-2.1a8 8 0 0 1-1.7-1l-2 .8-1.6-2.8 1.7-1.3a8 8 0 0 1 0-2l-1.7-1.3 1.6-2.8 2 .8a8 8 0 0 1 1.7-1l.3-2.1h3.2l.3 2.1a8 8 0 0 1 1.7 1l2-.8 1.6 2.8-1.7 1.3a8 8 0 0 1 0 2z',
+    rollback: 'M9 7H4v5M4.6 12a8 8 0 1 0 2.1-5.4L4 9',
+    close: 'M6 6l12 12M18 6L6 18',
+    chevron: 'M6 9l6 6 6-6',
+    check: 'M5 12l4 4L19 6',
+    alert: 'M12 4l9 16H3L12 4zm0 5v5m0 3v.5',
+    plus: 'M12 5v14M5 12h14',
+  };
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d={paths[name]} />
+    </svg>
+  );
 }
 
 export function VoxaAiPanel() {
-  const [open,setOpen]=useState(false);
-  const [providers,setProviders]=useState<Provider[]>([]);
-  const [providerId,setProviderId]=useState('');
-  const [model,setModel]=useState('');
-  const [autonomy,setAutonomy]=useState<'review'|'autonomous'>('review');
-  const [prompt,setPrompt]=useState('');
-  const [plan,setPlan]=useState<Plan>();
-  const [busy,setBusy]=useState(false);
-  const [note,setNote]=useState('');
-  const [draft,setDraft]=useState<Draft>();
-  const abort=useRef<AbortController | undefined>(undefined);
-  const mounted=useRef(true);
-  useEffect(()=>{mounted.current=true;return ()=>{mounted.current=false;abort.current?.abort();};},[]);
-  async function load() {
-    const [catalog,prefs]=await Promise.all([
-      request<{providers:Provider[]}>('/api/player-ai/providers'),
-      request<{preferences:Record<string,{providerId:string;model:string;autonomy:'review'|'autonomous'}>}>('/api/player-ai/preferences'),
+  const [open, setOpen] = useState(false);
+  const [tab, setTab] = useState<Tab>('chat');
+  const [providers, setProviders] = useState<Provider[]>([]);
+  const [providerId, setProviderId] = useState('');
+  const [model, setModel] = useState('');
+  const [autonomy, setAutonomy] = useState<'review' | 'autonomous'>('review');
+  const [prompt, setPrompt] = useState('');
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [channelBusy, setChannelBusy] = useState(false);
+  const [draft, setDraft] = useState<Draft | undefined>(undefined);
+  const [note, setNote] = useState('');
+  const abortRef = useRef<AbortController | undefined>(undefined);
+  const transcriptRef = useRef<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
+  const mounted = useRef(true);
+  const logRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      abortRef.current?.abort();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
+  }, [messages]);
+
+  const selected = useMemo(() => providers.find((item) => item.id === providerId), [providers, providerId]);
+  const available = useMemo(() => providers.filter((item) => item.enabled), [providers]);
+  const modelOptions = useMemo(() => {
+    const values = [selected?.defaultModel, ...(selected?.models || []).map((item) => item.id)].filter(Boolean) as string[];
+    return [...new Set(values)];
+  }, [selected]);
+  const lastAssistant = useMemo(() => [...messages].reverse().find((item) => item.role === 'assistant'), [messages]);
+  const status = busy
+    ? lastAssistant?.phase === 'executing' ? '正在执行修改' : '正在生成计划'
+    : lastAssistant?.phase === 'error' ? '上一步失败' : selected ? '就绪' : '未配置渠道';
+
+  const patchMessage = useCallback((id: string, patch: Partial<ChatMessage> | ((message: ChatMessage) => Partial<ChatMessage>)) => {
+    setMessages((previous) => previous.map((item) => item.id === id ? { ...item, ...(typeof patch === 'function' ? patch(item) : patch) } : item));
+  }, []);
+
+  const patchTool = useCallback((messageId: string, index: number, patch: Partial<ToolCard>) => {
+    setMessages((previous) => previous.map((item) => {
+      if (item.id !== messageId || !item.tools) return item;
+      return { ...item, tools: item.tools.map((tool, toolIndex) => toolIndex === index ? { ...tool, ...patch } : tool) };
+    }));
+  }, []);
+
+  const loadChannels = useCallback(async () => {
+    const [catalog, preferences] = await Promise.all([
+      request<{ providers: Provider[] }>('/api/player-ai/providers'),
+      request<{ preferences: Record<string, { providerId: string; model: string; autonomy: 'review' | 'autonomous' }> }>('/api/player-ai/preferences'),
     ]);
-    if(!mounted.current) return;
-    const available=catalog.providers.filter(p=>p.enabled);
+    if (!mounted.current) return;
     setProviders(catalog.providers);
-    const pref=prefs.preferences['voxa.model'];
-    const selected=available.find(p=>p.id===(providerId || pref?.providerId)) || available[0];
-    setProviderId(selected?.id || '');setModel(selected?.defaultModel || selected?.models[0]?.id || '');
-    if(pref && !providerId) {setAutonomy(pref.autonomy);if(pref.model) setModel(pref.model);}
+    const enabled = catalog.providers.filter((item) => item.enabled);
+    const preference = preferences.preferences['voxa.model'];
+    setProviderId((current) => {
+      if (current && enabled.some((item) => item.id === current)) return current;
+      if (preference?.providerId && enabled.some((item) => item.id === preference.providerId)) return preference.providerId;
+      return enabled[0]?.id || '';
+    });
+    setModel((current) => {
+      if (current) return current;
+      if (preference?.model) return preference.model;
+      const fallback = enabled.find((item) => item.id === preference?.providerId) || enabled[0];
+      return fallback?.defaultModel || fallback?.models[0]?.id || '';
+    });
+    if (preference?.autonomy) setAutonomy(preference.autonomy);
+  }, []);
+
+  const savePreferences = useCallback(async (nextProvider = providerId, nextModel = model, nextAutonomy = autonomy, signal?: AbortSignal) => {
+    if (!nextProvider || !nextModel) return;
+    await request('/api/player-ai/preferences', 'PUT', { workflow: 'voxa.model', providerId: nextProvider, model: nextModel, autonomy: nextAutonomy }, signal);
+  }, [providerId, model, autonomy]);
+
+  useEffect(() => {
+    if (open) void loadChannels().catch((error) => setNote((error as Error).message));
+  }, [open, loadChannels]);
+
+  const append = useCallback((message: ChatMessage) => {
+    setMessages((previous) => [...previous, message]);
+  }, []);
+
+  const runChannel = useCallback(async (action: () => Promise<void>) => {
+    if (channelBusy) return;
+    setChannelBusy(true);
+    setNote('');
+    try {
+      await action();
+    } catch (error) {
+      if (mounted.current) setNote((error as Error).message || '操作失败');
+    } finally {
+      if (mounted.current) setChannelBusy(false);
+    }
+  }, [channelBusy]);
+
+  const executePlan = useCallback(async (message: ChatMessage): Promise<ToolResult[] | undefined> => {
+    const session = getVoxaAgentLiveSession();
+    if (!session) throw new Error('模型编辑器尚未就绪，请先打开并保存一个模型');
+    if (!message.tools?.length || !message.context) return [];
+    const controller = new AbortController();
+    abortRef.current = controller;
+    patchMessage(message.id, { phase: 'executing' });
+    const results: ToolResult[] = [];
+    try {
+      await session.executePanelPlan(
+        message.tools.map((tool) => ({ kind: tool.kind, args: tool.args })),
+        message.context,
+        controller.signal,
+        { providerId, model, mode: autonomy },
+        (event) => {
+          if (event.index === undefined) return;
+          if (event.type === 'command-start') patchTool(message.id, event.index, { status: 'running' });
+          if (event.type === 'command-done') {
+            patchTool(message.id, event.index, { status: 'success' });
+            results[event.index] = { kind: event.kind || '', ok: true };
+          }
+          if (event.type === 'command-error') {
+            patchTool(message.id, event.index, { status: 'error', error: event.message });
+            results[event.index] = { kind: event.kind || '', ok: false, error: event.message };
+          }
+        },
+      );
+      patchMessage(message.id, { phase: 'done', results });
+      append({ id: nextId('system'), role: 'system', text: `已执行并保存 ${message.tools.length} 项修改，可随时回滚最近批次。` });
+      return results;
+    } catch (error) {
+      const text = error instanceof Error ? error.message : '执行失败';
+      patchMessage(message.id, { phase: controller.signal.aborted ? 'cancelled' : 'error' });
+      setMessages((previous) => previous.map((item) => {
+        if (item.id !== message.id || !item.tools) return item;
+        return { ...item, tools: item.tools.map((tool) => tool.status === 'running' || tool.status === 'pending' ? { ...tool, status: controller.signal.aborted ? 'cancelled' : 'error', error: text } : tool) };
+      }));
+      append({ id: nextId('system'), role: 'system', text });
+      return undefined;
+    } finally {
+      abortRef.current = undefined;
+    }
+  }, [append, autonomy, model, patchMessage, patchTool, providerId]);
+
+  const runPlan = useCallback(async (options: { text: string; displayUser?: boolean; toolResults?: ToolResult[]; step?: number; force?: boolean; history?: Array<{ role: 'user' | 'assistant'; content: string }> }) => {
+    if (busy && !options.force) return;
+    const session = getVoxaAgentLiveSession();
+    if (!session) {
+      setNote('模型编辑器尚未就绪，请先打开并保存一个模型');
+      return;
+    }
+    if (!providerId || !model) {
+      setTab('channels');
+      setNote('请先在“渠道”中接入并选择一个模型渠道');
+      return;
+    }
+    const text = options.text.trim();
+    if (!text) return;
+    const step = options.step ?? 0;
+    setBusy(true);
+    setNote('');
+    setPrompt('');
+    const history = options.history || transcriptRef.current.slice(-10);
+    if (options.displayUser !== false) {
+      append({ id: nextId('user'), role: 'user', text });
+      transcriptRef.current = [...transcriptRef.current, { role: 'user', content: text }];
+    } else {
+      append({ id: nextId('system'), role: 'system', text: step > 0 ? `第 ${step + 1} 步：${text}` : text });
+    }
+    const assistantId = nextId('assistant');
+    append({ id: assistantId, role: 'assistant', text: '', phase: 'thinking', step });
+    const controller = new AbortController();
+    abortRef.current = controller;
+    try {
+      const context = await session.panelContext();
+      await savePreferences(providerId, model, autonomy, controller.signal);
+      const reply = await request<PlanReply>('/api/ai/plan', 'POST', {
+        providerId,
+        model,
+        prompt: text,
+        context,
+        history,
+        toolResults: options.toolResults,
+        step,
+      }, controller.signal);
+      const assistant: ChatMessage = {
+        id: assistantId,
+        role: 'assistant',
+        text: reply.message || (reply.commands.length ? `已生成 ${reply.commands.length} 项修改。` : '没有需要执行的修改。'),
+        phase: 'planned',
+        step,
+        done: reply.done,
+        context,
+        tools: reply.commands.map((command, index) => ({ index, kind: command.kind, args: command.args, status: 'pending' })),
+      };
+      patchMessage(assistantId, assistant);
+      transcriptRef.current = [...transcriptRef.current, { role: 'assistant', content: assistant.text }];
+      if (autonomy === 'autonomous' && reply.commands.length) {
+        const results = await executePlan(assistant);
+        if (results && !reply.done && step < 2) {
+          const failed = results.filter((item) => !item.ok);
+          const next = failed.length ? '上一步有命令执行失败，请修复后继续完成剩余目标。' : '继续完成剩余目标。';
+          setBusy(false);
+          await runPlan({ text: next, displayUser: false, toolResults: results, step: step + 1, force: true });
+          return;
+        }
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '请求失败';
+      patchMessage(assistantId, { phase: controller.signal.aborted ? 'cancelled' : 'error', text: message });
+      append({ id: nextId('system'), role: 'system', text: message });
+    } finally {
+      abortRef.current = undefined;
+      if (mounted.current) setBusy(false);
+    }
+  }, [append, autonomy, busy, executePlan, model, patchMessage, providerId, savePreferences]);
+
+  const followUp = useCallback((message: ChatMessage) => {
+    const failures = (message.results || []).filter((item) => !item.ok);
+    const text = failures.length ? '上一步有命令执行失败，请修复后继续完成剩余目标。' : '继续完成剩余目标。';
+    void runPlan({ text, displayUser: false, toolResults: message.results, step: (message.step || 0) + 1 });
+  }, [runPlan]);
+
+  const saveChannel = useCallback(async () => {
+    if (!draft) return;
+    const { id, models, ...fields } = draft;
+    const saved = await request<{ provider: Provider }>(id ? `/api/player-ai/providers/${id}` : '/api/player-ai/providers', id ? 'PATCH' : 'POST', {
+      ...fields,
+      models: models.split(/[,\n]/).map((item) => item.trim()).filter(Boolean),
+    });
+    setDraft(undefined);
+    await loadChannels();
+    if (saved.provider?.id) {
+      setProviderId(saved.provider.id);
+      setModel(saved.provider.defaultModel || saved.provider.models[0]?.id || '');
+      await savePreferences(saved.provider.id, saved.provider.defaultModel || saved.provider.models[0]?.id || '', autonomy);
+    }
+    setNote('渠道已保存，可直接复用');
+  }, [autonomy, draft, loadChannels, savePreferences]);
+
+  const testChannel = useCallback(async (provider: Provider) => {
+    const result = await request<{ result: { ok: boolean; message: string; latencyMs: number } }>(`/api/player-ai/providers/${provider.id}/test`, 'POST', { model: provider.defaultModel || provider.models[0]?.id });
+    if (!result.result.ok) throw new Error(result.result.message);
+    setNote(`连接成功，${result.result.latencyMs}ms`);
+  }, []);
+
+  const pullModels = useCallback(async (provider: Provider) => {
+    await request(`/api/player-ai/providers/${provider.id}/models`, 'POST', {});
+    await loadChannels();
+    setNote('模型列表已更新');
+  }, [loadChannels]);
+
+  const chooseProvider = useCallback((provider: Provider) => {
+    if (!provider.enabled) return;
+    setProviderId(provider.id);
+    const nextModel = provider.defaultModel || provider.models[0]?.id || '';
+    setModel(nextModel);
+    void savePreferences(provider.id, nextModel, autonomy).catch(() => undefined);
+    setTab('chat');
+  }, [autonomy, savePreferences]);
+
+  const toggle = () => {
+    setOpen((value) => {
+      if (value) abortRef.current?.abort();
+      return !value;
+    });
+  };
+
+  if (!open) {
+    return (
+      <button className={styles.pill} onClick={toggle} aria-label="打开 VOXA AI 创作面板">
+        <span className={styles.spark}><Icon name="spark" size={14} /></span>
+        <span>AI 创作</span>
+        <span className={styles.pillState}>{status}</span>
+      </button>
+    );
   }
-  async function run(action:()=>Promise<void>) {
-    if(busy) return;
-    setBusy(true);setNote('');
-    try {await action();} catch(error) {if(mounted.current) setNote(error instanceof Error?error.message:'操作失败');}
-    finally {if(mounted.current) setBusy(false);}
-  }
-  useEffect(()=>{if(open) void run(load);},[open]);
-  async function execute(value:Plan) {
-    const session=getVoxaAgentLiveSession();
-    if(!session) throw new Error('模型编辑器尚未就绪');
-    const controller=new AbortController();abort.current=controller;
-    await session.executePanelPlan(value.commands,value.context,controller.signal,{providerId,model,mode:autonomy});
-    setPlan(undefined);setNote(`已执行并保存 ${value.commands.length} 项修改，可回滚最近批次。`);
-  }
-  async function send() {
-    const session=getVoxaAgentLiveSession();
-    if(!session) throw new Error('模型编辑器尚未就绪');
-    if(!providerId || !model || !prompt.trim()) throw new Error('请选择渠道和模型，并输入创作要求');
-    const controller=new AbortController();abort.current=controller;
-    const context=await session.panelContext();
-    await request('/api/player-ai/preferences','PUT',{workflow:'voxa.model',providerId,model,autonomy},controller.signal);
-    const value=await request<Omit<Plan,'context'>>('/api/ai/plan','POST',{providerId,model,prompt,context},controller.signal);
-    const next={...value,context};setPlan(next);
-    if(autonomy==='autonomous' && next.commands.length) await execute(next);
-  }
-  const selected=providers.find(p=>p.id===providerId);
-  const models=[...new Set([selected?.defaultModel,...(selected?.models || []).map(m=>m.id)].filter(Boolean))];
-  return <aside className={styles.panel} aria-label="VOXA AI 创作">
-    <button className={styles.heading} onClick={()=>setOpen(!open)}>AI 模型创作 {open?'收起':'打开'}</button>
-    {open && <div className={styles.body}>
-      <label>渠道<select disabled={busy} value={providerId} onChange={e=>{setProviderId(e.target.value);const p=providers.find(p=>p.id===e.target.value);setModel(p?.defaultModel || p?.models[0]?.id || '');setPlan(undefined);}}>
-        <option value="">请选择渠道</option>{providers.filter(p=>p.enabled).map(p=><option key={p.id} value={p.id}>{p.name}{p.owner==='admin'?'（平台）':''}</option>)}
-      </select></label>
-      <label>模型<input disabled={busy} value={model} list="voxa-ai-models" onChange={e=>{setModel(e.target.value);setPlan(undefined);}} placeholder="模型 ID，可手动填写"/><datalist id="voxa-ai-models">{models.map(id=><option key={id} value={id}/>)}</datalist></label>
-      <label>执行方式<select disabled={busy} value={autonomy} onChange={e=>{setAutonomy(e.target.value as typeof autonomy);setPlan(undefined);}}><option value="review">审核：批准批次后执行</option><option value="autonomous">自主：自动执行并保存</option></select></label>
-      <div className={styles.actions}>
-        <button disabled={busy} onClick={()=>setDraft({...empty})}>新增渠道</button>
-        {selected?.owner==='user' && <button disabled={busy} onClick={()=>setDraft({id:selected.id,name:selected.name,protocol:selected.protocol,baseUrl:selected.baseUrl,apiKey:'',defaultModel:selected.defaultModel,models:selected.models.map(m=>m.id).join('\n')})}>编辑渠道</button>}
-        <button disabled={busy || !selected} onClick={()=>void run(async()=>{const result=await request<{result:{ok:boolean;message:string;latencyMs:number}}>(`/api/player-ai/providers/${providerId}/test`,'POST',{model});if(!result.result.ok) throw new Error(result.result.message);setNote(`连接成功，${result.result.latencyMs}ms`);})}>测试连接</button>
-        <button disabled={busy || !selected} onClick={()=>void run(async()=>{await request(`/api/player-ai/providers/${providerId}/models`,'POST',{});await load();setNote('模型列表已更新');})}>拉取模型</button>
-        {selected?.owner==='user' && <button disabled={busy} onClick={()=>{if(window.confirm('删除当前 AI 渠道？')) void run(async()=>{await request(`/api/player-ai/providers/${providerId}`,'DELETE');setProviderId('');await load();});}}>删除渠道</button>}
-      </div>
-      {draft && <form onSubmit={e=>{e.preventDefault();void run(async()=>{const {id,models,...fields}=draft;await request(id?`/api/player-ai/providers/${id}`:'/api/player-ai/providers',id?'PATCH':'POST',{...fields,models:models.split(/[,\n]/).map(s=>s.trim()).filter(Boolean)});setDraft(undefined);await load();});}}>
-        <label>名称<input required maxLength={64} value={draft.name} onChange={e=>setDraft({...draft,name:e.target.value})}/></label>
-        <label>协议<select value={draft.protocol} onChange={e=>setDraft({...draft,protocol:e.target.value})}>{['chat-completions','responses','anthropic-messages'].map(p=><option key={p}>{p}</option>)}</select></label>
-        <label>Base URL<input required type="url" value={draft.baseUrl} onChange={e=>setDraft({...draft,baseUrl:e.target.value})}/></label>
-        <label>API Key<input required={!draft.id} type="password" autoComplete="new-password" value={draft.apiKey} placeholder={draft.id?'留空保留原密钥':''} onChange={e=>setDraft({...draft,apiKey:e.target.value})}/></label>
-        <label>默认模型<input required value={draft.defaultModel} onChange={e=>setDraft({...draft,defaultModel:e.target.value})}/></label>
-        <label>模型列表<textarea value={draft.models} onChange={e=>setDraft({...draft,models:e.target.value})}/></label>
-        <div className={styles.actions}><button disabled={busy} type="submit">保存渠道</button><button disabled={busy} type="button" onClick={()=>setDraft(undefined)}>取消</button></div>
-      </form>}
-      <label>创作要求<textarea disabled={busy} value={prompt} maxLength={16000} onChange={e=>setPrompt(e.target.value)} placeholder="描述需要构建或修改的模型" rows={4}/></label>
-      <div className={styles.actions}><button disabled={busy || !providerId || !model || !prompt.trim()} onClick={()=>void run(send)}>{busy?'处理中…':'发送'}</button><button disabled={!busy} onClick={()=>abort.current?.abort()}>停止</button><button disabled={busy} onClick={()=>void run(async()=>{const session=getVoxaAgentLiveSession();if(!session) throw new Error('编辑器尚未就绪');await session.rollbackPanelPlan();setPlan(undefined);setNote('已恢复并保存最近批次前的快照');})}>回滚最近批次</button></div>
-      {plan && <section><p className={styles.message}>{plan.message}</p>{plan.commands.length>0 && <><details><summary>查看 {plan.commands.length} 项修改</summary><pre>{JSON.stringify(plan.commands,null,2)}</pre></details><div className={styles.actions}><button disabled={busy} onClick={()=>void run(()=>execute(plan))}>批准并执行</button><button disabled={busy} onClick={()=>setPlan(undefined)}>拒绝批次</button></div></>}</section>}
-      {note && <p role="status">{note}</p>}
-    </div>}
-  </aside>;
+
+  return (
+    <aside className={styles.root} aria-label="VOXA AI 创作面板">
+      <header className={styles.header}>
+        <span className={styles.spark}><Icon name="spark" size={15} /></span>
+        <div className={styles.titleBlock}>
+          <strong>VOXA Agent</strong>
+          <span>{selected ? `${selected.name} · ${model || '未选模型'}` : '未配置渠道'}</span>
+        </div>
+        <span className={`${styles.statusDot} ${busy ? styles.busy : selected ? styles.ready : styles.idle}`} />
+        <button className={styles.iconButton} title="回滚最近批次" disabled={busy} onClick={() => {
+          const session = getVoxaAgentLiveSession();
+          if (!session) { setNote('模型编辑器尚未就绪'); return; }
+          void session.rollbackPanelPlan().then(() => {
+            append({ id: nextId('system'), role: 'system', text: '已恢复并保存最近批次前的快照。' });
+            setNote('');
+          }).catch((error) => setNote((error as Error).message));
+        }}><Icon name="rollback" size={15} /></button>
+        <button className={styles.iconButton} title="收起" onClick={toggle}><Icon name="close" size={15} /></button>
+      </header>
+
+      <nav className={styles.tabs} role="tablist">
+        <button role="tab" aria-selected={tab === 'chat'} className={tab === 'chat' ? styles.activeTab : styles.tab} onClick={() => setTab('chat')}>对话</button>
+        <button role="tab" aria-selected={tab === 'channels'} className={tab === 'channels' ? styles.activeTab : styles.tab} onClick={() => setTab('channels')}>
+          <Icon name="settings" size={13} /> 渠道
+          {!available.length && <span className={styles.dotBadge} />}
+        </button>
+      </nav>
+
+      {tab === 'channels' ? (
+        <div className={styles.channelBody}>
+          <div className={styles.sectionHead}>
+            <span>我的 API 渠道</span>
+            <button className={styles.primarySmall} onClick={() => setDraft({ ...emptyDraft })}><Icon name="plus" size={13} />新增</button>
+          </div>
+          <p className={styles.hint}>渠道按你的账号加密保存，下次打开直接复用；平台渠道也可直接选用。</p>
+          <ul className={styles.channelList}>
+            {providers.map((provider) => (
+              <li key={provider.id} className={`${styles.channel} ${provider.id === providerId ? styles.channelActive : ''}`}>
+                <button className={styles.channelMain} onClick={() => chooseProvider(provider)} disabled={!provider.enabled}>
+                  <span className={styles.channelName}>
+                    {provider.name}
+                    <em className={provider.owner === 'admin' ? styles.platform : styles.mine}>{provider.owner === 'admin' ? '平台' : '我的'}</em>
+                    {!provider.enabled && <em className={styles.disabled}>已停用</em>}
+                  </span>
+                  <span className={styles.channelMeta}>{provider.protocol} · {provider.keyHint || '已保存密钥'} · {provider.models.length} 个模型</span>
+                  <span className={styles.channelUrl}>{provider.baseUrl}</span>
+                </button>
+                <div className={styles.channelActions}>
+                  <button disabled={channelBusy} onClick={() => void runChannel(() => testChannel(provider))}>测试</button>
+                  <button disabled={channelBusy} onClick={() => void runChannel(() => pullModels(provider))}>拉取</button>
+                  {provider.owner === 'user' && <button disabled={channelBusy} onClick={() => setDraft({
+                    id: provider.id,
+                    name: provider.name,
+                    protocol: provider.protocol,
+                    baseUrl: provider.baseUrl,
+                    apiKey: '',
+                    defaultModel: provider.defaultModel,
+                    models: provider.models.map((item) => item.id).join('\n'),
+                  })}>编辑</button>}
+                  {provider.owner === 'user' && <button className={styles.danger} disabled={channelBusy} onClick={() => {
+                    if (!window.confirm(`删除渠道“${provider.name}”？`)) return;
+                    void runChannel(async () => {
+                      await request(`/api/player-ai/providers/${provider.id}`, 'DELETE');
+                      if (providerId === provider.id) { setProviderId(''); setModel(''); }
+                      await loadChannels();
+                      setNote('渠道已删除');
+                    });
+                  }}>删除</button>}
+                </div>
+              </li>
+            ))}
+            {!providers.length && <li className={styles.empty}>还没有渠道。点击“新增”接入你自己的 API，保存后即可复用。</li>}
+          </ul>
+
+          {draft && (
+            <form className={styles.form} onSubmit={(event) => { event.preventDefault(); void runChannel(saveChannel); }}>
+              <div className={styles.formTitle}>{draft.id ? '编辑渠道' : '新增渠道'}</div>
+              <label>名称<input required maxLength={64} value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} placeholder="例如 我的 GPT" /></label>
+              <label>协议<select value={draft.protocol} onChange={(event) => setDraft({ ...draft, protocol: event.target.value })}>
+                {PROTOCOLS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+              </select></label>
+              <label>Base URL<input required type="url" value={draft.baseUrl} onChange={(event) => setDraft({ ...draft, baseUrl: event.target.value })} placeholder="https://host 或 https://host/v1" /></label>
+              <label>API Key<input required={!draft.id} type="password" autoComplete="new-password" value={draft.apiKey} onChange={(event) => setDraft({ ...draft, apiKey: event.target.value })} placeholder={draft.id ? '留空保留原密钥' : 'sk-...'} /></label>
+              <label>默认模型<input required value={draft.defaultModel} onChange={(event) => setDraft({ ...draft, defaultModel: event.target.value })} placeholder="模型 ID" /></label>
+              <label>模型列表<textarea rows={3} value={draft.models} onChange={(event) => setDraft({ ...draft, models: event.target.value })} placeholder={'每行一个，或点击“拉取模型”自动填充'} /></label>
+              <p className={styles.hint}>未写 /v1 会自动补全；密钥加密保存，不会回传到浏览器之外。</p>
+              <div className={styles.formActions}>
+                <button type="button" className={styles.ghost} onClick={() => setDraft(undefined)}>取消</button>
+                <button type="submit" className={styles.primarySmall} disabled={channelBusy}>保存渠道</button>
+              </div>
+            </form>
+          )}
+          {note && <p className={styles.note} role="status">{note}</p>}
+        </div>
+      ) : (
+        <>
+          <div className={styles.log} ref={logRef} role="log" aria-live="polite">
+            {!messages.length && (
+              <div className={styles.emptyChat}>
+                <Icon name="spark" size={22} />
+                <p>告诉我你想建什么，我会先读模型结构，再分批体素/部件修改，执行后可回滚。</p>
+                {!selected && <button className={styles.primarySmall} onClick={() => setTab('channels')}>先接入 API 渠道</button>}
+              </div>
+            )}
+            {messages.map((message) => (
+              <article key={message.id} className={`${styles.message} ${styles[message.role]}`}>
+                {message.role === 'system' ? (
+                  <p className={styles.systemText}>{message.text}</p>
+                ) : (
+                  <>
+                    {message.text && <p className={styles.bubble}>{message.text}</p>}
+                    {message.phase === 'thinking' && <span className={styles.thinking}>正在读取模型并规划<span /><span /><span /></span>}
+                    {!!message.tools?.length && (
+                      <div className={styles.tools}>
+                        <div className={styles.toolsHead}>
+                          <span>修改计划 · {message.tools.length} 项</span>
+                          {message.phase === 'executing' && <em>执行中</em>}
+                          {message.phase === 'done' && <em className={styles.doneLabel}><Icon name="check" size={12} /> 已保存</em>}
+                          {message.phase === 'error' && <em className={styles.errorLabel}><Icon name="alert" size={12} /> 有错误</em>}
+                        </div>
+                        {message.tools.map((tool) => (
+                          <details key={`${message.id}-${tool.index}`} className={`${styles.tool} ${styles[tool.status]}`} open={tool.status === 'error'}>
+                            <summary>
+                              <span className={styles.toolKind}>{TOOL_LABELS[tool.kind] || tool.kind}</span>
+                              <span className={styles.toolSummary}>{summarize(tool.kind, tool.args)}</span>
+                              <span className={styles.toolStatus}>{STATUS_LABELS[tool.status]}</span>
+                            </summary>
+                            {tool.error && <p className={styles.toolError}>{tool.error}</p>}
+                            <pre>{JSON.stringify(tool.args, null, 2)}</pre>
+                          </details>
+                        ))}
+                        {message.phase === 'planned' && autonomy === 'review' && (
+                          <div className={styles.batchActions}>
+                            <button className={styles.primarySmall} disabled={busy} onClick={() => {
+                              setBusy(true);
+                              void executePlan(message).then((results) => {
+                                if (!results) return;
+                                const failures = results.filter((item) => !item.ok);
+                                if (!failures.length && !message.done) setNote('本批已完成，可继续下一步');
+                                if (failures.length) setNote('部分命令失败，可让 AI 修复');
+                              }).finally(() => setBusy(false));
+                            }}>批准并执行</button>
+                            <button className={styles.ghost} disabled={busy} onClick={() => patchMessage(message.id, { phase: 'cancelled', tools: [] })}>放弃</button>
+                          </div>
+                        )}
+                        {message.phase === 'done' && message.step !== undefined && message.step < 2 && (
+                          <div className={styles.batchActions}>
+                            <button className={styles.ghost} disabled={busy} onClick={() => followUp(message)}>
+                              {(message.results || []).some((item) => !item.ok) ? '让 AI 修复' : message.done ? '继续微调' : '继续下一步'}
+                            </button>
+                          </div>
+                        )}
+                        {message.phase === 'error' && message.step !== undefined && message.step < 2 && (
+                          <div className={styles.batchActions}>
+                            <button className={styles.ghost} disabled={busy} onClick={() => followUp(message)}>让 AI 修复</button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+              </article>
+            ))}
+          </div>
+
+          <div className={styles.composer}>
+            <div className={styles.composerTop}>
+              <span className={styles.modelChip}>{model || '未选模型'}</span>
+              <div className={styles.segmented} role="group" aria-label="执行方式">
+                <button className={autonomy === 'review' ? styles.segmentActive : styles.segment} disabled={busy} onClick={() => setAutonomy('review')}>审核</button>
+                <button className={autonomy === 'autonomous' ? styles.segmentActive : styles.segment} disabled={busy} onClick={() => setAutonomy('autonomous')}>自主</button>
+              </div>
+            </div>
+            <textarea
+              value={prompt}
+              disabled={busy}
+              rows={3}
+              maxLength={16000}
+              placeholder={selected ? '描述要构建或修改的内容，例如：把头部加宽并做出耳朵' : '先在“渠道”接入 API，再开始创作'}
+              onChange={(event) => setPrompt(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+                  event.preventDefault();
+                  void runPlan({ text: prompt });
+                }
+              }}
+            />
+            <div className={styles.composerActions}>
+              <span className={styles.hint}>Ctrl/Cmd + Enter 发送</span>
+              {busy ? (
+                <button className={styles.stop} onClick={() => abortRef.current?.abort()}><Icon name="stop" size={14} />停止</button>
+              ) : (
+                <button className={styles.primary} disabled={!providerId || !model || !prompt.trim()} onClick={() => void runPlan({ text: prompt })}>
+                  <Icon name="send" size={14} />发送
+                </button>
+              )}
+            </div>
+            {note && <p className={styles.note} role="status">{note}</p>}
+          </div>
+        </>
+      )}
+    </aside>
+  );
 }

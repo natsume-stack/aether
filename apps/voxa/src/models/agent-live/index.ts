@@ -184,7 +184,7 @@ export class VoxaAgentLiveSession {
     return {voxelContext:{partId:store.getState().app.editingSkinPartId,shape,cells,scanned,totalCells:volume,truncated:scanned<volume,order:'x,y,z; each cell [x,y,z,colorId]'},fingerprint:await this.panelFingerprint(data),snapshot:this.snapshot(),parts,palette:this.paletteInfo({limit:64}),revision:this.modelRevision,humanEpoch:this.humanEpoch,undoDepth:this.voxaDepth().undo};
   }
 
-  public async executePanelPlan(commands: Array<{kind:string;args:Record<string,unknown>}>, expected: {revision:number;humanEpoch:number;undoDepth:number;fingerprint:string}, signal:AbortSignal,metadata:{providerId?:string;model?:string;mode?:'review'|'autonomous'}={}) {
+  public async executePanelPlan(commands: Array<{kind:string;args:Record<string,unknown>}>, expected: {revision:number;humanEpoch:number;undoDepth:number;fingerprint:string}, signal:AbortSignal,metadata:{providerId?:string;model?:string;mode?:'review'|'autonomous'}={},onEvent?:(event:{type:'command-start'|'command-done'|'command-error'|'batch-done';index?:number;kind?:string;message?:string;total?:number})=>void) {
     if(this.panelBusy) throw new Error('AI plan already running');
     if(this.modelRevision!==expected.revision || this.humanEpoch!==expected.humanEpoch || this.voxaDepth().undo!==expected.undoDepth) throw new Error('Model changed after planning; generate a new plan');
     if(commands.length>32) throw new Error('AI plan exceeds command budget');
@@ -231,7 +231,11 @@ export class VoxaAgentLiveSession {
       await record('before','voxa-batch',currentFingerprint);
       await this.run('observe',{});
       await storeAiSnapshot(String(store.getState().app.projectId), this.panelUndo, currentFingerprint);
+      let commandIndex=-1;
       for(const command of commands) {
+        commandIndex++;
+        onEvent?.({type:'command-start',index:commandIndex,kind:command.kind,total:commands.length});
+        try {
         if(signal.aborted) throw new Error('AI plan cancelled');
         if(this.humanEpoch!==expected.humanEpoch) throw new Error('Human edits interrupted the AI batch');
         await record('before',command.kind,currentFingerprint);
@@ -335,6 +339,11 @@ export class VoxaAgentLiveSession {
         currentFingerprint=await this.panelFingerprint(await this.editor.projectManager.getData());
         await storeAiSnapshot(String(store.getState().app.projectId), this.panelUndo!, currentFingerprint);
         await record('after',command.kind,currentFingerprint);
+        onEvent?.({type:'command-done',index:commandIndex,kind:command.kind});
+        } catch(error) {
+          onEvent?.({type:'command-error',index:commandIndex,kind:command.kind,message:(error as Error)?.message || 'Command failed'});
+          throw error;
+        }
       }
       const saved=await this.editor.projectManager.saveProject({autoSave:false});
       if(!saved.isSuccess) throw new Error('Model changed but save failed; inspect before retry');
@@ -342,6 +351,7 @@ export class VoxaAgentLiveSession {
       this.panelRollbackFingerprint=currentFingerprint;
       await record('complete','voxa-batch',currentFingerprint);
       executionRunId=undefined;
+      onEvent?.({type:'batch-done',total:commands.length});
       return {success:true,commands:commands.length};
     } finally {
       if(executionRunId) await record(signal.aborted?'cancelled':'failed','voxa-batch',currentFingerprint).catch(()=>undefined);
