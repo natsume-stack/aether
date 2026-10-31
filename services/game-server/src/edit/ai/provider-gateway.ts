@@ -3,6 +3,7 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import type { LanguageModel } from 'ai';
 import type { Logger } from 'pino';
+import { safeProviderFetch } from './provider-http';
 
 export type ResolvedProviderProtocol = 'chat-completions' | 'responses' | 'anthropic-messages';
 export type ResolvedProvider = {
@@ -86,6 +87,7 @@ export function providerLanguageModel(provider: ResolvedProvider, requestedModel
   if (provider.protocol === 'chat-completions') {
     return createOpenAICompatible({
       baseURL: provider.baseUrl,
+      fetch: safeProviderFetch,
       apiKey: provider.apiKey,
       name: provider.name || 'provider',
       headers,
@@ -94,6 +96,7 @@ export function providerLanguageModel(provider: ResolvedProvider, requestedModel
   if (provider.protocol === 'responses') {
     return createOpenAI({
       baseURL: provider.baseUrl,
+      fetch: safeProviderFetch,
       apiKey: provider.apiKey,
       headers,
     }).responses(model);
@@ -101,6 +104,7 @@ export function providerLanguageModel(provider: ResolvedProvider, requestedModel
   if (provider.protocol !== 'anthropic-messages') throw new Error('Unsupported AI protocol');
   return createAnthropic({
     baseURL: provider.baseUrl,
+    fetch: safeProviderFetch,
     apiKey: provider.apiKey,
     headers,
   }).messages(model);

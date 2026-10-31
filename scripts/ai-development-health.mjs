@@ -6,7 +6,7 @@ if (fs.existsSync(new URL('../.env', import.meta.url)) && process.loadEnvFile) {
 const checks = [
     ['creator', 'BOX_DEV_CREATOR_PORT', 13527, '/api/health-check'],
     ['identity', 'BOX_DEV_PLAYER_SERVICE_PORT', 13124, '/api/health-check'],
-    ['voxa', 'BOX_DEV_VOXA_PORT', 13123, '/'],
+    ['voxa', 'BOX_DEV_VOXA_PORT', 13123, '/api/health-check'],
     ['admin', 'BOX_DEV_PLAYER_ADMIN_PORT', 18000, '/'],
 ];
 const results = await Promise.all(

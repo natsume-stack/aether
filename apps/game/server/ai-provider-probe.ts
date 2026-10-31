@@ -5,6 +5,8 @@ import {
   type AiProviderSecret,
 } from './ai-provider-store';
 
+import { safeProviderFetch } from '../../../services/game-server/src/edit/ai/provider-http';
+
 const ANTHROPIC_VERSION = '2023-06-01';
 const PROBE_TIMEOUT_MS = 20_000;
 
@@ -30,7 +32,7 @@ function authHeaders(provider: AiProviderSecret) {
 
 async function safeFetch(provider: AiProviderSecret, path: string, init: RequestInit) {
   const safeBase = await assertSafeProviderUrl(provider.baseUrl);
-  return fetch(endpoint(safeBase, path), {
+  return safeProviderFetch(endpoint(safeBase, path), {
     ...init,
     redirect: 'manual',
     signal: AbortSignal.timeout(PROBE_TIMEOUT_MS),

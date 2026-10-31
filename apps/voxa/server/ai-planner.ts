@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import {safeProviderFetch} from '../../../services/game-server/src/edit/ai/provider-http';
 
 export type VoxaAiCommand = {kind: string; args: Record<string, unknown>};
 const kinds = new Set(['paint', 'erase', 'paint_path', 'fill_box', 'set_color', 'trim', 'part_patch']);
@@ -69,7 +70,7 @@ export async function generateVoxaAiPlan(req: NextApiRequest, res: NextApiRespon
   res.on('close',cancel);
   const timer=setTimeout(cancel,120000);
   try {
-    const response=await fetch(`${String(provider.baseUrl).replace(/\/$/,'')}${path}`, {method:'POST',headers,body:JSON.stringify(body),signal:abort.signal,redirect:'error'});
+    const response=await safeProviderFetch(`${String(provider.baseUrl).replace(/\/$/,'')}${path}`, {method:'POST',headers,body:JSON.stringify(body),signal:abort.signal,redirect:'error'});
     if (!response.ok) throw new Error(`AI provider returned HTTP ${response.status}`);
     const data=await response.json();
     const text=provider.protocol==='chat-completions' ? data.choices?.[0]?.message?.content : provider.protocol==='responses' ? (data.output || []).flatMap((item:any)=>(item.content || []).filter((part:any)=>part.type==='output_text').map((part:any)=>part.text)).join('') : (data.content || []).filter((part:any)=>part.type==='text').map((part:any)=>part.text).join('');

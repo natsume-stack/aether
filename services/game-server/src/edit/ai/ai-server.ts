@@ -177,6 +177,7 @@ When writing scripts, strictly follow these API definitions.
           }),
           system: systemPrompt,
           stopWhen: stepCountIs(20),
+          maxOutputTokens: 16384,
         };
 
         const result = streamText({
@@ -237,7 +238,7 @@ When writing scripts, strictly follow these API definitions.
         if (abortController.signal.aborted) return;
 
         this.logger.error(
-          { sessionId, model, err },
+          { sessionId, model, errorName: err?.name },
           'Model generation failed, trying next model if available',
         );
         if (outputStarted || toolStarted) break;
@@ -254,7 +255,7 @@ When writing scripts, strictly follow these API definitions.
         );
       } else {
         this.logger.error(
-          { sessionId, error: lastError },
+          { sessionId, errorName: lastError?.name },
           'AI generation failed',
         );
 

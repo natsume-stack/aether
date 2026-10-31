@@ -24,7 +24,7 @@ Commands: game-server tsc; check-ai-execution-policy.ts; check-ai-provider-isola
 - VOXA planner currently returns one complete JSON batch, not a streaming tool loop. Part creation/deletion, arbitrary hierarchy edits, animations and automated publication are not implemented by this panel.
 - Map tools without a rollback-capable proposal path are intentionally not exposed to autonomous execution. Automatic publication/deletion of whole projects is not implemented.
 - VOXA most recent batch's in-memory source snapshot is available while the editor remains open; persisted model versions are also written. An arbitrary historical snapshot selection UI is not implemented.
-- URL preflight plus redirect refusal is not a pinned-DNS transport; DNS rebinding needs transport-level hardening before broad untrusted endpoint onboarding.
+- Provider HTTP transport validates DNS inside the actual socket lookup, rejects private literals and all redirect responses, and forwards cancellation to the socket. All three mock protocol adapters passed through this transport.
 - Rate limiting is per-process; no distributed token accounting or staged-user rollout dashboard is included.
 - No third-party credentials were requested or used and no manual product acceptance was performed.
 
