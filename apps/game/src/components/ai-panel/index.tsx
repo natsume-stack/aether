@@ -12,6 +12,9 @@ import {
   ChevronUp,
   MessageSquare,
   PlusIcon,
+  Settings2,
+  ShieldAlert,
+  ShieldCheck,
   X,
   Zap,
 } from 'lucide-react';
@@ -87,6 +90,16 @@ import {
   ToolOutput,
 } from '../ai-elements/tool';
 import { InputPause, useInputPause } from '/src/views/components/input-lock';
+import { AiProviderSettings } from './ai-provider-settings';
+import {
+  WORKFLOW_ID,
+  defaultSelection,
+  encodeSelection,
+  providerModelOptions,
+  PROTOCOL_LABELS,
+  type AiProviderView,
+  type AiSelection,
+} from './provider-types';
 
 // ==================== 类型定义 ====================
 
@@ -250,16 +263,13 @@ export const AiPanel = () => {
             modelIds.map(async (modelId): Promise<AddModelToProjectResult> => {
               try {
                 const res = await apis.model.copyProjectSharedModelUsingPost({
-                  mapId,
                   originModelId: modelId,
-                  sourceType: SourceType.Release,
-                  event: CopyEvent.PassiveCopy,
                 });
                 return {
                   success: true,
                   modelId,
-                  newModelId: res.modelId,
-                  name: res.modelName,
+                  newModelId: typeof res.modelId === 'number' ? res.modelId : undefined,
+                  name: typeof res.modelName === 'string' ? res.modelName : undefined,
                 };
               } catch (e) {
                 const errorMessage = e instanceof Error ? e.message : String(e);
@@ -401,6 +411,70 @@ export const AiPanel = () => {
     [model],
   );
 
+  // ==================== 用户 AI 渠道 ====================
+
+  const [providers, setProviders] = useState<AiProviderView[]>([]);
+  const [selection, setSelection] = useState<AiSelection>({
+    providerId: '',
+    model: MODELS[0].id,
+    autonomy: 'review',
+  });
+  const [providersLoading, setProvidersLoading] = useState(true);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const [providerResponse, preferenceResponse] = await Promise.all([
+          fetch('/api/player-ai/providers', { credentials: 'same-origin' }),
+          fetch('/api/player-ai/preferences', { credentials: 'same-origin' }),
+        ]);
+        const providerData = await providerResponse.json().catch(() => ({}));
+        const preferenceData = await preferenceResponse.json().catch(() => ({}));
+        if (!alive) return;
+        if (!providerResponse.ok) throw new Error(providerData.message || '无法读取 AI 渠道');
+        const list: AiProviderView[] = Array.isArray(providerData.providers) ? providerData.providers : [];
+        setProviders(list);
+        const saved = preferenceData.preferences?.[WORKFLOW_ID];
+        setSelection(defaultSelection(list, saved));
+      } catch (error) {
+        // 未登录或后端未配置时保留环境默认的 FAST/PRO，不阻塞对话面板
+        console.warn('[AI Panel] provider bootstrap failed', error);
+      } finally {
+        if (alive) setProvidersLoading(false);
+      }
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  const persistSelection = useCallback((next: AiSelection) => {
+    setSelection(next);
+    setModel(next.providerId ? next.model : next.model || MODELS[0].id);
+    if (!next.providerId) return;
+    void fetch('/api/player-ai/preferences', {
+      method: 'PUT',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        workflow: WORKFLOW_ID,
+        providerId: next.providerId,
+        model: next.model,
+        autonomy: next.autonomy,
+      }),
+    }).catch(() => undefined);
+  }, []);
+
+  const providerOptions = useMemo(() => providerModelOptions(providers), [providers]);
+  const selectedProviderOption = useMemo(
+    () => providerOptions.find((option) => option.provider.id === selection.providerId && option.model.id === selection.model)
+      || providerOptions.find((option) => option.provider.id === selection.providerId),
+    [providerOptions, selection.providerId, selection.model],
+  );
+  const modelSelectorLabel = selectedProviderOption
+    ? `${selectedProviderOption.provider.name} · ${selectedProviderOption.model.name || selectedProviderOption.model.id}`
+    : (MODELS.find((item) => item.id === selection.model)?.name || 'FAST');
+
   /** 输入是否暂停（与游戏输入协调） */
   const [isInputPause, setInputPause] = useState<boolean>(false);
   const { inputPauseChange } = useInputPause();
@@ -469,11 +543,11 @@ export const AiPanel = () => {
 
       sendMessage(
         { text: message.text || 'Sent with attachments' },
-        { body: { model } },
+        { body: { model: encodeSelection(selection) } },
       );
       setText('');
     },
-    [sendMessage, model],
+    [sendMessage, selection],
   );
 
   // ==================== 渲染 ====================
@@ -656,11 +730,10 @@ export const AiPanel = () => {
                 {/* 模型选择器 */}
                 <DropdownMenu.Root>
                   <DropdownMenu.Trigger className="group flex items-center space-x-1.5 text-[10px]  font-bold text-foreground hover:text-accent-foreground hover:bg-accent px-2 py-1 rounded-md transition-all select-none outline-none cursor-pointer data-[state=open]:bg-accent data-[state=open]:text-accent-foreground">
-                    <selectedModelData.icon
-                      size={12}
-                      className={selectedModelData.color}
-                    />
-                    <span>{selectedModelData.name}</span>
+                    <Zap size={12} className="text-amber-400" />
+                    <span className="max-w-[180px] truncate">
+                      {providersLoading ? '加载渠道…' : modelSelectorLabel}
+                    </span>
                     <ChevronUp
                       size={10}
                       className="transition-transform duration-200 group-data-[state=open]:rotate-180"
@@ -671,39 +744,132 @@ export const AiPanel = () => {
                       side="top"
                       align="start"
                       sideOffset={8}
-                      className="w-60 bg-popover border border-border rounded-xl shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in-95 slide-in-from-bottom-2 duration-100"
+                      className="w-72 bg-popover border border-border rounded-xl shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in-95 slide-in-from-bottom-2 duration-100"
                     >
                       <DropdownMenu.Label className="px-2 py-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                         Select Model
                       </DropdownMenu.Label>
 
+                      {providerOptions.length ? (
+                        <DropdownMenu.RadioGroup
+                          value={selectedProviderOption ? `${selectedProviderOption.provider.id}:${selectedProviderOption.model.id}` : ''}
+                          onValueChange={(value) => {
+                            const option = providerOptions.find((item) => item.key === value);
+                            if (!option) return;
+                            persistSelection({
+                              ...selection,
+                              providerId: option.provider.id,
+                              model: option.model.id,
+                            });
+                          }}
+                          className="flex max-h-72 flex-col gap-1 overflow-y-auto"
+                        >
+                          {providerOptions.map((option) => (
+                            <DropdownMenu.RadioItem
+                              key={option.key}
+                              value={option.key}
+                              className="relative flex w-full cursor-pointer select-none items-center gap-3 rounded-lg p-2 outline-none transition-colors data-[state=checked]:bg-accent hover:bg-accent"
+                            >
+                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted border border-border">
+                                <Zap size={16} className="text-amber-400" />
+                              </div>
+                              <div className="flex min-w-0 flex-1 flex-col">
+                                <span className="truncate text-xs font-bold text-foreground">
+                                  {option.model.name || option.model.id}
+                                </span>
+                                <span className="truncate text-[10px] text-muted-foreground">
+                                  {option.provider.name} · {PROTOCOL_LABELS[option.provider.protocol]}
+                                </span>
+                              </div>
+                              <DropdownMenu.ItemIndicator>
+                                <CheckIcon size={14} className="text-primary" />
+                              </DropdownMenu.ItemIndicator>
+                            </DropdownMenu.RadioItem>
+                          ))}
+                        </DropdownMenu.RadioGroup>
+                      ) : (
+                        <div className="px-2 py-3 text-xs text-muted-foreground">
+                          还没有配置渠道。使用下方“管理 AI 接入”保存你的 API。
+                        </div>
+                      )}
+
+                      <DropdownMenu.Separator className="my-1 h-px bg-border" />
+                      <DropdownMenu.Item
+                        onSelect={() => setSettingsOpen(true)}
+                        className="relative flex w-full cursor-pointer select-none items-center gap-2 rounded-lg px-2 py-2 text-xs outline-none transition-colors hover:bg-accent"
+                      >
+                        <Settings2 size={14} />
+                        管理 AI 接入…
+                      </DropdownMenu.Item>
+                      <DropdownMenu.Item
+                        onSelect={() => persistSelection({ providerId: '', model: MODELS[0].id, autonomy: selection.autonomy })}
+                        className="relative flex w-full cursor-pointer select-none items-center gap-2 rounded-lg px-2 py-2 text-xs outline-none transition-colors hover:bg-accent"
+                      >
+                        <Zap size={14} />
+                        使用环境默认（FAST）
+                      </DropdownMenu.Item>
+                    </DropdownMenu.Content>
+                  </DropdownMenu.Portal>
+                </DropdownMenu.Root>
+                {/* AI 自主度 */}
+                <DropdownMenu.Root>
+                  <DropdownMenu.Trigger className="group flex items-center space-x-1.5 text-[10px] font-bold text-foreground hover:text-accent-foreground hover:bg-accent px-2 py-1 rounded-md transition-all select-none outline-none cursor-pointer data-[state=open]:bg-accent data-[state=open]:text-accent-foreground">
+                    {selection.autonomy === 'autonomous'
+                      ? <ShieldAlert size={12} className="text-rose-400" />
+                      : <ShieldCheck size={12} className="text-emerald-500" />}
+                    <span>{selection.autonomy === 'autonomous' ? '完全权限' : '审核模式'}</span>
+                    <ChevronUp
+                      size={10}
+                      className="transition-transform duration-200 group-data-[state=open]:rotate-180"
+                    />
+                  </DropdownMenu.Trigger>
+                  <DropdownMenu.Portal>
+                    <DropdownMenu.Content
+                      side="top"
+                      align="start"
+                      sideOffset={8}
+                      className="w-64 bg-popover border border-border rounded-xl shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in-95 slide-in-from-bottom-2 duration-100"
+                    >
+                      <DropdownMenu.Label className="px-2 py-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                        AI 自主度
+                      </DropdownMenu.Label>
                       <DropdownMenu.RadioGroup
-                        value={model}
-                        onValueChange={setModel}
+                        value={selection.autonomy}
+                        onValueChange={(value) => {
+                          const autonomy = value as AiSelection['autonomy'];
+                          persistSelection({ ...selection, autonomy });
+                          if (autonomy === 'autonomous') {
+                            toast.warning('完全权限已开启：AI 可自动保存/发布/删除，执行前后会写快照。');
+                          }
+                        }}
                         className="flex flex-col gap-1"
                       >
-                        {MODELS.map((item) => (
-                          <DropdownMenu.RadioItem
-                            key={item.id}
-                            value={item.id}
-                            className="relative flex w-full cursor-pointer select-none items-center gap-3 rounded-lg p-2 outline-none transition-colors data-[state=checked]:bg-accent hover:bg-accent"
-                          >
-                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted border border-border">
-                              <item.icon size={16} className={item.color} />
-                            </div>
-                            <div className="flex flex-1 flex-col">
-                              <span className="text-xs font-bold text-foreground">
-                                {item.name}
-                              </span>
-                              <span className="text-[10px] text-muted-foreground">
-                                {item.description}
-                              </span>
-                            </div>
-                            <DropdownMenu.ItemIndicator>
-                              <CheckIcon size={14} className="text-primary" />
-                            </DropdownMenu.ItemIndicator>
-                          </DropdownMenu.RadioItem>
-                        ))}
+                        <DropdownMenu.RadioItem
+                          value="review"
+                          className="relative flex w-full cursor-pointer select-none items-center gap-3 rounded-lg p-2 outline-none transition-colors data-[state=checked]:bg-accent hover:bg-accent"
+                        >
+                          <ShieldCheck size={16} className="text-emerald-500" />
+                          <div className="flex flex-1 flex-col">
+                            <span className="text-xs font-bold text-foreground">审核模式</span>
+                            <span className="text-[10px] text-muted-foreground">按计划/批次批准或拒绝</span>
+                          </div>
+                          <DropdownMenu.ItemIndicator>
+                            <CheckIcon size={14} className="text-primary" />
+                          </DropdownMenu.ItemIndicator>
+                        </DropdownMenu.RadioItem>
+                        <DropdownMenu.RadioItem
+                          value="autonomous"
+                          className="relative flex w-full cursor-pointer select-none items-center gap-3 rounded-lg p-2 outline-none transition-colors data-[state=checked]:bg-accent hover:bg-accent"
+                        >
+                          <ShieldAlert size={16} className="text-rose-400" />
+                          <div className="flex flex-1 flex-col">
+                            <span className="text-xs font-bold text-foreground">完全权限</span>
+                            <span className="text-[10px] text-muted-foreground">自动保存/发布/删除，可回滚</span>
+                          </div>
+                          <DropdownMenu.ItemIndicator>
+                            <CheckIcon size={14} className="text-primary" />
+                          </DropdownMenu.ItemIndicator>
+                        </DropdownMenu.RadioItem>
                       </DropdownMenu.RadioGroup>
                     </DropdownMenu.Content>
                   </DropdownMenu.Portal>
@@ -762,6 +928,22 @@ export const AiPanel = () => {
           </PromptInput>
         </div>
       </div>
+      <AiProviderSettings
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        providers={providers}
+        activeProviderId={selection.providerId}
+        onProvidersChanged={(list) => {
+          setProviders(list);
+          if (selection.providerId && !list.some((provider) => provider.id === selection.providerId)) {
+            setSelection(defaultSelection(list, null));
+          }
+        }}
+        onUseProvider={(providerId, nextModel) => {
+          persistSelection({ providerId, model: nextModel, autonomy: selection.autonomy });
+          setSettingsOpen(false);
+        }}
+      />
     </div>
   );
 };

@@ -10,6 +10,7 @@ export const PLAYER_ADMIN_VIEWS = [
     'admins',
     'permission-groups',
     'script-moderation',
+    'ai-providers',
     'play-maps',
     'container-play',
     'container-creator',
@@ -40,6 +41,7 @@ export const PLAYER_ADMIN_VIEW_REQUIREMENTS:Record<
     'admins': 'owner',
     'permission-groups': 'owner',
     'script-moderation': 'owner',
+    'ai-providers': 'owner',
     'play-maps': 'play-maps.view',
     'container-play': 'containers.view',
     'container-creator': 'containers.view',
@@ -56,7 +58,7 @@ export function canOpenPlayerAdminView(
     if (!actor) {
         return false;
     }
-    if (view === 'script-moderation') {
+    if (view === 'script-moderation' || view === 'ai-providers') {
         return actor.role === 'owner';
     }
     // Owners and full administrators always receive the complete built-in

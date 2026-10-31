@@ -325,7 +325,7 @@ function table(name: string) {
   return `${quoteIdentifier(identitySchema())}.${quoteIdentifier(name)}`;
 }
 
-function getPool() {
+export function getPool() {
   const connectionString = (process.env.BOX_DATABASE_URL || '').trim();
   if (!connectionString) return null;
   if (!pool) {

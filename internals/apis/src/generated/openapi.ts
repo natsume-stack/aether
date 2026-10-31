@@ -84,6 +84,390 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/agent/v1/join": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 创建接口数据
+         * @description 此操作用于“创建接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作可能创建资源、更新状态或触发后台任务。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        post: operations["postApiAgentV1Join"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/agent/v1/live/{action}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 查询接口数据
+         * @description 此操作用于“查询接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作只读取数据，不修改服务状态。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        get: operations["getApiAgentV1LiveAction"];
+        put?: never;
+        /**
+         * 执行接口数据操作
+         * @description 此操作用于“执行接口数据操作”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作可能创建资源、更新状态或触发后台任务。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        post: operations["postApiAgentV1LiveAction"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/agent/v1/live/ack": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 创建接口数据
+         * @description 此操作用于“创建接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作可能创建资源、更新状态或触发后台任务。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        post: operations["postApiAgentV1LiveAck"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/agent/v1/live/attach": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 创建接口数据
+         * @description 此操作用于“创建接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作可能创建资源、更新状态或触发后台任务。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        post: operations["postApiAgentV1LiveAttach"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/agent/v1/live/detach": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 创建接口数据
+         * @description 此操作用于“创建接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作可能创建资源、更新状态或触发后台任务。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        post: operations["postApiAgentV1LiveDetach"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/agent/v1/live/manifest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 查询接口数据
+         * @description 此操作用于“查询接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作只读取数据，不修改服务状态。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        get: operations["getApiAgentV1LiveManifest"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/agent/v1/live/map/{projectId}/cmd": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 执行接口数据操作
+         * @description 此操作用于“执行接口数据操作”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作可能创建资源、更新状态或触发后台任务。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        post: operations["postApiAgentV1LiveMapProjectIdCmd"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/agent/v1/live/map/{projectId}/observe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 查询接口数据
+         * @description 此操作用于“查询接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作只读取数据，不修改服务状态。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        get: operations["getApiAgentV1LiveMapProjectIdObserve"];
+        put?: never;
+        /**
+         * 执行接口数据操作
+         * @description 此操作用于“执行接口数据操作”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作可能创建资源、更新状态或触发后台任务。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        post: operations["postApiAgentV1LiveMapProjectIdObserve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/agent/v1/live/map/{projectId}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 读取接口数据
+         * @description 此操作用于“读取接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作只读取数据，不修改服务状态。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        get: operations["getApiAgentV1LiveMapProjectIdStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/agent/v1/live/next": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 查询接口数据
+         * @description 此操作用于“查询接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作只读取数据，不修改服务状态。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        get: operations["getApiAgentV1LiveNext"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/agent/v1/live/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 创建接口数据
+         * @description 此操作用于“创建接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作可能创建资源、更新状态或触发后台任务。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        post: operations["postApiAgentV1LiveProgress"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/agent/v1/live/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 读取接口数据
+         * @description 此操作用于“读取接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作只读取数据，不修改服务状态。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        get: operations["getApiAgentV1LiveStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/agent/v1/live/voxa/{action}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 查询接口数据
+         * @description 此操作用于“查询接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作只读取数据，不修改服务状态。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        get: operations["getApiAgentV1LiveVoxaAction"];
+        put?: never;
+        /**
+         * 执行接口数据操作
+         * @description 此操作用于“执行接口数据操作”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作可能创建资源、更新状态或触发后台任务。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        post: operations["postApiAgentV1LiveVoxaAction"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/agent/v1/map/{projectId}/{action}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 查询接口数据
+         * @description 此操作用于“查询接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作只读取数据，不修改服务状态。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        get: operations["getApiAgentV1MapProjectIdAction"];
+        put?: never;
+        /**
+         * 执行接口数据操作
+         * @description 此操作用于“执行接口数据操作”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作可能创建资源、更新状态或触发后台任务。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        post: operations["postApiAgentV1MapProjectIdAction"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/agent/v1/models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 查询接口数据
+         * @description 此操作用于“查询接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作只读取数据，不修改服务状态。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        get: operations["getApiAgentV1Models"];
+        put?: never;
+        /**
+         * 创建接口数据
+         * @description 此操作用于“创建接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作可能创建资源、更新状态或触发后台任务。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        post: operations["postApiAgentV1Models"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/agent/v1/models/{id}/context": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 查询接口数据
+         * @description 此操作用于“查询接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作只读取数据，不修改服务状态。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        get: operations["getApiAgentV1ModelsIdContext"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/agent/v1/state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 查询接口数据
+         * @description 此操作用于“查询接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作只读取数据，不修改服务状态。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        get: operations["getApiAgentV1State"];
+        put?: never;
+        /**
+         * 创建接口数据
+         * @description 此操作用于“创建接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作可能创建资源、更新状态或触发后台任务。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        post: operations["postApiAgentV1State"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai/{action}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 执行接口数据操作
+         * @description 此操作用于“执行接口数据操作”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作可能创建资源、更新状态或触发后台任务。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        post: operations["postApiAiAction"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/login": {
         parameters: {
             query?: never;
@@ -468,6 +852,114 @@ export interface paths {
         patch: operations["patchApiCreatorProfile"];
         trace?: never;
     };
+    "/api/creator/v1/authoring/{projectId}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 查询接口数据
+         * @description 此操作用于“查询接口数据”。该接口供 APC CLI 调用，用于本地工程开发、资源同步和场景调试。 该操作只读取数据，不修改服务状态。 需要有效的 Creator CLI Bearer Token。
+         */
+        get: operations["getApiCreatorV1AuthoringProjectIdPreview"];
+        put?: never;
+        /**
+         * 执行接口数据操作
+         * @description 此操作用于“执行接口数据操作”。该接口供 APC CLI 调用，用于本地工程开发、资源同步和场景调试。 该操作可能创建资源、更新状态或触发后台任务。 需要有效的 Creator CLI Bearer Token。
+         */
+        post: operations["postApiCreatorV1AuthoringProjectIdPreview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/creator/v1/authoring/{projectId}/save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 执行接口数据操作
+         * @description 此操作用于“执行接口数据操作”。该接口供 APC CLI 调用，用于本地工程开发、资源同步和场景调试。 该操作可能创建资源、更新状态或触发后台任务。 需要有效的 Creator CLI Bearer Token。
+         */
+        post: operations["postApiCreatorV1AuthoringProjectIdSave"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/creator/v1/authoring/{projectId}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 读取接口数据
+         * @description 此操作用于“读取接口数据”。该接口供 APC CLI 调用，用于本地工程开发、资源同步和场景调试。 该操作只读取数据，不修改服务状态。 需要有效的 Creator CLI Bearer Token。
+         */
+        get: operations["getApiCreatorV1AuthoringProjectIdStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/creator/v1/authoring/{projectId}/tools": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 查询接口数据
+         * @description 此操作用于“查询接口数据”。该接口供 APC CLI 调用，用于本地工程开发、资源同步和场景调试。 该操作只读取数据，不修改服务状态。 需要有效的 Creator CLI Bearer Token。
+         */
+        get: operations["getApiCreatorV1AuthoringProjectIdTools"];
+        put?: never;
+        /**
+         * 执行接口数据操作
+         * @description 此操作用于“执行接口数据操作”。该接口供 APC CLI 调用，用于本地工程开发、资源同步和场景调试。 该操作可能创建资源、更新状态或触发后台任务。 需要有效的 Creator CLI Bearer Token。
+         */
+        post: operations["postApiCreatorV1AuthoringProjectIdTools"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/creator/v1/authoring/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 查询接口数据
+         * @description 此操作用于“查询接口数据”。该接口供 APC CLI 调用，用于本地工程开发、资源同步和场景调试。 该操作只读取数据，不修改服务状态。 需要有效的 Creator CLI Bearer Token。
+         */
+        get: operations["getApiCreatorV1AuthoringAudit"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/creator/v1/health": {
         parameters: {
             query?: never;
@@ -806,6 +1298,110 @@ export interface paths {
         get: operations["getApiHealthCheck"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/internal/map-authoring/_guard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 查询接口数据
+         * @description 此操作用于“查询接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作只读取数据，不修改服务状态。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        get: operations["getApiInternalMapAuthoringGuard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/internal/map-authoring/{projectId}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 执行接口数据操作
+         * @description 此操作用于“执行接口数据操作”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作可能创建资源、更新状态或触发后台任务。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        post: operations["postApiInternalMapAuthoringProjectIdPreview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/internal/map-authoring/{projectId}/save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 执行接口数据操作
+         * @description 此操作用于“执行接口数据操作”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作可能创建资源、更新状态或触发后台任务。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        post: operations["postApiInternalMapAuthoringProjectIdSave"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/internal/map-authoring/{projectId}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 读取接口数据
+         * @description 此操作用于“读取接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作只读取数据，不修改服务状态。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        get: operations["getApiInternalMapAuthoringProjectIdStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/internal/map-authoring/{projectId}/tool": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 查询接口数据
+         * @description 此操作用于“查询接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作只读取数据，不修改服务状态。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        get: operations["getApiInternalMapAuthoringProjectIdTool"];
+        put?: never;
+        /**
+         * 执行接口数据操作
+         * @description 此操作用于“执行接口数据操作”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作可能创建资源、更新状态或触发后台任务。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        post: operations["postApiInternalMapAuthoringProjectIdTool"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1152,6 +1748,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/local/models/{id}/edit-lock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 查询 VOXA 模型
+         * @description 此操作用于“查询 VOXA 模型”。该接口用于管理 VOXA 模型工程、资源块和默认角色皮肤。 该操作只读取数据，不修改服务状态。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        get: operations["getApiLocalModelsIdEditLock"];
+        put?: never;
+        /**
+         * 执行 VOXA 模型操作
+         * @description 此操作用于“执行 VOXA 模型操作”。该接口用于管理 VOXA 模型工程、资源块和默认角色皮肤。 该操作可能创建资源、更新状态或触发后台任务。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        post: operations["postApiLocalModelsIdEditLock"];
+        /**
+         * 删除 VOXA 模型
+         * @description 此操作用于“删除 VOXA 模型”。该接口用于管理 VOXA 模型工程、资源块和默认角色皮肤。 该操作会删除资源或停止对应运行实例，请先确认目标标识。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        delete: operations["deleteApiLocalModelsIdEditLock"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/local/models/{id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 查询 VOXA 模型
+         * @description 此操作用于“查询 VOXA 模型”。该接口用于管理 VOXA 模型工程、资源块和默认角色皮肤。 该操作只读取数据，不修改服务状态。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        get: operations["getApiLocalModelsIdEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/local/models/{id}/export": {
         parameters: {
             query?: never;
@@ -1165,6 +1809,26 @@ export interface paths {
          */
         get: operations["getApiLocalModelsIdExport"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/local/models/{id}/model": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * 更新 VOXA 模型
+         * @description 此操作用于“更新 VOXA 模型”。该接口用于管理 VOXA 模型工程、资源块和默认角色皮肤。 该操作会更新现有配置或资源。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        put: operations["putApiLocalModelsIdModel"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1298,6 +1962,170 @@ export interface paths {
          * @description 此操作用于“更新管理员账号”。该接口供服主和获授权管理员使用，用于管理玩家、地图、安全策略和容器配置。 该操作会更新现有配置或资源。 需要有效的玩家管理会话及对应查看或编辑权限。
          */
         patch: operations["patchApiPlayAdminAdminsId"];
+        trace?: never;
+    };
+    "/api/play-admin/ai-providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 查询接口数据
+         * @description 此操作用于“查询接口数据”。该接口供服主和获授权管理员使用，用于管理玩家、地图、安全策略和容器配置。 该操作只读取数据，不修改服务状态。 需要有效的玩家管理会话及对应查看或编辑权限。
+         */
+        get: operations["getApiPlayAdminAiProviders"];
+        put?: never;
+        /**
+         * 创建接口数据
+         * @description 此操作用于“创建接口数据”。该接口供服主和获授权管理员使用，用于管理玩家、地图、安全策略和容器配置。 该操作可能创建资源、更新状态或触发后台任务。 需要有效的玩家管理会话及对应查看或编辑权限。
+         */
+        post: operations["postApiPlayAdminAiProviders"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/play-admin/ai-providers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * 删除接口数据
+         * @description 此操作用于“删除接口数据”。该接口供服主和获授权管理员使用，用于管理玩家、地图、安全策略和容器配置。 该操作会删除资源或停止对应运行实例，请先确认目标标识。 需要有效的玩家管理会话及对应查看或编辑权限。
+         */
+        delete: operations["deleteApiPlayAdminAiProvidersId"];
+        options?: never;
+        head?: never;
+        /**
+         * 更新接口数据
+         * @description 此操作用于“更新接口数据”。该接口供服主和获授权管理员使用，用于管理玩家、地图、安全策略和容器配置。 该操作会更新现有配置或资源。 需要有效的玩家管理会话及对应查看或编辑权限。
+         */
+        patch: operations["patchApiPlayAdminAiProvidersId"];
+        trace?: never;
+    };
+    "/api/play-admin/ai-providers/{id}/default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 执行接口数据操作
+         * @description 此操作用于“执行接口数据操作”。该接口供服主和获授权管理员使用，用于管理玩家、地图、安全策略和容器配置。 该操作可能创建资源、更新状态或触发后台任务。 需要有效的玩家管理会话及对应查看或编辑权限。
+         */
+        post: operations["postApiPlayAdminAiProvidersIdDefault"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/play-admin/ai-providers/{id}/models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 执行接口数据操作
+         * @description 此操作用于“执行接口数据操作”。该接口供服主和获授权管理员使用，用于管理玩家、地图、安全策略和容器配置。 该操作可能创建资源、更新状态或触发后台任务。 需要有效的玩家管理会话及对应查看或编辑权限。
+         */
+        post: operations["postApiPlayAdminAiProvidersIdModels"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/play-admin/ai-providers/{id}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 执行接口数据操作
+         * @description 此操作用于“执行接口数据操作”。该接口供服主和获授权管理员使用，用于管理玩家、地图、安全策略和容器配置。 该操作可能创建资源、更新状态或触发后台任务。 需要有效的玩家管理会话及对应查看或编辑权限。
+         */
+        post: operations["postApiPlayAdminAiProvidersIdTest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/play-admin/ai-providers/{path}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 查询接口数据
+         * @description 此操作用于“查询接口数据”。该接口供服主和获授权管理员使用，用于管理玩家、地图、安全策略和容器配置。 该操作只读取数据，不修改服务状态。 需要有效的玩家管理会话及对应查看或编辑权限。
+         */
+        get: operations["getApiPlayAdminAiProvidersPath"];
+        put?: never;
+        /**
+         * 执行接口数据操作
+         * @description 此操作用于“执行接口数据操作”。该接口供服主和获授权管理员使用，用于管理玩家、地图、安全策略和容器配置。 该操作可能创建资源、更新状态或触发后台任务。 需要有效的玩家管理会话及对应查看或编辑权限。
+         */
+        post: operations["postApiPlayAdminAiProvidersPath"];
+        /**
+         * 删除接口数据
+         * @description 此操作用于“删除接口数据”。该接口供服主和获授权管理员使用，用于管理玩家、地图、安全策略和容器配置。 该操作会删除资源或停止对应运行实例，请先确认目标标识。 需要有效的玩家管理会话及对应查看或编辑权限。
+         */
+        delete: operations["deleteApiPlayAdminAiProvidersPath"];
+        options?: never;
+        head?: never;
+        /**
+         * 更新接口数据
+         * @description 此操作用于“更新接口数据”。该接口供服主和获授权管理员使用，用于管理玩家、地图、安全策略和容器配置。 该操作会更新现有配置或资源。 需要有效的玩家管理会话及对应查看或编辑权限。
+         */
+        patch: operations["patchApiPlayAdminAiProvidersPath"];
+        trace?: never;
+    };
+    "/api/play-admin/ai-providers/control": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 查询接口数据
+         * @description 此操作用于“查询接口数据”。该接口供服主和获授权管理员使用，用于管理玩家、地图、安全策略和容器配置。 该操作只读取数据，不修改服务状态。 需要有效的玩家管理会话及对应查看或编辑权限。
+         */
+        get: operations["getApiPlayAdminAiProvidersControl"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * 更新接口数据
+         * @description 此操作用于“更新接口数据”。该接口供服主和获授权管理员使用，用于管理玩家、地图、安全策略和容器配置。 该操作会更新现有配置或资源。 需要有效的玩家管理会话及对应查看或编辑权限。
+         */
+        patch: operations["patchApiPlayAdminAiProvidersControl"];
         trace?: never;
     };
     "/api/play-admin/container-resource-groups": {
@@ -1844,6 +2672,34 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/play-admin/site-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 查询接口数据
+         * @description 此操作用于“查询接口数据”。该接口供服主和获授权管理员使用，用于管理玩家、地图、安全策略和容器配置。 该操作只读取数据，不修改服务状态。 需要有效的玩家管理会话及对应查看或编辑权限。
+         */
+        get: operations["getApiPlayAdminSiteConfig"];
+        /**
+         * 更新接口数据
+         * @description 此操作用于“更新接口数据”。该接口供服主和获授权管理员使用，用于管理玩家、地图、安全策略和容器配置。 该操作会更新现有配置或资源。 需要有效的玩家管理会话及对应查看或编辑权限。
+         */
+        put: operations["putApiPlayAdminSiteConfig"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * 更新接口数据
+         * @description 此操作用于“更新接口数据”。该接口供服主和获授权管理员使用，用于管理玩家、地图、安全策略和容器配置。 该操作会更新现有配置或资源。 需要有效的玩家管理会话及对应查看或编辑权限。
+         */
+        patch: operations["patchApiPlayAdminSiteConfig"];
+        trace?: never;
+    };
     "/api/play-admin/status": {
         parameters: {
             query?: never;
@@ -2064,6 +2920,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/play-site-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 查询接口数据
+         * @description 此操作用于“查询接口数据”。该接口用于读取游玩内容并维护当前玩家的游玩会话。 该操作只读取数据，不修改服务状态。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        get: operations["getApiPlaySiteConfig"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/play-worlds": {
         parameters: {
             query?: never;
@@ -2082,6 +2958,102 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/player-ai": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 查询接口数据
+         * @description 此操作用于“查询接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作只读取数据，不修改服务状态。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        get: operations["getApiPlayerAi"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/player-ai-internal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 查询接口数据
+         * @description 此操作用于“查询接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作只读取数据，不修改服务状态。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        get: operations["getApiPlayerAiInternal"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/player-ai-internal/{path}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 查询接口数据
+         * @description 此操作用于“查询接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作只读取数据，不修改服务状态。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        get: operations["getApiPlayerAiInternalPath"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/player-ai/{path}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 查询接口数据
+         * @description 此操作用于“查询接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作只读取数据，不修改服务状态。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        get: operations["getApiPlayerAiPath"];
+        /**
+         * 更新接口数据
+         * @description 此操作用于“更新接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作会更新现有配置或资源。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        put: operations["putApiPlayerAiPath"];
+        /**
+         * 执行接口数据操作
+         * @description 此操作用于“执行接口数据操作”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作可能创建资源、更新状态或触发后台任务。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        post: operations["postApiPlayerAiPath"];
+        /**
+         * 删除接口数据
+         * @description 此操作用于“删除接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作会删除资源或停止对应运行实例，请先确认目标标识。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        delete: operations["deleteApiPlayerAiPath"];
+        options?: never;
+        head?: never;
+        /**
+         * 更新接口数据
+         * @description 此操作用于“更新接口数据”。该接口提供本地引擎的公共状态、配置或开发文档能力。 该操作会更新现有配置或资源。 该接口不要求额外的 OpenAPI 鉴权信息。
+         */
+        patch: operations["patchApiPlayerAiPath"];
         trace?: never;
     };
     "/api/player-auth/login": {
@@ -2948,6 +3920,68 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AiProvider: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            owner: "user" | "admin";
+            name: string;
+            /** @enum {string} */
+            protocol: "chat-completions" | "responses" | "anthropic-messages";
+            baseUrl: string;
+            keyHint: string;
+            defaultModel: string;
+            models: {
+                id: string;
+                name?: string;
+            }[];
+            headers: {
+                [key: string]: string;
+            };
+            capabilities: {
+                tools: boolean;
+                vision: boolean;
+                json: boolean;
+            };
+            enabled: boolean;
+            isDefault: boolean;
+            lastTestedAt: string | null;
+            lastTestStatus: string;
+        };
+        AiProviderInput: {
+            name?: string;
+            /** @enum {string} */
+            protocol?: "chat-completions" | "responses" | "anthropic-messages";
+            /** Format: uri */
+            baseUrl?: string;
+            apiKey?: string;
+            defaultModel?: string;
+            models?: (string | {
+                id: string;
+                name?: string;
+            })[];
+            headers?: {
+                [key: string]: string;
+            };
+            capabilities?: {
+                tools?: boolean;
+                vision?: boolean;
+                json?: boolean;
+            };
+            enabled?: boolean;
+        };
+        AiExecutionPolicy: {
+            enabled: boolean;
+            blockedUsers: string[];
+            blockedMaps: string[];
+        };
+        AiProviderTestResult: {
+            ok: boolean;
+            status: number;
+            latencyMs: number;
+            model: string;
+            message: string;
+        };
         PlayerSelfProfile: {
             subjectId: string;
             userId: string;
@@ -3352,6 +4386,927 @@ export interface operations {
         };
         responses: {
             /** @description 操作成功，返回“销毁指定房间运行时”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    postApiAgentV1Join: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 执行“创建接口数据”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“创建接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getApiAgentV1LiveAction: {
+        parameters: {
+            query?: {
+                /** @description 从该游标之后继续读取数据。 */
+                after?: string;
+                /** @description 接口参数：sessionId。 */
+                sessionId?: string;
+            };
+            header?: never;
+            path: {
+                /** @description 接口参数：action。 */
+                action: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“查询接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    postApiAgentV1LiveAction: {
+        parameters: {
+            query?: {
+                /** @description 从该游标之后继续读取数据。 */
+                after?: string;
+                /** @description 接口参数：sessionId。 */
+                sessionId?: string;
+            };
+            header?: never;
+            path: {
+                /** @description 接口参数：action。 */
+                action: string;
+            };
+            cookie?: never;
+        };
+        /** @description 执行“执行接口数据操作”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“执行接口数据操作”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    postApiAgentV1LiveAck: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 执行“创建接口数据”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“创建接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    postApiAgentV1LiveAttach: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 执行“创建接口数据”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“创建接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    postApiAgentV1LiveDetach: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 执行“创建接口数据”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“创建接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getApiAgentV1LiveManifest: {
+        parameters: {
+            query?: {
+                /** @description 接口参数：container。 */
+                container?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“查询接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    postApiAgentV1LiveMapProjectIdCmd: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Creator 工程 ID。 */
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        /** @description 执行“执行接口数据操作”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“执行接口数据操作”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getApiAgentV1LiveMapProjectIdObserve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Creator 工程 ID。 */
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“查询接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    postApiAgentV1LiveMapProjectIdObserve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Creator 工程 ID。 */
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        /** @description 执行“执行接口数据操作”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“执行接口数据操作”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getApiAgentV1LiveMapProjectIdStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Creator 工程 ID。 */
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“读取接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getApiAgentV1LiveNext: {
+        parameters: {
+            query?: {
+                /** @description 从该游标之后继续读取数据。 */
+                after?: string;
+                /** @description 接口参数：container。 */
+                container?: string;
+                /** @description 接口参数：sessionId。 */
+                sessionId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“查询接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    postApiAgentV1LiveProgress: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 执行“创建接口数据”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“创建接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getApiAgentV1LiveStatus: {
+        parameters: {
+            query?: {
+                /** @description 接口参数：container。 */
+                container?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“读取接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getApiAgentV1LiveVoxaAction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 接口参数：action。 */
+                action: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“查询接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    postApiAgentV1LiveVoxaAction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 接口参数：action。 */
+                action: string;
+            };
+            cookie?: never;
+        };
+        /** @description 执行“执行接口数据操作”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“执行接口数据操作”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getApiAgentV1MapProjectIdAction: {
+        parameters: {
+            query?: {
+                /** @description 从该游标之后继续读取数据。 */
+                after?: string;
+                /** @description 接口参数：operationId。 */
+                operationId?: string;
+            };
+            header?: never;
+            path: {
+                /** @description Creator 工程 ID。 */
+                projectId: string;
+                /** @description 接口参数：action。 */
+                action: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“查询接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    postApiAgentV1MapProjectIdAction: {
+        parameters: {
+            query?: {
+                /** @description 从该游标之后继续读取数据。 */
+                after?: string;
+                /** @description 接口参数：operationId。 */
+                operationId?: string;
+            };
+            header?: never;
+            path: {
+                /** @description Creator 工程 ID。 */
+                projectId: string;
+                /** @description 接口参数：action。 */
+                action: string;
+            };
+            cookie?: never;
+        };
+        /** @description 执行“执行接口数据操作”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“执行接口数据操作”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getApiAgentV1Models: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“查询接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    postApiAgentV1Models: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 执行“创建接口数据”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“创建接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getApiAgentV1ModelsIdContext: {
+        parameters: {
+            query?: {
+                /** @description 本次最多返回的记录数。 */
+                limit?: string;
+                /** @description 接口参数：offset。 */
+                offset?: string;
+                /** @description 接口参数：paletteOffset。 */
+                paletteOffset?: string;
+            };
+            header?: never;
+            path: {
+                /** @description 目标资源 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“查询接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getApiAgentV1State: {
+        parameters: {
+            query?: {
+                /** @description 接口参数：container。 */
+                container?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“查询接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    postApiAgentV1State: {
+        parameters: {
+            query?: {
+                /** @description 接口参数：container。 */
+                container?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 执行“创建接口数据”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“创建接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    postApiAiAction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 接口参数：action。 */
+                action: string;
+            };
+            cookie?: never;
+        };
+        /** @description 执行“执行接口数据操作”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“执行接口数据操作”的处理结果。 */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -4247,6 +6202,267 @@ export interface operations {
             };
         };
     };
+    getApiCreatorV1AuthoringProjectIdPreview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Creator 工程 ID。 */
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“查询接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    postApiCreatorV1AuthoringProjectIdPreview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Creator 工程 ID。 */
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        /** @description 执行“执行接口数据操作”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“执行接口数据操作”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    postApiCreatorV1AuthoringProjectIdSave: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Creator 工程 ID。 */
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        /** @description 执行“执行接口数据操作”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“执行接口数据操作”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getApiCreatorV1AuthoringProjectIdStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Creator 工程 ID。 */
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“读取接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getApiCreatorV1AuthoringProjectIdTools: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Creator 工程 ID。 */
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“查询接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    postApiCreatorV1AuthoringProjectIdTools: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Creator 工程 ID。 */
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        /** @description 执行“执行接口数据操作”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“执行接口数据操作”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getApiCreatorV1AuthoringAudit: {
+        parameters: {
+            query?: {
+                /** @description 本次最多返回的记录数。 */
+                limit?: string;
+                /** @description Creator 工程 ID。 */
+                projectId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“查询接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
     getApiCreatorV1Health: {
         parameters: {
             query?: never;
@@ -5062,6 +7278,228 @@ export interface operations {
                     "application/json": {
                         status: string;
                         runtime?: string;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getApiInternalMapAuthoringGuard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“查询接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    postApiInternalMapAuthoringProjectIdPreview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Creator 工程 ID。 */
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        /** @description 执行“执行接口数据操作”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“执行接口数据操作”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    postApiInternalMapAuthoringProjectIdSave: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Creator 工程 ID。 */
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        /** @description 执行“执行接口数据操作”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“执行接口数据操作”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getApiInternalMapAuthoringProjectIdStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Creator 工程 ID。 */
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“读取接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getApiInternalMapAuthoringProjectIdTool: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Creator 工程 ID。 */
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“查询接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    postApiInternalMapAuthoringProjectIdTool: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Creator 工程 ID。 */
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        /** @description 执行“执行接口数据操作”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“执行接口数据操作”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
                     };
                 };
             };
@@ -6037,6 +8475,171 @@ export interface operations {
             };
         };
     };
+    getApiLocalModelsIdEditLock: {
+        parameters: {
+            query?: {
+                /** @description 接口参数：actor。 */
+                actor?: string;
+                /** @description 接口参数：ttlMs。 */
+                ttlMs?: string;
+            };
+            header?: never;
+            path: {
+                /** @description 目标资源 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“查询 VOXA 模型”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    postApiLocalModelsIdEditLock: {
+        parameters: {
+            query?: {
+                /** @description 接口参数：actor。 */
+                actor?: string;
+                /** @description 接口参数：ttlMs。 */
+                ttlMs?: string;
+            };
+            header?: never;
+            path: {
+                /** @description 目标资源 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description 执行“执行 VOXA 模型操作”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“执行 VOXA 模型操作”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    deleteApiLocalModelsIdEditLock: {
+        parameters: {
+            query?: {
+                /** @description 接口参数：actor。 */
+                actor?: string;
+                /** @description 接口参数：ttlMs。 */
+                ttlMs?: string;
+            };
+            header?: never;
+            path: {
+                /** @description 目标资源 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description 执行“删除 VOXA 模型”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“删除 VOXA 模型”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getApiLocalModelsIdEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 目标资源 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“查询 VOXA 模型”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
     getApiLocalModelsIdExport: {
         parameters: {
             query?: never;
@@ -6050,6 +8653,47 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description 操作成功，返回“下载导出文件”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    putApiLocalModelsIdModel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 目标资源 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description 执行“更新 VOXA 模型”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“更新 VOXA 模型”的处理结果。 */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -6366,6 +9010,500 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getApiPlayAdminAiProviders: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“查询接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success: boolean;
+                        providers: components["schemas"]["AiProvider"][];
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    postApiPlayAdminAiProviders: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 执行“创建接口数据”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AiProviderInput"];
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“创建接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success: boolean;
+                        provider: components["schemas"]["AiProvider"];
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    deleteApiPlayAdminAiProvidersId: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 目标资源 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description 执行“删除接口数据”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“删除接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success: boolean;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    patchApiPlayAdminAiProvidersId: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 目标资源 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description 执行“更新接口数据”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AiProviderInput"];
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“更新接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success: boolean;
+                        provider: components["schemas"]["AiProvider"];
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    postApiPlayAdminAiProvidersIdDefault: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 目标资源 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description 执行“执行接口数据操作”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“执行接口数据操作”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success: boolean;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    postApiPlayAdminAiProvidersIdModels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 目标资源 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description 执行“执行接口数据操作”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“执行接口数据操作”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success: boolean;
+                        models: {
+                            id: string;
+                            name?: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    postApiPlayAdminAiProvidersIdTest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 目标资源 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description 执行“执行接口数据操作”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    model?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“执行接口数据操作”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success: boolean;
+                        result: components["schemas"]["AiProviderTestResult"];
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getApiPlayAdminAiProvidersPath: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 接口参数：path。 */
+                path: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“查询接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    postApiPlayAdminAiProvidersPath: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 接口参数：path。 */
+                path: string;
+            };
+            cookie?: never;
+        };
+        /** @description 执行“执行接口数据操作”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“执行接口数据操作”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    deleteApiPlayAdminAiProvidersPath: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 接口参数：path。 */
+                path: string;
+            };
+            cookie?: never;
+        };
+        /** @description 执行“删除接口数据”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“删除接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    patchApiPlayAdminAiProvidersPath: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 接口参数：path。 */
+                path: string;
+            };
+            cookie?: never;
+        };
+        /** @description 执行“更新接口数据”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“更新接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getApiPlayAdminAiProvidersControl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“查询接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiExecutionPolicy"];
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    patchApiPlayAdminAiProvidersControl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 执行“更新接口数据”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AiExecutionPolicy"];
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“更新接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiExecutionPolicy"];
                 };
             };
             /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
@@ -8210,6 +11348,113 @@ export interface operations {
             };
         };
     };
+    getApiPlayAdminSiteConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“查询接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    putApiPlayAdminSiteConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 执行“更新接口数据”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“更新接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    patchApiPlayAdminSiteConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 执行“更新接口数据”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“更新接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
     getApiPlayAdminStatus: {
         parameters: {
             query?: never;
@@ -8750,6 +11995,37 @@ export interface operations {
             };
         };
     };
+    getApiPlaySiteConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“查询接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
     getApiPlayWorlds: {
         parameters: {
             query?: never;
@@ -8760,6 +12036,300 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description 操作成功，返回“查询可游玩地图”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getApiPlayerAi: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“查询接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getApiPlayerAiInternal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“查询接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getApiPlayerAiInternalPath: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 接口参数：path。 */
+                path: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“查询接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getApiPlayerAiPath: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 接口参数：path。 */
+                path: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 操作成功，返回“查询接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    putApiPlayerAiPath: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 接口参数：path。 */
+                path: string;
+            };
+            cookie?: never;
+        };
+        /** @description 执行“更新接口数据”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“更新接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    postApiPlayerAiPath: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 接口参数：path。 */
+                path: string;
+            };
+            cookie?: never;
+        };
+        /** @description 执行“执行接口数据操作”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“执行接口数据操作”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    deleteApiPlayerAiPath: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 接口参数：path。 */
+                path: string;
+            };
+            cookie?: never;
+        };
+        /** @description 执行“删除接口数据”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“删除接口数据”的处理结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description 请求失败，返回可供界面展示或日志排查的错误信息。 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    patchApiPlayerAiPath: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 接口参数：path。 */
+                path: string;
+            };
+            cookie?: never;
+        };
+        /** @description 执行“更新接口数据”所需的请求数据。具体字段以请求模型为准。 */
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description 操作成功，返回“更新接口数据”的处理结果。 */
             200: {
                 headers: {
                     [name: string]: unknown;

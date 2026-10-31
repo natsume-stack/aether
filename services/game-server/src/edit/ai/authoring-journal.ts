@@ -89,7 +89,7 @@ export class AuthoringJournal {
       || record.digest !== createHash('sha256').update(JSON.stringify(record.proposals)).digest('hex')) throw new Error('PROPOSAL_STORE_CORRUPT');
     for (const p of record.proposals) {
       if (typeof p.id !== 'string' || typeof p.baseRevision !== 'string' || !Array.isArray(p.undo)
-        || (p.domain !== undefined && !['script', 'entities', 'entityLifecycle', 'ui'].includes(p.domain))
+        || (p.domain !== undefined && !['script', 'entities', 'entityLifecycle', 'ui', 'terrain'].includes(p.domain))
         || !p.undo.every((token: unknown) => typeof token === 'string') || !Array.isArray(p.previews)
         || !['proposed','expired','discarded','applying','applied','partial','unknown','reverting','reverted'].includes(p.status)) throw new Error('PROPOSAL_STORE_CORRUPT');
     }
@@ -116,4 +116,34 @@ export class AuthoringJournal {
       if (fs.existsSync(temp)) fs.unlinkSync(temp);
     }
   }
+  loadPlans(): Record<string, any>[] {
+    const file = `${this.file}.plans.json`;
+    if (!fs.existsSync(file)) return [];
+    if (fs.statSync(file).size > 1024 * 1024) throw new Error('PLAN_STORE_CAPACITY');
+    const record = JSON.parse(fs.readFileSync(file, 'utf8'));
+    if (record.version !== 1 || !Array.isArray(record.plans) || record.plans.length > 50 ||
+      record.digest !== createHash('sha256').update(JSON.stringify(record.plans)).digest('hex')) throw new Error('PLAN_STORE_CORRUPT');
+    for (const plan of record.plans) {
+      if (typeof plan.id !== 'string' || !Array.isArray(plan.members) || plan.members.length < 1 || plan.members.length > 16 ||
+        !plan.members.every((member: any) => typeof member.proposalId === 'string' && typeof member.domain === 'string' && typeof member.baseRevision === 'string') ||
+        !['proposed','expired','applying','applied','reverting','reverted','discarded','compensated','unknown'].includes(plan.status) ||
+        !Number.isSafeInteger(plan.appliedCount) || plan.appliedCount < 0 || plan.appliedCount > plan.members.length ||
+        !plan.revisions || typeof plan.revisions !== 'object') throw new Error('PLAN_STORE_CORRUPT');
+    }
+    return record.plans;
+  }
+
+  savePlans(plans: Record<string, any>[]) {
+    if (fs.readFileSync(this.lock, 'utf8') !== this.owner) throw new Error('AUTHORING_JOURNAL_LOCK_CHANGED');
+    const encoded = JSON.stringify({version: 1, plans, digest: createHash('sha256').update(JSON.stringify(plans)).digest('hex')});
+    if (Buffer.byteLength(encoded) > 1024 * 1024) throw new Error('PLAN_STORE_CAPACITY');
+    const target = `${this.file}.plans.json`;
+    const temp = `${target}.${randomUUID()}.tmp`;
+    try {
+      const fd = fs.openSync(temp, 'wx', 0o600);
+      try { fs.writeFileSync(fd, encoded); fs.fsyncSync(fd); } finally {fs.closeSync(fd);}
+      fs.renameSync(temp, target);
+    } finally { if (fs.existsSync(temp)) fs.unlinkSync(temp); }
+  }
+
 }

@@ -60,6 +60,7 @@ import {
 } from '../../redux/palette-slice';
 import { store } from '../../redux/store';
 import { voxelShapeToObjSize, SerializedVec3 } from '../../utils/math';
+import { getEditActor } from '../../utils/edit-lock';
 import type { AnimatorApp } from '../animator-app';
 import type { EditingHistory } from '../editing-history';
 import type {
@@ -818,6 +819,9 @@ export class ProjectManager {
 
       const saveParam = {
         modelId: id || undefined,
+        // Echo the editor session's lock actor so autosave is not rejected as
+        // an external writer while this tab owns the model.
+        actor: getEditActor(),
         animated: !!projectResult.projectData.animations.length,
         modelFileHash,
         modelProjectFileHash: projectResult.hash,
@@ -1014,6 +1018,10 @@ export class ProjectManager {
    * 从本地工程文件载入一个可继续编辑的新工程。
    * 导入后清除原模型 ID，避免后续保存覆盖导出方或当前已打开的模型。
    */
+  public restoreAiSnapshot(projectData: ProjectData) {
+    this.loadData(ProjectDataSchema.clone(projectData), store.getState().app.projectName);
+  }
+
   public loadImportedProject(projectData: ProjectData, projectName: string) {
     this.loadData(projectData, projectName);
     store.dispatch(setProjectId(0));

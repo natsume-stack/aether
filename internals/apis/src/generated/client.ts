@@ -31,12 +31,24 @@ export const apiOperations = {
     "path": "/api/local/models/{id}",
     "method": "DELETE"
   },
+  "deleteApiLocalModelsIdEditLock": {
+    "path": "/api/local/models/{id}/edit-lock",
+    "method": "DELETE"
+  },
   "deleteApiLocalProjectsId": {
     "path": "/api/local-projects/{id}",
     "method": "DELETE"
   },
   "deleteApiPlayAdminAdminsId": {
     "path": "/api/play-admin/admins/{id}",
+    "method": "DELETE"
+  },
+  "deleteApiPlayAdminAiProvidersId": {
+    "path": "/api/play-admin/ai-providers/{id}",
+    "method": "DELETE"
+  },
+  "deleteApiPlayAdminAiProvidersPath": {
+    "path": "/api/play-admin/ai-providers/{path}",
     "method": "DELETE"
   },
   "deleteApiPlayAdminContainerResourceGroupsId": {
@@ -75,6 +87,10 @@ export const apiOperations = {
     "path": "/api/play-admin/worlds/{id}",
     "method": "DELETE"
   },
+  "deleteApiPlayerAiPath": {
+    "path": "/api/player-ai/{path}",
+    "method": "DELETE"
+  },
   "deleteApiPlayPresence": {
     "path": "/api/play-presence",
     "method": "DELETE"
@@ -82,6 +98,50 @@ export const apiOperations = {
   "deleteApiRuntimeContainerId": {
     "path": "/api/runtime/{container_id}",
     "method": "DELETE"
+  },
+  "getApiAgentV1LiveAction": {
+    "path": "/api/agent/v1/live/{action}",
+    "method": "GET"
+  },
+  "getApiAgentV1LiveManifest": {
+    "path": "/api/agent/v1/live/manifest",
+    "method": "GET"
+  },
+  "getApiAgentV1LiveMapProjectIdObserve": {
+    "path": "/api/agent/v1/live/map/{projectId}/observe",
+    "method": "GET"
+  },
+  "getApiAgentV1LiveMapProjectIdStatus": {
+    "path": "/api/agent/v1/live/map/{projectId}/status",
+    "method": "GET"
+  },
+  "getApiAgentV1LiveNext": {
+    "path": "/api/agent/v1/live/next",
+    "method": "GET"
+  },
+  "getApiAgentV1LiveStatus": {
+    "path": "/api/agent/v1/live/status",
+    "method": "GET"
+  },
+  "getApiAgentV1LiveVoxaAction": {
+    "path": "/api/agent/v1/live/voxa/{action}",
+    "method": "GET"
+  },
+  "getApiAgentV1MapProjectIdAction": {
+    "path": "/api/agent/v1/map/{projectId}/{action}",
+    "method": "GET"
+  },
+  "getApiAgentV1Models": {
+    "path": "/api/agent/v1/models",
+    "method": "GET"
+  },
+  "getApiAgentV1ModelsIdContext": {
+    "path": "/api/agent/v1/models/{id}/context",
+    "method": "GET"
+  },
+  "getApiAgentV1State": {
+    "path": "/api/agent/v1/state",
+    "method": "GET"
   },
   "getApiAuthSession": {
     "path": "/api/auth/session",
@@ -109,6 +169,22 @@ export const apiOperations = {
   },
   "getApiCreatorPermissions": {
     "path": "/api/creator-permissions",
+    "method": "GET"
+  },
+  "getApiCreatorV1AuthoringAudit": {
+    "path": "/api/creator/v1/authoring/audit",
+    "method": "GET"
+  },
+  "getApiCreatorV1AuthoringProjectIdPreview": {
+    "path": "/api/creator/v1/authoring/{projectId}/preview",
+    "method": "GET"
+  },
+  "getApiCreatorV1AuthoringProjectIdStatus": {
+    "path": "/api/creator/v1/authoring/{projectId}/status",
+    "method": "GET"
+  },
+  "getApiCreatorV1AuthoringProjectIdTools": {
+    "path": "/api/creator/v1/authoring/{projectId}/tools",
     "method": "GET"
   },
   "getApiCreatorV1Health": {
@@ -171,6 +247,18 @@ export const apiOperations = {
     "path": "/api/health-check",
     "method": "GET"
   },
+  "getApiInternalMapAuthoringGuard": {
+    "path": "/api/internal/map-authoring/_guard",
+    "method": "GET"
+  },
+  "getApiInternalMapAuthoringProjectIdStatus": {
+    "path": "/api/internal/map-authoring/{projectId}/status",
+    "method": "GET"
+  },
+  "getApiInternalMapAuthoringProjectIdTool": {
+    "path": "/api/internal/map-authoring/{projectId}/tool",
+    "method": "GET"
+  },
   "getApiLocalBlobsHash": {
     "path": "/api/local/blobs/{hash}",
     "method": "GET"
@@ -185,6 +273,14 @@ export const apiOperations = {
   },
   "getApiLocalModelsId": {
     "path": "/api/local/models/{id}",
+    "method": "GET"
+  },
+  "getApiLocalModelsIdEditLock": {
+    "path": "/api/local/models/{id}/edit-lock",
+    "method": "GET"
+  },
+  "getApiLocalModelsIdEvents": {
+    "path": "/api/local/models/{id}/events",
     "method": "GET"
   },
   "getApiLocalModelsIdExport": {
@@ -229,6 +325,18 @@ export const apiOperations = {
   },
   "getApiPlayAdminAdmins": {
     "path": "/api/play-admin/admins",
+    "method": "GET"
+  },
+  "getApiPlayAdminAiProviders": {
+    "path": "/api/play-admin/ai-providers",
+    "method": "GET"
+  },
+  "getApiPlayAdminAiProvidersControl": {
+    "path": "/api/play-admin/ai-providers/control",
+    "method": "GET"
+  },
+  "getApiPlayAdminAiProvidersPath": {
+    "path": "/api/play-admin/ai-providers/{path}",
     "method": "GET"
   },
   "getApiPlayAdminContainerResourceGroups": {
@@ -287,6 +395,10 @@ export const apiOperations = {
     "path": "/api/play-admin/script-moderation",
     "method": "GET"
   },
+  "getApiPlayAdminSiteConfig": {
+    "path": "/api/play-admin/site-config",
+    "method": "GET"
+  },
   "getApiPlayAdminStatus": {
     "path": "/api/play-admin/status",
     "method": "GET"
@@ -301,6 +413,22 @@ export const apiOperations = {
   },
   "getApiPlayAdminWorldsStatus": {
     "path": "/api/play-admin/worlds/status",
+    "method": "GET"
+  },
+  "getApiPlayerAi": {
+    "path": "/api/player-ai",
+    "method": "GET"
+  },
+  "getApiPlayerAiInternal": {
+    "path": "/api/player-ai-internal",
+    "method": "GET"
+  },
+  "getApiPlayerAiInternalPath": {
+    "path": "/api/player-ai-internal/{path}",
+    "method": "GET"
+  },
+  "getApiPlayerAiPath": {
+    "path": "/api/player-ai/{path}",
     "method": "GET"
   },
   "getApiPlayerAuthLoginRequired": {
@@ -353,6 +481,10 @@ export const apiOperations = {
   },
   "getApiPlayResourceCacheWorld": {
     "path": "/api/play-resource-cache/{world}",
+    "method": "GET"
+  },
+  "getApiPlaySiteConfig": {
+    "path": "/api/play-site-config",
     "method": "GET"
   },
   "getApiPlayWorlds": {
@@ -431,6 +563,18 @@ export const apiOperations = {
     "path": "/api/play-admin/admins/{id}",
     "method": "PATCH"
   },
+  "patchApiPlayAdminAiProvidersControl": {
+    "path": "/api/play-admin/ai-providers/control",
+    "method": "PATCH"
+  },
+  "patchApiPlayAdminAiProvidersId": {
+    "path": "/api/play-admin/ai-providers/{id}",
+    "method": "PATCH"
+  },
+  "patchApiPlayAdminAiProvidersPath": {
+    "path": "/api/play-admin/ai-providers/{path}",
+    "method": "PATCH"
+  },
   "patchApiPlayAdminContainerResourceGroupsId": {
     "path": "/api/play-admin/container-resource-groups/{id}",
     "method": "PATCH"
@@ -451,8 +595,16 @@ export const apiOperations = {
     "path": "/api/play-admin/players/{subjectId}",
     "method": "PATCH"
   },
+  "patchApiPlayAdminSiteConfig": {
+    "path": "/api/play-admin/site-config",
+    "method": "PATCH"
+  },
   "patchApiPlayAdminWorldsId": {
     "path": "/api/play-admin/worlds/{id}",
+    "method": "PATCH"
+  },
+  "patchApiPlayerAiPath": {
+    "path": "/api/player-ai/{path}",
     "method": "PATCH"
   },
   "patchApiPlayerAuthProfile": {
@@ -474,6 +626,58 @@ export const apiOperations = {
   "patchApiPlayProfile": {
     "path": "/api/play-profile",
     "method": "PATCH"
+  },
+  "postApiAgentV1Join": {
+    "path": "/api/agent/v1/join",
+    "method": "POST"
+  },
+  "postApiAgentV1LiveAck": {
+    "path": "/api/agent/v1/live/ack",
+    "method": "POST"
+  },
+  "postApiAgentV1LiveAction": {
+    "path": "/api/agent/v1/live/{action}",
+    "method": "POST"
+  },
+  "postApiAgentV1LiveAttach": {
+    "path": "/api/agent/v1/live/attach",
+    "method": "POST"
+  },
+  "postApiAgentV1LiveDetach": {
+    "path": "/api/agent/v1/live/detach",
+    "method": "POST"
+  },
+  "postApiAgentV1LiveMapProjectIdCmd": {
+    "path": "/api/agent/v1/live/map/{projectId}/cmd",
+    "method": "POST"
+  },
+  "postApiAgentV1LiveMapProjectIdObserve": {
+    "path": "/api/agent/v1/live/map/{projectId}/observe",
+    "method": "POST"
+  },
+  "postApiAgentV1LiveProgress": {
+    "path": "/api/agent/v1/live/progress",
+    "method": "POST"
+  },
+  "postApiAgentV1LiveVoxaAction": {
+    "path": "/api/agent/v1/live/voxa/{action}",
+    "method": "POST"
+  },
+  "postApiAgentV1MapProjectIdAction": {
+    "path": "/api/agent/v1/map/{projectId}/{action}",
+    "method": "POST"
+  },
+  "postApiAgentV1Models": {
+    "path": "/api/agent/v1/models",
+    "method": "POST"
+  },
+  "postApiAgentV1State": {
+    "path": "/api/agent/v1/state",
+    "method": "POST"
+  },
+  "postApiAiAction": {
+    "path": "/api/ai/{action}",
+    "method": "POST"
   },
   "postApiAuthLogin": {
     "path": "/api/auth/login",
@@ -511,6 +715,18 @@ export const apiOperations = {
     "path": "/api/creator-models/import",
     "method": "POST"
   },
+  "postApiCreatorV1AuthoringProjectIdPreview": {
+    "path": "/api/creator/v1/authoring/{projectId}/preview",
+    "method": "POST"
+  },
+  "postApiCreatorV1AuthoringProjectIdSave": {
+    "path": "/api/creator/v1/authoring/{projectId}/save",
+    "method": "POST"
+  },
+  "postApiCreatorV1AuthoringProjectIdTools": {
+    "path": "/api/creator/v1/authoring/{projectId}/tools",
+    "method": "POST"
+  },
   "postApiCreatorV1ProjectsProjectIdRuntime": {
     "path": "/api/creator/v1/projects/{projectId}/runtime",
     "method": "POST"
@@ -523,12 +739,28 @@ export const apiOperations = {
     "path": "/api/creator/v1/projects/{projectId}/scene/session",
     "method": "POST"
   },
+  "postApiInternalMapAuthoringProjectIdPreview": {
+    "path": "/api/internal/map-authoring/{projectId}/preview",
+    "method": "POST"
+  },
+  "postApiInternalMapAuthoringProjectIdSave": {
+    "path": "/api/internal/map-authoring/{projectId}/save",
+    "method": "POST"
+  },
+  "postApiInternalMapAuthoringProjectIdTool": {
+    "path": "/api/internal/map-authoring/{projectId}/tool",
+    "method": "POST"
+  },
   "postApiLocalBlob": {
     "path": "/api/local/blob",
     "method": "POST"
   },
   "postApiLocalModels": {
     "path": "/api/local/models",
+    "method": "POST"
+  },
+  "postApiLocalModelsIdEditLock": {
+    "path": "/api/local/models/{id}/edit-lock",
     "method": "POST"
   },
   "postApiLocalModelsImport": {
@@ -565,6 +797,26 @@ export const apiOperations = {
   },
   "postApiPlayAdminAdmins": {
     "path": "/api/play-admin/admins",
+    "method": "POST"
+  },
+  "postApiPlayAdminAiProviders": {
+    "path": "/api/play-admin/ai-providers",
+    "method": "POST"
+  },
+  "postApiPlayAdminAiProvidersIdDefault": {
+    "path": "/api/play-admin/ai-providers/{id}/default",
+    "method": "POST"
+  },
+  "postApiPlayAdminAiProvidersIdModels": {
+    "path": "/api/play-admin/ai-providers/{id}/models",
+    "method": "POST"
+  },
+  "postApiPlayAdminAiProvidersIdTest": {
+    "path": "/api/play-admin/ai-providers/{id}/test",
+    "method": "POST"
+  },
+  "postApiPlayAdminAiProvidersPath": {
+    "path": "/api/play-admin/ai-providers/{path}",
     "method": "POST"
   },
   "postApiPlayAdminContainerResourceGroups": {
@@ -637,6 +889,10 @@ export const apiOperations = {
   },
   "postApiPlayAdminVerify": {
     "path": "/api/play-admin/verify",
+    "method": "POST"
+  },
+  "postApiPlayerAiPath": {
+    "path": "/api/player-ai/{path}",
     "method": "POST"
   },
   "postApiPlayerAuthLogin": {
@@ -762,6 +1018,18 @@ export const apiOperations = {
   "putApiLocalModelsId": {
     "path": "/api/local/models/{id}",
     "method": "PUT"
+  },
+  "putApiLocalModelsIdModel": {
+    "path": "/api/local/models/{id}/model",
+    "method": "PUT"
+  },
+  "putApiPlayAdminSiteConfig": {
+    "path": "/api/play-admin/site-config",
+    "method": "PUT"
+  },
+  "putApiPlayerAiPath": {
+    "path": "/api/player-ai/{path}",
+    "method": "PUT"
   }
 } as const;
 
@@ -883,6 +1151,18 @@ export class ApiClient {
     return this.unwrap(this.deleteApiLocalModelsIdRaw(...init));
   }
 
+  deleteApiLocalModelsIdEditLockRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/local/models/{id}/edit-lock"]["DELETE"]>
+  ) {
+    return this.paths["/api/local/models/{id}/edit-lock"].DELETE(...init);
+  }
+
+  deleteApiLocalModelsIdEditLock(
+    ...init: Parameters<PathBasedClient<paths>["/api/local/models/{id}/edit-lock"]["DELETE"]>
+  ) {
+    return this.unwrap(this.deleteApiLocalModelsIdEditLockRaw(...init));
+  }
+
   deleteApiLocalProjectsIdRaw(
     ...init: Parameters<PathBasedClient<paths>["/api/local-projects/{id}"]["DELETE"]>
   ) {
@@ -905,6 +1185,30 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/play-admin/admins/{id}"]["DELETE"]>
   ) {
     return this.unwrap(this.deleteApiPlayAdminAdminsIdRaw(...init));
+  }
+
+  deleteApiPlayAdminAiProvidersIdRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{id}"]["DELETE"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers/{id}"].DELETE(...init);
+  }
+
+  deleteApiPlayAdminAiProvidersId(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{id}"]["DELETE"]>
+  ) {
+    return this.unwrap(this.deleteApiPlayAdminAiProvidersIdRaw(...init));
+  }
+
+  deleteApiPlayAdminAiProvidersPathRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{path}"]["DELETE"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers/{path}"].DELETE(...init);
+  }
+
+  deleteApiPlayAdminAiProvidersPath(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{path}"]["DELETE"]>
+  ) {
+    return this.unwrap(this.deleteApiPlayAdminAiProvidersPathRaw(...init));
   }
 
   deleteApiPlayAdminContainerResourceGroupsIdRaw(
@@ -1015,6 +1319,18 @@ export class ApiClient {
     return this.unwrap(this.deleteApiPlayAdminWorldsIdRaw(...init));
   }
 
+  deleteApiPlayerAiPathRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai/{path}"]["DELETE"]>
+  ) {
+    return this.paths["/api/player-ai/{path}"].DELETE(...init);
+  }
+
+  deleteApiPlayerAiPath(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai/{path}"]["DELETE"]>
+  ) {
+    return this.unwrap(this.deleteApiPlayerAiPathRaw(...init));
+  }
+
   deleteApiPlayPresenceRaw(
     ...init: Parameters<PathBasedClient<paths>["/api/play-presence"]["DELETE"]>
   ) {
@@ -1037,6 +1353,138 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/runtime/{container_id}"]["DELETE"]>
   ) {
     return this.unwrap(this.deleteApiRuntimeContainerIdRaw(...init));
+  }
+
+  getApiAgentV1LiveActionRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/{action}"]["GET"]>
+  ) {
+    return this.paths["/api/agent/v1/live/{action}"].GET(...init);
+  }
+
+  getApiAgentV1LiveAction(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/{action}"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiAgentV1LiveActionRaw(...init));
+  }
+
+  getApiAgentV1LiveManifestRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/manifest"]["GET"]>
+  ) {
+    return this.paths["/api/agent/v1/live/manifest"].GET(...init);
+  }
+
+  getApiAgentV1LiveManifest(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/manifest"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiAgentV1LiveManifestRaw(...init));
+  }
+
+  getApiAgentV1LiveMapProjectIdObserveRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/map/{projectId}/observe"]["GET"]>
+  ) {
+    return this.paths["/api/agent/v1/live/map/{projectId}/observe"].GET(...init);
+  }
+
+  getApiAgentV1LiveMapProjectIdObserve(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/map/{projectId}/observe"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiAgentV1LiveMapProjectIdObserveRaw(...init));
+  }
+
+  getApiAgentV1LiveMapProjectIdStatusRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/map/{projectId}/status"]["GET"]>
+  ) {
+    return this.paths["/api/agent/v1/live/map/{projectId}/status"].GET(...init);
+  }
+
+  getApiAgentV1LiveMapProjectIdStatus(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/map/{projectId}/status"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiAgentV1LiveMapProjectIdStatusRaw(...init));
+  }
+
+  getApiAgentV1LiveNextRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/next"]["GET"]>
+  ) {
+    return this.paths["/api/agent/v1/live/next"].GET(...init);
+  }
+
+  getApiAgentV1LiveNext(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/next"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiAgentV1LiveNextRaw(...init));
+  }
+
+  getApiAgentV1LiveStatusRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/status"]["GET"]>
+  ) {
+    return this.paths["/api/agent/v1/live/status"].GET(...init);
+  }
+
+  getApiAgentV1LiveStatus(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/status"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiAgentV1LiveStatusRaw(...init));
+  }
+
+  getApiAgentV1LiveVoxaActionRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/voxa/{action}"]["GET"]>
+  ) {
+    return this.paths["/api/agent/v1/live/voxa/{action}"].GET(...init);
+  }
+
+  getApiAgentV1LiveVoxaAction(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/voxa/{action}"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiAgentV1LiveVoxaActionRaw(...init));
+  }
+
+  getApiAgentV1MapProjectIdActionRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/map/{projectId}/{action}"]["GET"]>
+  ) {
+    return this.paths["/api/agent/v1/map/{projectId}/{action}"].GET(...init);
+  }
+
+  getApiAgentV1MapProjectIdAction(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/map/{projectId}/{action}"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiAgentV1MapProjectIdActionRaw(...init));
+  }
+
+  getApiAgentV1ModelsRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/models"]["GET"]>
+  ) {
+    return this.paths["/api/agent/v1/models"].GET(...init);
+  }
+
+  getApiAgentV1Models(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/models"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiAgentV1ModelsRaw(...init));
+  }
+
+  getApiAgentV1ModelsIdContextRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/models/{id}/context"]["GET"]>
+  ) {
+    return this.paths["/api/agent/v1/models/{id}/context"].GET(...init);
+  }
+
+  getApiAgentV1ModelsIdContext(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/models/{id}/context"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiAgentV1ModelsIdContextRaw(...init));
+  }
+
+  getApiAgentV1StateRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/state"]["GET"]>
+  ) {
+    return this.paths["/api/agent/v1/state"].GET(...init);
+  }
+
+  getApiAgentV1State(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/state"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiAgentV1StateRaw(...init));
   }
 
   getApiAuthSessionRaw(
@@ -1121,6 +1569,54 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/creator-permissions"]["GET"]>
   ) {
     return this.unwrap(this.getApiCreatorPermissionsRaw(...init));
+  }
+
+  getApiCreatorV1AuthoringAuditRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/audit"]["GET"]>
+  ) {
+    return this.paths["/api/creator/v1/authoring/audit"].GET(...init);
+  }
+
+  getApiCreatorV1AuthoringAudit(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/audit"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiCreatorV1AuthoringAuditRaw(...init));
+  }
+
+  getApiCreatorV1AuthoringProjectIdPreviewRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/{projectId}/preview"]["GET"]>
+  ) {
+    return this.paths["/api/creator/v1/authoring/{projectId}/preview"].GET(...init);
+  }
+
+  getApiCreatorV1AuthoringProjectIdPreview(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/{projectId}/preview"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiCreatorV1AuthoringProjectIdPreviewRaw(...init));
+  }
+
+  getApiCreatorV1AuthoringProjectIdStatusRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/{projectId}/status"]["GET"]>
+  ) {
+    return this.paths["/api/creator/v1/authoring/{projectId}/status"].GET(...init);
+  }
+
+  getApiCreatorV1AuthoringProjectIdStatus(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/{projectId}/status"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiCreatorV1AuthoringProjectIdStatusRaw(...init));
+  }
+
+  getApiCreatorV1AuthoringProjectIdToolsRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/{projectId}/tools"]["GET"]>
+  ) {
+    return this.paths["/api/creator/v1/authoring/{projectId}/tools"].GET(...init);
+  }
+
+  getApiCreatorV1AuthoringProjectIdTools(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/{projectId}/tools"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiCreatorV1AuthoringProjectIdToolsRaw(...init));
   }
 
   getApiCreatorV1HealthRaw(
@@ -1303,6 +1799,42 @@ export class ApiClient {
     return this.unwrap(this.getApiHealthCheckRaw(...init));
   }
 
+  getApiInternalMapAuthoringGuardRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/internal/map-authoring/_guard"]["GET"]>
+  ) {
+    return this.paths["/api/internal/map-authoring/_guard"].GET(...init);
+  }
+
+  getApiInternalMapAuthoringGuard(
+    ...init: Parameters<PathBasedClient<paths>["/api/internal/map-authoring/_guard"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiInternalMapAuthoringGuardRaw(...init));
+  }
+
+  getApiInternalMapAuthoringProjectIdStatusRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/internal/map-authoring/{projectId}/status"]["GET"]>
+  ) {
+    return this.paths["/api/internal/map-authoring/{projectId}/status"].GET(...init);
+  }
+
+  getApiInternalMapAuthoringProjectIdStatus(
+    ...init: Parameters<PathBasedClient<paths>["/api/internal/map-authoring/{projectId}/status"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiInternalMapAuthoringProjectIdStatusRaw(...init));
+  }
+
+  getApiInternalMapAuthoringProjectIdToolRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/internal/map-authoring/{projectId}/tool"]["GET"]>
+  ) {
+    return this.paths["/api/internal/map-authoring/{projectId}/tool"].GET(...init);
+  }
+
+  getApiInternalMapAuthoringProjectIdTool(
+    ...init: Parameters<PathBasedClient<paths>["/api/internal/map-authoring/{projectId}/tool"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiInternalMapAuthoringProjectIdToolRaw(...init));
+  }
+
   getApiLocalBlobsHashRaw(
     ...init: Parameters<PathBasedClient<paths>["/api/local/blobs/{hash}"]["GET"]>
   ) {
@@ -1349,6 +1881,30 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/local/models/{id}"]["GET"]>
   ) {
     return this.unwrap(this.getApiLocalModelsIdRaw(...init));
+  }
+
+  getApiLocalModelsIdEditLockRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/local/models/{id}/edit-lock"]["GET"]>
+  ) {
+    return this.paths["/api/local/models/{id}/edit-lock"].GET(...init);
+  }
+
+  getApiLocalModelsIdEditLock(
+    ...init: Parameters<PathBasedClient<paths>["/api/local/models/{id}/edit-lock"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiLocalModelsIdEditLockRaw(...init));
+  }
+
+  getApiLocalModelsIdEventsRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/local/models/{id}/events"]["GET"]>
+  ) {
+    return this.paths["/api/local/models/{id}/events"].GET(...init);
+  }
+
+  getApiLocalModelsIdEvents(
+    ...init: Parameters<PathBasedClient<paths>["/api/local/models/{id}/events"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiLocalModelsIdEventsRaw(...init));
   }
 
   getApiLocalModelsIdExportRaw(
@@ -1481,6 +2037,42 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/play-admin/admins"]["GET"]>
   ) {
     return this.unwrap(this.getApiPlayAdminAdminsRaw(...init));
+  }
+
+  getApiPlayAdminAiProvidersRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers"]["GET"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers"].GET(...init);
+  }
+
+  getApiPlayAdminAiProviders(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiPlayAdminAiProvidersRaw(...init));
+  }
+
+  getApiPlayAdminAiProvidersControlRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/control"]["GET"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers/control"].GET(...init);
+  }
+
+  getApiPlayAdminAiProvidersControl(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/control"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiPlayAdminAiProvidersControlRaw(...init));
+  }
+
+  getApiPlayAdminAiProvidersPathRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{path}"]["GET"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers/{path}"].GET(...init);
+  }
+
+  getApiPlayAdminAiProvidersPath(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{path}"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiPlayAdminAiProvidersPathRaw(...init));
   }
 
   getApiPlayAdminContainerResourceGroupsRaw(
@@ -1645,6 +2237,18 @@ export class ApiClient {
     return this.unwrap(this.getApiPlayAdminScriptModerationRaw(...init));
   }
 
+  getApiPlayAdminSiteConfigRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/site-config"]["GET"]>
+  ) {
+    return this.paths["/api/play-admin/site-config"].GET(...init);
+  }
+
+  getApiPlayAdminSiteConfig(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/site-config"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiPlayAdminSiteConfigRaw(...init));
+  }
+
   getApiPlayAdminStatusRaw(
     ...init: Parameters<PathBasedClient<paths>["/api/play-admin/status"]["GET"]>
   ) {
@@ -1691,6 +2295,54 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/play-admin/worlds/status"]["GET"]>
   ) {
     return this.unwrap(this.getApiPlayAdminWorldsStatusRaw(...init));
+  }
+
+  getApiPlayerAiRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai"]["GET"]>
+  ) {
+    return this.paths["/api/player-ai"].GET(...init);
+  }
+
+  getApiPlayerAi(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiPlayerAiRaw(...init));
+  }
+
+  getApiPlayerAiInternalRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai-internal"]["GET"]>
+  ) {
+    return this.paths["/api/player-ai-internal"].GET(...init);
+  }
+
+  getApiPlayerAiInternal(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai-internal"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiPlayerAiInternalRaw(...init));
+  }
+
+  getApiPlayerAiInternalPathRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai-internal/{path}"]["GET"]>
+  ) {
+    return this.paths["/api/player-ai-internal/{path}"].GET(...init);
+  }
+
+  getApiPlayerAiInternalPath(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai-internal/{path}"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiPlayerAiInternalPathRaw(...init));
+  }
+
+  getApiPlayerAiPathRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai/{path}"]["GET"]>
+  ) {
+    return this.paths["/api/player-ai/{path}"].GET(...init);
+  }
+
+  getApiPlayerAiPath(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai/{path}"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiPlayerAiPathRaw(...init));
   }
 
   getApiPlayerAuthLoginRequiredRaw(
@@ -1847,6 +2499,18 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/play-resource-cache/{world}"]["GET"]>
   ) {
     return this.unwrap(this.getApiPlayResourceCacheWorldRaw(...init));
+  }
+
+  getApiPlaySiteConfigRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-site-config"]["GET"]>
+  ) {
+    return this.paths["/api/play-site-config"].GET(...init);
+  }
+
+  getApiPlaySiteConfig(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-site-config"]["GET"]>
+  ) {
+    return this.unwrap(this.getApiPlaySiteConfigRaw(...init));
   }
 
   getApiPlayWorldsRaw(
@@ -2077,6 +2741,42 @@ export class ApiClient {
     return this.unwrap(this.patchApiPlayAdminAdminsIdRaw(...init));
   }
 
+  patchApiPlayAdminAiProvidersControlRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/control"]["PATCH"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers/control"].PATCH(...init);
+  }
+
+  patchApiPlayAdminAiProvidersControl(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/control"]["PATCH"]>
+  ) {
+    return this.unwrap(this.patchApiPlayAdminAiProvidersControlRaw(...init));
+  }
+
+  patchApiPlayAdminAiProvidersIdRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{id}"]["PATCH"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers/{id}"].PATCH(...init);
+  }
+
+  patchApiPlayAdminAiProvidersId(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{id}"]["PATCH"]>
+  ) {
+    return this.unwrap(this.patchApiPlayAdminAiProvidersIdRaw(...init));
+  }
+
+  patchApiPlayAdminAiProvidersPathRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{path}"]["PATCH"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers/{path}"].PATCH(...init);
+  }
+
+  patchApiPlayAdminAiProvidersPath(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{path}"]["PATCH"]>
+  ) {
+    return this.unwrap(this.patchApiPlayAdminAiProvidersPathRaw(...init));
+  }
+
   patchApiPlayAdminContainerResourceGroupsIdRaw(
     ...init: Parameters<PathBasedClient<paths>["/api/play-admin/container-resource-groups/{id}"]["PATCH"]>
   ) {
@@ -2137,6 +2837,18 @@ export class ApiClient {
     return this.unwrap(this.patchApiPlayAdminPlayersSubjectIdRaw(...init));
   }
 
+  patchApiPlayAdminSiteConfigRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/site-config"]["PATCH"]>
+  ) {
+    return this.paths["/api/play-admin/site-config"].PATCH(...init);
+  }
+
+  patchApiPlayAdminSiteConfig(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/site-config"]["PATCH"]>
+  ) {
+    return this.unwrap(this.patchApiPlayAdminSiteConfigRaw(...init));
+  }
+
   patchApiPlayAdminWorldsIdRaw(
     ...init: Parameters<PathBasedClient<paths>["/api/play-admin/worlds/{id}"]["PATCH"]>
   ) {
@@ -2147,6 +2859,18 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/play-admin/worlds/{id}"]["PATCH"]>
   ) {
     return this.unwrap(this.patchApiPlayAdminWorldsIdRaw(...init));
+  }
+
+  patchApiPlayerAiPathRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai/{path}"]["PATCH"]>
+  ) {
+    return this.paths["/api/player-ai/{path}"].PATCH(...init);
+  }
+
+  patchApiPlayerAiPath(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai/{path}"]["PATCH"]>
+  ) {
+    return this.unwrap(this.patchApiPlayerAiPathRaw(...init));
   }
 
   patchApiPlayerAuthProfileRaw(
@@ -2207,6 +2931,162 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/play-profile"]["PATCH"]>
   ) {
     return this.unwrap(this.patchApiPlayProfileRaw(...init));
+  }
+
+  postApiAgentV1JoinRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/join"]["POST"]>
+  ) {
+    return this.paths["/api/agent/v1/join"].POST(...init);
+  }
+
+  postApiAgentV1Join(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/join"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiAgentV1JoinRaw(...init));
+  }
+
+  postApiAgentV1LiveAckRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/ack"]["POST"]>
+  ) {
+    return this.paths["/api/agent/v1/live/ack"].POST(...init);
+  }
+
+  postApiAgentV1LiveAck(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/ack"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiAgentV1LiveAckRaw(...init));
+  }
+
+  postApiAgentV1LiveActionRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/{action}"]["POST"]>
+  ) {
+    return this.paths["/api/agent/v1/live/{action}"].POST(...init);
+  }
+
+  postApiAgentV1LiveAction(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/{action}"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiAgentV1LiveActionRaw(...init));
+  }
+
+  postApiAgentV1LiveAttachRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/attach"]["POST"]>
+  ) {
+    return this.paths["/api/agent/v1/live/attach"].POST(...init);
+  }
+
+  postApiAgentV1LiveAttach(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/attach"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiAgentV1LiveAttachRaw(...init));
+  }
+
+  postApiAgentV1LiveDetachRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/detach"]["POST"]>
+  ) {
+    return this.paths["/api/agent/v1/live/detach"].POST(...init);
+  }
+
+  postApiAgentV1LiveDetach(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/detach"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiAgentV1LiveDetachRaw(...init));
+  }
+
+  postApiAgentV1LiveMapProjectIdCmdRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/map/{projectId}/cmd"]["POST"]>
+  ) {
+    return this.paths["/api/agent/v1/live/map/{projectId}/cmd"].POST(...init);
+  }
+
+  postApiAgentV1LiveMapProjectIdCmd(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/map/{projectId}/cmd"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiAgentV1LiveMapProjectIdCmdRaw(...init));
+  }
+
+  postApiAgentV1LiveMapProjectIdObserveRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/map/{projectId}/observe"]["POST"]>
+  ) {
+    return this.paths["/api/agent/v1/live/map/{projectId}/observe"].POST(...init);
+  }
+
+  postApiAgentV1LiveMapProjectIdObserve(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/map/{projectId}/observe"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiAgentV1LiveMapProjectIdObserveRaw(...init));
+  }
+
+  postApiAgentV1LiveProgressRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/progress"]["POST"]>
+  ) {
+    return this.paths["/api/agent/v1/live/progress"].POST(...init);
+  }
+
+  postApiAgentV1LiveProgress(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/progress"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiAgentV1LiveProgressRaw(...init));
+  }
+
+  postApiAgentV1LiveVoxaActionRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/voxa/{action}"]["POST"]>
+  ) {
+    return this.paths["/api/agent/v1/live/voxa/{action}"].POST(...init);
+  }
+
+  postApiAgentV1LiveVoxaAction(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/live/voxa/{action}"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiAgentV1LiveVoxaActionRaw(...init));
+  }
+
+  postApiAgentV1MapProjectIdActionRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/map/{projectId}/{action}"]["POST"]>
+  ) {
+    return this.paths["/api/agent/v1/map/{projectId}/{action}"].POST(...init);
+  }
+
+  postApiAgentV1MapProjectIdAction(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/map/{projectId}/{action}"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiAgentV1MapProjectIdActionRaw(...init));
+  }
+
+  postApiAgentV1ModelsRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/models"]["POST"]>
+  ) {
+    return this.paths["/api/agent/v1/models"].POST(...init);
+  }
+
+  postApiAgentV1Models(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/models"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiAgentV1ModelsRaw(...init));
+  }
+
+  postApiAgentV1StateRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/state"]["POST"]>
+  ) {
+    return this.paths["/api/agent/v1/state"].POST(...init);
+  }
+
+  postApiAgentV1State(
+    ...init: Parameters<PathBasedClient<paths>["/api/agent/v1/state"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiAgentV1StateRaw(...init));
+  }
+
+  postApiAiActionRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/ai/{action}"]["POST"]>
+  ) {
+    return this.paths["/api/ai/{action}"].POST(...init);
+  }
+
+  postApiAiAction(
+    ...init: Parameters<PathBasedClient<paths>["/api/ai/{action}"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiAiActionRaw(...init));
   }
 
   postApiAuthLoginRaw(
@@ -2317,6 +3197,42 @@ export class ApiClient {
     return this.unwrap(this.postApiCreatorModelsImportRaw(...init));
   }
 
+  postApiCreatorV1AuthoringProjectIdPreviewRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/{projectId}/preview"]["POST"]>
+  ) {
+    return this.paths["/api/creator/v1/authoring/{projectId}/preview"].POST(...init);
+  }
+
+  postApiCreatorV1AuthoringProjectIdPreview(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/{projectId}/preview"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiCreatorV1AuthoringProjectIdPreviewRaw(...init));
+  }
+
+  postApiCreatorV1AuthoringProjectIdSaveRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/{projectId}/save"]["POST"]>
+  ) {
+    return this.paths["/api/creator/v1/authoring/{projectId}/save"].POST(...init);
+  }
+
+  postApiCreatorV1AuthoringProjectIdSave(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/{projectId}/save"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiCreatorV1AuthoringProjectIdSaveRaw(...init));
+  }
+
+  postApiCreatorV1AuthoringProjectIdToolsRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/{projectId}/tools"]["POST"]>
+  ) {
+    return this.paths["/api/creator/v1/authoring/{projectId}/tools"].POST(...init);
+  }
+
+  postApiCreatorV1AuthoringProjectIdTools(
+    ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/authoring/{projectId}/tools"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiCreatorV1AuthoringProjectIdToolsRaw(...init));
+  }
+
   postApiCreatorV1ProjectsProjectIdRuntimeRaw(
     ...init: Parameters<PathBasedClient<paths>["/api/creator/v1/projects/{projectId}/runtime"]["POST"]>
   ) {
@@ -2353,6 +3269,42 @@ export class ApiClient {
     return this.unwrap(this.postApiCreatorV1ProjectsProjectIdSceneSessionRaw(...init));
   }
 
+  postApiInternalMapAuthoringProjectIdPreviewRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/internal/map-authoring/{projectId}/preview"]["POST"]>
+  ) {
+    return this.paths["/api/internal/map-authoring/{projectId}/preview"].POST(...init);
+  }
+
+  postApiInternalMapAuthoringProjectIdPreview(
+    ...init: Parameters<PathBasedClient<paths>["/api/internal/map-authoring/{projectId}/preview"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiInternalMapAuthoringProjectIdPreviewRaw(...init));
+  }
+
+  postApiInternalMapAuthoringProjectIdSaveRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/internal/map-authoring/{projectId}/save"]["POST"]>
+  ) {
+    return this.paths["/api/internal/map-authoring/{projectId}/save"].POST(...init);
+  }
+
+  postApiInternalMapAuthoringProjectIdSave(
+    ...init: Parameters<PathBasedClient<paths>["/api/internal/map-authoring/{projectId}/save"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiInternalMapAuthoringProjectIdSaveRaw(...init));
+  }
+
+  postApiInternalMapAuthoringProjectIdToolRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/internal/map-authoring/{projectId}/tool"]["POST"]>
+  ) {
+    return this.paths["/api/internal/map-authoring/{projectId}/tool"].POST(...init);
+  }
+
+  postApiInternalMapAuthoringProjectIdTool(
+    ...init: Parameters<PathBasedClient<paths>["/api/internal/map-authoring/{projectId}/tool"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiInternalMapAuthoringProjectIdToolRaw(...init));
+  }
+
   postApiLocalBlobRaw(
     ...init: Parameters<PathBasedClient<paths>["/api/local/blob"]["POST"]>
   ) {
@@ -2375,6 +3327,18 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/local/models"]["POST"]>
   ) {
     return this.unwrap(this.postApiLocalModelsRaw(...init));
+  }
+
+  postApiLocalModelsIdEditLockRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/local/models/{id}/edit-lock"]["POST"]>
+  ) {
+    return this.paths["/api/local/models/{id}/edit-lock"].POST(...init);
+  }
+
+  postApiLocalModelsIdEditLock(
+    ...init: Parameters<PathBasedClient<paths>["/api/local/models/{id}/edit-lock"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiLocalModelsIdEditLockRaw(...init));
   }
 
   postApiLocalModelsImportRaw(
@@ -2483,6 +3447,66 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/play-admin/admins"]["POST"]>
   ) {
     return this.unwrap(this.postApiPlayAdminAdminsRaw(...init));
+  }
+
+  postApiPlayAdminAiProvidersRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers"]["POST"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers"].POST(...init);
+  }
+
+  postApiPlayAdminAiProviders(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiPlayAdminAiProvidersRaw(...init));
+  }
+
+  postApiPlayAdminAiProvidersIdDefaultRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{id}/default"]["POST"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers/{id}/default"].POST(...init);
+  }
+
+  postApiPlayAdminAiProvidersIdDefault(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{id}/default"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiPlayAdminAiProvidersIdDefaultRaw(...init));
+  }
+
+  postApiPlayAdminAiProvidersIdModelsRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{id}/models"]["POST"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers/{id}/models"].POST(...init);
+  }
+
+  postApiPlayAdminAiProvidersIdModels(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{id}/models"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiPlayAdminAiProvidersIdModelsRaw(...init));
+  }
+
+  postApiPlayAdminAiProvidersIdTestRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{id}/test"]["POST"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers/{id}/test"].POST(...init);
+  }
+
+  postApiPlayAdminAiProvidersIdTest(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{id}/test"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiPlayAdminAiProvidersIdTestRaw(...init));
+  }
+
+  postApiPlayAdminAiProvidersPathRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{path}"]["POST"]>
+  ) {
+    return this.paths["/api/play-admin/ai-providers/{path}"].POST(...init);
+  }
+
+  postApiPlayAdminAiProvidersPath(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/ai-providers/{path}"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiPlayAdminAiProvidersPathRaw(...init));
   }
 
   postApiPlayAdminContainerResourceGroupsRaw(
@@ -2699,6 +3723,18 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/play-admin/verify"]["POST"]>
   ) {
     return this.unwrap(this.postApiPlayAdminVerifyRaw(...init));
+  }
+
+  postApiPlayerAiPathRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai/{path}"]["POST"]>
+  ) {
+    return this.paths["/api/player-ai/{path}"].POST(...init);
+  }
+
+  postApiPlayerAiPath(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai/{path}"]["POST"]>
+  ) {
+    return this.unwrap(this.postApiPlayerAiPathRaw(...init));
   }
 
   postApiPlayerAuthLoginRaw(
@@ -3071,6 +4107,42 @@ export class ApiClient {
     ...init: Parameters<PathBasedClient<paths>["/api/local/models/{id}"]["PUT"]>
   ) {
     return this.unwrap(this.putApiLocalModelsIdRaw(...init));
+  }
+
+  putApiLocalModelsIdModelRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/local/models/{id}/model"]["PUT"]>
+  ) {
+    return this.paths["/api/local/models/{id}/model"].PUT(...init);
+  }
+
+  putApiLocalModelsIdModel(
+    ...init: Parameters<PathBasedClient<paths>["/api/local/models/{id}/model"]["PUT"]>
+  ) {
+    return this.unwrap(this.putApiLocalModelsIdModelRaw(...init));
+  }
+
+  putApiPlayAdminSiteConfigRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/site-config"]["PUT"]>
+  ) {
+    return this.paths["/api/play-admin/site-config"].PUT(...init);
+  }
+
+  putApiPlayAdminSiteConfig(
+    ...init: Parameters<PathBasedClient<paths>["/api/play-admin/site-config"]["PUT"]>
+  ) {
+    return this.unwrap(this.putApiPlayAdminSiteConfigRaw(...init));
+  }
+
+  putApiPlayerAiPathRaw(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai/{path}"]["PUT"]>
+  ) {
+    return this.paths["/api/player-ai/{path}"].PUT(...init);
+  }
+
+  putApiPlayerAiPath(
+    ...init: Parameters<PathBasedClient<paths>["/api/player-ai/{path}"]["PUT"]>
+  ) {
+    return this.unwrap(this.putApiPlayerAiPathRaw(...init));
   }
 
 }

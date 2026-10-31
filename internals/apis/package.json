@@ -23,7 +23,7 @@
     "check:openapi": "node scripts/generate-openapi.mjs --check && node scripts/generate-client.mjs --check && node scripts/check-openapi.mjs",
     "docs": "npm run generate && node scripts/serve-docs.mjs",
     "test": "node --test test/*.test.mjs",
-    "build": "npm run generate && rm -rf dist && tsc --emitDeclarationOnly && rollup --config rollup.config.mjs",
+    "build": "npm run generate && node scripts/build.mjs",
     "build:watch": "npm run build",
     "dev": "rollup --config rollup.config.mjs -w"
   },

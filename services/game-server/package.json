@@ -67,7 +67,9 @@
     "typescript": "5.6.3",
     "uuid": "3.3.2",
     "ws": "7.5.13",
-    "zod": "4.1.12"
+    "zod": "4.1.12",
+    "@ai-sdk/anthropic": "2.0.111",
+    "@ai-sdk/openai": "2.0.139"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "28.0.3",

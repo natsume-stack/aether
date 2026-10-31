@@ -26,6 +26,15 @@ const moderationRecord = object({
 })
 
 const contracts = {
+  'get /api/play-admin/ai-providers': object({success:{type:'boolean'},providers:array('AiProvider')}),
+  'post /api/play-admin/ai-providers': object({success:{type:'boolean'},provider:ref('AiProvider')}),
+  'patch /api/play-admin/ai-providers/{id}': object({success:{type:'boolean'},provider:ref('AiProvider')}),
+  'delete /api/play-admin/ai-providers/{id}': object({success:{type:'boolean'}}),
+  'post /api/play-admin/ai-providers/{id}/test': object({success:{type:'boolean'},result:ref('AiProviderTestResult')}),
+  'post /api/play-admin/ai-providers/{id}/models': object({success:{type:'boolean'},models:{type:'array',items:{type:'object',required:['id'],properties:{id:{type:'string'},name:{type:'string'}}}}}),
+  'post /api/play-admin/ai-providers/{id}/default': object({success:{type:'boolean'}}),
+  'get /api/play-admin/ai-providers/control': ref('AiExecutionPolicy'),
+  'patch /api/play-admin/ai-providers/control': ref('AiExecutionPolicy'),
   'post /api/player-auth/transfer': object({ code: { type: 'string', pattern: '^[A-Za-z0-9_-]{43}$' } }),
   'post /api/player-internal/login-transfer': object({ session: { type: 'string' }, device: { type: 'string' } }),
   'post /api/player-internal/script-metadata':object({observed:{type:'boolean'}}),
@@ -91,6 +100,12 @@ const contracts = {
 }
 
 const requestContracts = {
+  'post /api/play-admin/ai-providers': ref('AiProviderInput'),
+  'patch /api/play-admin/ai-providers/{id}': ref('AiProviderInput'),
+  'post /api/play-admin/ai-providers/{id}/test': object({model:{type:'string'}},[]),
+  'post /api/play-admin/ai-providers/{id}/models': object({}),
+  'post /api/play-admin/ai-providers/{id}/default': object({}),
+  'patch /api/play-admin/ai-providers/control': ref('AiExecutionPolicy'),
   'post /api/player-auth/transfer': object({ source: { type: 'string', enum: ['play', 'creator'] }, challenge: { type: 'string', pattern: '^[A-Za-z0-9_-]{43}$' } }),
   'post /api/player-internal/login-transfer': object({ code: { type: 'string', pattern: '^[A-Za-z0-9_-]{43}$' }, source: { type: 'string', enum: ['play', 'creator'] }, verifier: { type: 'string', pattern: '^[A-Za-z0-9_-]{43}$' } }),
   'post /api/player-internal/script-metadata':{...object({mapId:{type:'string'},groupId:{type:'string'},mode:{type:'string',enum:['edit','play']},name:{type:'string',minLength:1,maxLength:64},projectId:{type:'string'},publicId:{type:'string',maxLength:128},description:{type:'string',maxLength:2000},version:{type:'string',maxLength:64},},['mapId','mode','name']),additionalProperties:false},

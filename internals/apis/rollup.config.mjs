@@ -1,3 +1,4 @@
+import path from 'node:path';
 import typescript from '@rollup/plugin-typescript';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
@@ -27,12 +28,12 @@ export default {
   input: './src/index.ts',
   output: [
     {
-      file: pkg.module,
+      file: process.env.BOX_API_BUILD_DIR ? path.join(process.env.BOX_API_BUILD_DIR, path.basename(pkg.module)) : pkg.module,
       format: 'es',
       indent: false,
     },
     {
-      file: pkg.main,
+      file: process.env.BOX_API_BUILD_DIR ? path.join(process.env.BOX_API_BUILD_DIR, path.basename(pkg.main)) : pkg.main,
       format: 'cjs',
       indent: false,
       interop: 'auto',
