@@ -261,7 +261,7 @@ export function AiProviderSettings({
                 onChange={(event) => setForm({ ...form, baseUrl: event.target.value })}
                 placeholder={PROTOCOL_PLACEHOLDERS[form.protocol]}
               />
-              <span className="text-xs text-muted-foreground">通常需要包含 /v1；Anthropic 为 https://api.anthropic.com/v1。</span>
+              <span className="text-xs text-muted-foreground">可填 API 根地址或完整端点；未带版本时自动补 /v1（例如 https://host → https://host/v1，也可直接粘贴 .../v1/chat/completions）。</span>
             </label>
             <label className="grid gap-1.5 text-sm">
               <span>API Key</span>

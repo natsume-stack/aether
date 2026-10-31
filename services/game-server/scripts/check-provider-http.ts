@@ -16,7 +16,7 @@ async function main(){
   const address=server.address();assert.ok(address && typeof address!=='string');
   const url=`http://127.0.0.1:${address.port}`;
   try{
-    process.env.NODE_ENV='development';process.env.AI_PROVIDER_ALLOW_PRIVATE='false';
+    (process.env as Record<string,string|undefined>).NODE_ENV='development';process.env.AI_PROVIDER_ALLOW_PRIVATE='false';
     await assert.rejects(safeProviderFetch(url),/HTTPS|private/);
     process.env.AI_PROVIDER_ALLOW_PRIVATE='true';
     assert.equal(await (await safeProviderFetch(url)).text(),'pong');
@@ -26,12 +26,12 @@ async function main(){
     const streamAbort=new AbortController();
     const streamed=await safeProviderFetch(`${url}/stream`,{signal:streamAbort.signal});
     const text=streamed.text();streamAbort.abort();await assert.rejects(text);
-    process.env.NODE_ENV='production';
+    (process.env as Record<string,string|undefined>).NODE_ENV='production';
     await assert.rejects(safeProviderFetch(url),/HTTPS|private/);
     console.log(JSON.stringify({ok:true,checks:['private-ipv4-ipv6','stream-body','redirect-refusal','socket-cancel','production-private-opt-in-disabled']}));
   }finally{
     if(oldPrivate===undefined)delete process.env.AI_PROVIDER_ALLOW_PRIVATE;else process.env.AI_PROVIDER_ALLOW_PRIVATE=oldPrivate;
-    if(oldMode===undefined)delete process.env.NODE_ENV;else process.env.NODE_ENV=oldMode;
+    if(oldMode===undefined)delete (process.env as Record<string,string|undefined>).NODE_ENV;else (process.env as Record<string,string|undefined>).NODE_ENV=oldMode;
     server.closeAllConnections();await new Promise<void>(resolve=>server.close(()=>resolve()));
   }
 }

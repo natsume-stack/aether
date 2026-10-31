@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import {safeProviderFetch} from '../../../services/game-server/src/edit/ai/provider-http';
+import {providerRequestUrl} from '../../../services/game-server/src/edit/ai/provider-url';
 
 export type VoxaAiCommand = {kind: string; args: Record<string, unknown>};
 const kinds = new Set(['paint', 'erase', 'paint_path', 'fill_box', 'set_color', 'trim', 'part_patch', 'part_create', 'part_select', 'part_delete', 'part_group', 'part_move', 'palette_add', 'workspace_resize']);
@@ -58,15 +59,15 @@ export async function generateVoxaAiPlan(req: NextApiRequest, res: NextApiRespon
   const prompt = JSON.stringify({request: input.prompt, context: input.context});
   const messages = [{role: 'user', content: prompt}];
   const headers: Record<string,string> = {'Content-Type':'application/json', ...(provider.headers || {})};
-  let path: string; let body: unknown;
+  let body: unknown;
   if (provider.protocol === 'chat-completions') {
-    path='/chat/completions'; headers.Authorization=`Bearer ${provider.apiKey}`;
+    headers.Authorization=`Bearer ${provider.apiKey}`;
     body={model:input.model, messages:[{role:'system',content:system},...messages],max_tokens:4096,stream:false};
   } else if (provider.protocol === 'responses') {
-    path='/responses';headers.Authorization=`Bearer ${provider.apiKey}`;
+    headers.Authorization=`Bearer ${provider.apiKey}`;
     body={model:input.model,instructions:system,input:prompt,max_output_tokens:4096};
   } else if (provider.protocol === 'anthropic-messages') {
-    path='/messages';headers['x-api-key']=provider.apiKey;headers['anthropic-version']='2023-06-01';
+    headers['x-api-key']=provider.apiKey;headers['anthropic-version']='2023-06-01';
     body={model:input.model,system,messages,max_tokens:4096};
   } else throw new Error('Unsupported AI protocol');
   const {runId}=await internal('/api/player-ai-internal/execution',{userId,scope:`voxa:${String(input.context?.snapshot?.project?.modelId || 'planner')}`,mode:'review',providerId:provider.id,model:input.model},req,res);
@@ -76,7 +77,7 @@ export async function generateVoxaAiPlan(req: NextApiRequest, res: NextApiRespon
   res.on('close',cancel);
   const timer=setTimeout(cancel,120000);
   try {
-    const response=await safeProviderFetch(`${String(provider.baseUrl).replace(/\/$/,'')}${path}`, {method:'POST',headers,body:JSON.stringify(body),signal:abort.signal,redirect:'error'});
+    const response=await safeProviderFetch(providerRequestUrl(provider.baseUrl, provider.protocol), {method:'POST',headers,body:JSON.stringify(body),signal:abort.signal,redirect:'error'});
     if (!response.ok) throw new Error(`AI provider returned HTTP ${response.status}`);
     const data=await response.json();
     inputTokens=Number(data.usage?.input_tokens ?? data.usage?.prompt_tokens ?? 0);outputTokens=Number(data.usage?.output_tokens ?? data.usage?.completion_tokens ?? 0);

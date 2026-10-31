@@ -4,6 +4,7 @@ import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import type { LanguageModel } from 'ai';
 import type { Logger } from 'pino';
 import { safeProviderFetch } from './provider-http';
+import { providerApiBaseUrl } from './provider-url';
 
 export type ResolvedProviderProtocol = 'chat-completions' | 'responses' | 'anthropic-messages';
 export type ResolvedProvider = {
@@ -78,9 +79,10 @@ export function providerLanguageModel(provider: ResolvedProvider, requestedModel
   const model = String(requestedModel || provider.defaultModel || provider.models[0]?.id || '').trim();
   if (!model) throw new Error('请先为渠道选择模型');
   const headers = provider.headers || {};
+  const baseURL = providerApiBaseUrl(provider.baseUrl);
   if (provider.protocol === 'chat-completions') {
     return createOpenAICompatible({
-      baseURL: provider.baseUrl,
+      baseURL,
       fetch: safeProviderFetch,
       apiKey: provider.apiKey,
       name: provider.name || 'provider',
@@ -89,7 +91,7 @@ export function providerLanguageModel(provider: ResolvedProvider, requestedModel
   }
   if (provider.protocol === 'responses') {
     return createOpenAI({
-      baseURL: provider.baseUrl,
+      baseURL,
       fetch: safeProviderFetch,
       apiKey: provider.apiKey,
       headers,
@@ -97,7 +99,7 @@ export function providerLanguageModel(provider: ResolvedProvider, requestedModel
   }
   if (provider.protocol !== 'anthropic-messages') throw new Error('Unsupported AI protocol');
   return createAnthropic({
-    baseURL: provider.baseUrl,
+    baseURL,
     fetch: safeProviderFetch,
     apiKey: provider.apiKey,
     headers,
