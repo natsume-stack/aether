@@ -162,3 +162,10 @@ Source of truth: /home/natsume/box3-dev/repo/box3-local-engine, branch dev/serve
 - 继续使用精确前缀回放 + 上下文增量，因此项目会话在重启后仍能复用 DeepSeek 前缀缓存；面板显示缓存命中率。
 
 验证：图元/投影质量/会话存储/计划契约/命令兼容/上下文增量测试全部通过；DeepSeek 真实蝙蝠测试此前已确认 26 条命令、缓存命中；VOXA 生产构建通过（建模升级主批次；最后的采样改动通过 tsc，随后重建校验）。
+
+## DeepSeek 思考强度与首批可见建模（2026-11-01 补）
+
+- 实测 DeepSeek 官方 Chat/Responses 均接受 `none`/`low`：高强度默认请求约 61s、10.5k reasoning；`low` 约 26s、4.1k reasoning；`none`/`low` 小请求约 1.4s。
+- VOXA 面板为 DeepSeek 渠道默认选择“低”（用户手动改过后持久化），并在思考强度旁显示映射：关=none、低=low、中=high、高=max。
+- 首批提示词改为“部件树 + 初始图元块面”同批，实测首批 28 条命令（7 个部件、10 个填充、4 个细节体素），stage=S1，不再只返回空部件树。
+- 其他协议：OpenAI 仍用 low/medium/high；Anthropic 用 thinking budget；DeepSeek Anthropic 忽略 thinking。

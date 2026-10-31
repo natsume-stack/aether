@@ -272,6 +272,9 @@ export function VoxaAiPanel() {
   });
   const [customModel, setCustomModel] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+  const reasoningTouched = useRef<boolean>((() => {
+    try { return window.localStorage.getItem('voxa.aiReasoningTouched') === '1'; } catch { return false; }
+  })());
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [busy, setBusy] = useState(false);
   const [channelBusy, setChannelBusy] = useState(false);
@@ -371,6 +374,14 @@ export function VoxaAiPanel() {
     const values = [selected?.defaultModel, ...(selected?.models || []).map((item) => item.id)].filter(Boolean) as string[];
     return [...new Set(values)];
   }, [selected]);
+  useEffect(() => {
+    if (!selected || reasoningTouched.current) return;
+    try {
+      const host = new URL(selected.baseUrl).hostname.toLowerCase();
+      if (host.endsWith('deepseek.com') && reasoning === 'off') setReasoning('low');
+    } catch { /* ignore malformed base urls */ }
+  }, [selected, reasoning]);
+
   const isCustomModel = customModel || (!!model && !modelOptions.includes(model)) || (!modelOptions.length && !model);
   const lastAssistant = useMemo(() => [...messages].reverse().find((item) => item.role === 'assistant'), [messages]);
   const status = busy
@@ -879,14 +890,15 @@ export function VoxaAiPanel() {
             {isCustomModel && (
               <input className={styles.modelInput} value={model} disabled={busy} onChange={(event) => setModel(event.target.value)} placeholder="输入模型 ID" aria-label="自定义模型 ID" />
             )}
-            <div className={styles.reasoningRow}>
+            <div className={styles.reasoningRow} title="DeepSeek：关=none，低=low，中=high，高=max；低/中通常兼顾细节与速度">
               <span>思考强度</span>
               <div className={styles.segmented} role="group" aria-label="思考强度">
                 {REASONING_OPTIONS.map((item) => (
-                  <button key={item.value} className={reasoning === item.value ? styles.segmentActive : styles.segment} disabled={busy} onClick={() => setReasoning(item.value)}>{item.label}</button>
+                  <button key={item.value} className={reasoning === item.value ? styles.segmentActive : styles.segment} disabled={busy} onClick={() => { reasoningTouched.current = true; try { window.localStorage.setItem('voxa.aiReasoningTouched', '1'); } catch { /* storage may be blocked */ } setReasoning(item.value); }}>{item.label}</button>
                 ))}
               </div>
             </div>
+            <p className={styles.hint}>DeepSeek 推荐“低/中”；关=none、低=low、中=high、高=max。</p>
             <textarea
               value={prompt}
               disabled={busy}

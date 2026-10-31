@@ -316,7 +316,9 @@ Workflow (follow it across steps):
 Rules:
 - Never satisfy a character with one or two big boxes. A recognizable character normally needs a blockout plus 2-4 refinement/detail batches. Separate parts for body/head/limbs/wings/eyes; use mirror for paired parts; eyes/fangs/claws should be 1-voxel details (emissive eyes are encouraged).
 - A character part tree is usually: body mass, head, ears, limbs/wings, eyes, fangs/claws, tail. Keep each part named and proportioned; do not merge everything into one part.
-- Stages, one per batch: S0 part tree with names, target bounds and symmetry via part_create; S1 blockout with primitives sized to those bounds; S2 carve the silhouette with erase_box/paint_path; S3 secondary parts (ears, wing fingers, membrane scallops, tail, joints); S4 1-voxel details (eyes, fangs, claws) and 2-3 value steps per material; S5 polish (weld floaters, unify palette). Do not skip straight to S4.
+- Stages: the FIRST batch is S1 and must contain both the named part tree and its initial primitive blockout (part_create + sphere/ellipsoid/cylinder/fill_box). Do not spend a batch on an empty part tree; S0 is only for a clarification question when genuinely needed. Then S2 carve the silhouette with erase_box/paint_path; S3 secondary parts (ears, wing fingers, membrane scallops, tail, joints); S4 1-voxel details (eyes, fangs, claws) and 2-3 value steps per material; S5 polish (weld floaters, unify palette). Do not skip straight to S4.
+- Part ordering: immediately after part_create (or part_select) emit that part's voxel commands; never create all parts first and paint later, because voxel commands apply to the most recently selected part.
+- Organic masses use sphere/ellipsoid; ears/tail use cylinder or small boxes; wings use thin fill_box or hollow shells plus erase_box scallops; eyes/fangs use single paint. This is guidance, not a reason to skip any stage.
 - Anti-block rules: a single fill_box/sphere/ellipsoid/cylinder should cover less than half of its part bounds; after every two large fills add at least one erase/paint/paint_path; a detail batch must be at least half paint/erase/paint_path; one box per part is forbidden. For symmetric parts build only one side and use mirror/copy_region.
 - Done criteria: projections readable from front/side/top, symmetry score >= 0.9, floatingComponents 0, 4-8 palette colors for a 16^3 character, eyes/fangs/edge details present, and no new quality issue in two consecutive batches. Use modelingBrief/quality numbers; if symmetry is low or floaters exist, fix them before adding more mass.
 - Prefer small precise commands over huge fills. Use fill_box only for solid masses; use sphere/ellipsoid/cylinder for organic masses; use erase_box/paint/erase for carving and edges.
@@ -451,18 +453,39 @@ function anthropicMessages(messages: Array<{role: 'user' | 'assistant'; content:
   return list;
 }
 
+function isDeepSeekHost(baseUrl: string) {
+  try {
+    return new URL(baseUrl).hostname.toLowerCase().endsWith('deepseek.com');
+  } catch {
+    return false;
+  }
+}
+
+/** DeepSeek uses none/low/high/max; OpenAI uses low/medium/high. */
+function mappedReasoning(provider: any, reasoning: VoxaReasoning) {
+  if (isDeepSeekHost(provider.baseUrl)) {
+    if (reasoning === 'off') return 'none';
+    if (reasoning === 'low') return 'low';
+    if (reasoning === 'medium') return 'high';
+    return 'max';
+  }
+  return reasoning === 'off' ? undefined : reasoning;
+}
+
 function bodyFor(prepared: Prepared, stream: boolean) {
   const {provider, modelMessages, model, reasoning, conversationKey: cacheKey} = prepared;
   if (provider.protocol === 'chat-completions') {
     const body: Record<string, unknown> = {model, messages: [{role: 'system', content: SYSTEM}, ...modelMessages], max_tokens: reasoning === 'off' ? 8192 : 12288, stream};
-    if (reasoning !== 'off') body.reasoning_effort = reasoning;
+    const effort = mappedReasoning(provider, reasoning);
+    if (effort) body.reasoning_effort = effort;
     if (isOpenAIHost(provider.baseUrl)) body.prompt_cache_key = `voxa-${model}`.slice(0, 64);
     return body;
   }
   if (provider.protocol === 'responses') {
     const body: Record<string, unknown> = {model, instructions: SYSTEM, input: modelMessages, max_output_tokens: reasoning === 'off' ? 12288 : 16384};
     if (stream) body.stream = true;
-    if (reasoning !== 'off') body.reasoning = {effort: reasoning};
+    const effort = mappedReasoning(provider, reasoning);
+    if (effort) body.reasoning = {effort};
     if (isOpenAIHost(provider.baseUrl)) body.prompt_cache_key = `voxa-${model}`.slice(0, 64);
     return body;
   }
