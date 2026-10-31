@@ -91,7 +91,10 @@ async function main() {
   const rev0 = terrain.revision();
   const terrainProp = await session.proposeContent('terrain', {
     expectedRevision: rev0,
-    step: { args: { region: { min: [1, 1, 1], max: [2, 2, 2] }, block: 5 } },
+    steps: [
+      { args: { region: { min: [1, 1, 1], max: [2, 2, 2] }, block: 5 } },
+      { args: { region: { min: [4, 4, 4], max: [5, 5, 5] }, block: 6 } },
+    ],
   });
   assert.equal(terrainProp.success, true);
   assert.equal(terrain.get(1, 1, 1), 0, 'proposal must never write terrain');
@@ -108,13 +111,15 @@ async function main() {
 
   const applied = await session.applyPlan((plan as any).planId);
   assert.equal((applied as any).success, true, JSON.stringify(applied));
-  assert.equal(terrain.get(1, 1, 1), 5, 'terrain fill applied');
+  assert.equal(terrain.get(1, 1, 1), 5, 'terrain step 1 applied');
+  assert.equal(terrain.get(4, 4, 4), 6, 'terrain step 2 applied');
   assert.equal(readUiContent(state).title.value.data.data.textContent, '平台+摆件+标签', 'ui applied');
   assert.equal(session.plan((plan as any).planId).status, 'applied');
 
   const reverted = await session.revertPlan((plan as any).planId);
   assert.equal((reverted as any).success, true, JSON.stringify(reverted));
-  assert.equal(terrain.get(1, 1, 1), 0, 'terrain reverted');
+  assert.equal(terrain.get(1, 1, 1), 0, 'terrain step 1 reverted');
+  assert.equal(terrain.get(4, 4, 4), 0, 'terrain step 2 reverted');
   assert.deepEqual(readUiContent(state), uiBefore, 'ui reverted');
   assert.equal(session.plan((plan as any).planId).status, 'reverted');
 
