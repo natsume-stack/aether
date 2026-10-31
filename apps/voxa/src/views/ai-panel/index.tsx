@@ -285,6 +285,7 @@ export function VoxaAiPanel() {
   const transcriptRef = useRef<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
   const mounted = useRef(true);
   const projectRef = useRef('');
+  const goalRef = useRef('');
   const messagesRef = useRef<ChatMessage[]>([]);
   const logRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -312,6 +313,7 @@ export function VoxaAiPanel() {
       const previous = projectRef.current;
       if (previous) void saveProjectMessages(previous, messagesRef.current).catch(() => undefined);
       projectRef.current = id;
+      goalRef.current = '';
       abortRef.current?.abort();
       try {
         const storageKey = conversationStorageKey(id);
@@ -514,6 +516,7 @@ export function VoxaAiPanel() {
     setPrompt('');
     const history = options.history || transcriptRef.current.slice(-10);
     if (options.displayUser !== false) {
+      goalRef.current = text;
       append({ id: nextId('user'), role: 'user', text });
       transcriptRef.current = [...transcriptRef.current, { role: 'user', content: text }];
     } else {
@@ -545,6 +548,7 @@ export function VoxaAiPanel() {
         step,
         reasoning,
         projectId,
+        goal: goalRef.current || text,
         conversationId: conversationId.current,
       }, controller.signal, (event) => {
         if (event.type === 'phase') patchMessage(assistantId, { status: PHASE_TEXT[event.phase] || '处理中…' });

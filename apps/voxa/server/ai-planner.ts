@@ -5,6 +5,7 @@ import {parseProviderUsage, cacheHitRate} from '../../../services/game-server/sr
 import {conversationKey, loadConversation, loadConversationContext, saveConversation, type ConversationMessage} from './agent-conversation';
 import {buildContextPayload, canonicalContext, type AgentContext} from './agent-context';
 import {batRecipe, detectRecipe, type RecipeState} from './modeling-recipes';
+import {retrieveDesignReferences} from './model-gallery';
 import {buildProjections, buildQuality, formatModelingBrief} from './modeling-context';
 
 export type VoxaAiCommand = {kind: string; args: Record<string, unknown>};
@@ -315,6 +316,7 @@ Workflow (follow it across steps):
 5. done=true only when the model is recognizable from all three projections, parts are proportioned, symmetric where expected, detailed (eyes/fangs/edges), and palette/contrast are coherent. Otherwise continue with a small batch.
 
 Rules:
+- The prompt may include 'references' from the public VOXA gallery. Treat them as structural inspiration (proportions, part counts, palette size, detail density), never as templates to copy; invent a new design for the request.
 - Never satisfy a character with one or two big boxes. A recognizable character normally needs a blockout plus 2-4 refinement/detail batches. Separate parts for body/head/limbs/wings/eyes; use mirror for paired parts; eyes/fangs/claws should be 1-voxel details (emissive eyes are encouraged).
 - A character part tree is usually: body mass, head, ears, limbs/wings, eyes, fangs/claws, tail. Keep each part named and proportioned; do not merge everything into one part.
 - Stages: the FIRST batch is S1 and must contain both the named part tree and its initial primitive blockout (part_create + sphere/ellipsoid/cylinder/fill_box). Do not spend a batch on an empty part tree; S0 is only for a clarification question when genuinely needed. Then S2 carve the silhouette with erase_box/paint_path; S3 secondary parts (ears, wing fingers, membrane scallops, tail, joints); S4 1-voxel details (eyes, fangs, claws) and 2-3 value steps per material; S5 polish (weld floaters, unify palette). Do not skip straight to S4.
@@ -384,6 +386,8 @@ async function prepare(req: NextApiRequest, res: NextApiResponse): Promise<Prepa
   const projections = buildProjections(context);
   const quality = buildQuality(context);
   const modelingBrief = formatModelingBrief(projections, quality);
+  const goal = typeof input.goal === 'string' && input.goal.trim() && input.goal.length <= 16000 ? input.goal : input.prompt;
+  const references = retrieveDesignReferences(goal, 4);
   const qualitySummary = {
     symmetry: Number(quality.symmetryX.toFixed(3)),
     floating: quality.floatingComponents,
@@ -396,6 +400,7 @@ async function prepare(req: NextApiRequest, res: NextApiResponse): Promise<Prepa
   const prompt = JSON.stringify({
     ...built.payload,
     modelingBrief,
+    references: references.length ? references : undefined,
     execution: execution.length ? execution : undefined,
     request: input.prompt,
     step,
@@ -426,6 +431,9 @@ async function prepare(req: NextApiRequest, res: NextApiResponse): Promise<Prepa
 }
 
 function takeRecipePlan(prepared: Prepared, prompt: string) {
+  // The auto-template path is opt-in; the default agent designs from model
+  // reasoning + gallery references + verification instead of copying a recipe.
+  if (process.env.BOX_AI_RECIPE_FALLBACK !== 'true') return undefined;
   const blank = prepared.context.voxelContext.cells.length === 0;
   let state = prepared.recipe;
   if (!state) {

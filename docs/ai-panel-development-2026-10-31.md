@@ -176,8 +176,29 @@ Source of truth: /home/natsume/box3-dev/repo/box3-local-engine, branch dev/serve
 
 - 配方是参数化技能（不是固定成品）：蝙蝠配方按画布尺寸缩放，采用“只建左半边 → 最终 mirror”的镜像工作流，包含身体/头部椭球、耳、翼膜扇贝、翼指脊、尾部、眼睛/獠牙/腹部/内耳细节与 6 色调色板。
 - 配方编译为两批命令（27 + 6），全部写入同一个 part，保证编辑器上下文/三视图/质量指标能看到完整模型。
-- 触发条件：空白模型 + 提示词包含蝙蝠/bat；配方状态随会话上下文持久化，首批执行后自动继续第二批。低思考/关思考时 **不调用模型、0 token**。
+- 配方快路径现为**显式可选**（）；默认走“展厅知识检索 + 模型自主设计 + 阶段验证”，避免所有需求都套模板。启用配方时仍为零 token、两批自动继续。
 - 纯几何模拟质量：160 体素、对称 100%、单连通、悬浮 0、6 色；mock 端到端验证首批 27 条命令、第二批细节、模型接口 0 次调用。
 - 配方结束后会话恢复 LLM 路径：高思考模型可在此基础之上继续精修；非配方请求仍走完整的 S1–S5 工作流。
 
 这是普惠路线的第一个样板：后续可扩展更多原型配方（人形/四足/鸟类/载具）、以及让 LLM 输出结构化 PartSpec 后由编译器生成细节。
+
+## 展厅知识库、RAG 与地图侧 Agent 起步（2026-11-01 第四轮）
+
+针对“配方像套模板”的反馈，自动配方已降级为显式可选（`BOX_AI_RECIPE_FALLBACK=true`），默认改为模型自主设计 + 真实作品知识检索。
+
+### VOXA 知识库
+
+- 新增 `apps/voxa/scripts/crawl-voxa-gallery.ts`：从 `https://dao3.fun/exp/model` 的公开接口抓取模型元数据；通过 `/exp/model/detail/<id>` 推荐图扩展样本；从 `assets.box3.fun/engine/m/<hash>` 取模型元数据与数据二进制，使用 `@box/voxa-project` 解析结构统计。
+- 已生成 `apps/voxa/server/voxa-gallery.json`（首批 60 个作品，含标题/标签/描述/尺寸/节点数/调色板/动画标记/来源链接；不存储模型二进制本体）。
+- 新增 `apps/voxa/server/model-gallery.ts`：按提示词二分词检索相近作品，返回 ≤4 条结构参考；规划器在提示词中加入 `references`，明确“只借鉴比例/部件数/调色板/细节密度，不复制作品”。
+- 实测：mock 规划两步均携带 `references`；前缀回放/上下文增量/缓存计费测试继续通过。
+
+### 地图侧 Agent
+
+- `map-authoring-tools.ts` 新增三个工具：
+  - `mapDesignBrief`：地图尺寸、地表高度/覆盖率/主要方块、UI/实体/模型资产统计、revision、质量检查与阶段建议。
+  - `mapDesignPlan`：terrain/ui/script/models/verify 分阶段计划（单项进行中）。
+  - `mapVerify`：写入前后校验地表覆盖率/高度、UI 树、实体、模型资产和 revision。
+- `ai-server` 地图系统提示改为阶段化设计流程：先 brief/plan，再地形块面与细化、UI、脚本类型检查、模型资产/实体放置、verify，最后按用户明确要求保存/发布；禁止猜方块 ID，写入使用 revision。
+- 下一步：把 VOXA 的 ModelSpec 编译器和模型创作桥接到地图侧，让地图 agent 能直接生成/放置新模型，而不仅是已有模型。
+

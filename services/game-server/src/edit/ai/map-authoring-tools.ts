@@ -16,6 +16,7 @@ import { EditReplicaServer } from '../replica/replica-server';
 import { readTerrainRegion } from './terrain-region';
 import { registerAuthoringDomain } from './authoring-tools';
 import { createUiContentDomain, readUiContent, uiContentRevision } from './ui-content-domain';
+import { readContentOverview } from './content-overview';
 
 /**
  * Engine-side AI authoring tools for TERRAIN (voxels) and the UI tree.
@@ -629,7 +630,125 @@ export const createMapAuthoringTools = (
     })
     .describe('Axis-aligned voxel region');
 
+  const terrainSummary = (sampleStep = 0) => {
+    const v = voxelView();
+    const [sx, sy, sz] = v.shape;
+    const step = sampleStep && Number.isInteger(sampleStep)
+      ? sampleStep
+      : Math.max(1, Math.floor(Math.min(sx, sz) / 24));
+    let minHeight = sy;
+    let maxHeight = 0;
+    let total = 0;
+    let samples = 0;
+    let filled = 0;
+    const topBlocks = new Map<number, number>();
+    for (let x = 0; x < sx; x += step) {
+      for (let z = 0; z < sz; z += step) {
+        let y = sy - 1;
+        while (y >= 0 && (v.getVoxel(x, y, z) & VOXEL_TYPE_MASK) === 0) y -= 1;
+        const height = y < 0 ? 0 : y + 1;
+        samples += 1;
+        if (height > 0) {
+          filled += 1;
+          minHeight = Math.min(minHeight, height);
+          maxHeight = Math.max(maxHeight, height);
+          total += height;
+          const block = v.getVoxel(x, y, z) & VOXEL_TYPE_MASK;
+          topBlocks.set(block, (topBlocks.get(block) || 0) + 1);
+        }
+      }
+    }
+    if (!filled) minHeight = 0;
+    return {
+      shape: v.shape,
+      sampleStep: step,
+      samples,
+      filled,
+      coverage: samples ? Number((filled / samples).toFixed(3)) : 0,
+      minHeight,
+      maxHeight,
+      averageHeight: filled ? Number((total / filled).toFixed(2)) : 0,
+      topBlocks: [...topBlocks.entries()]
+        .sort((left, right) => right[1] - left[1])
+        .slice(0, 8)
+        .map(([id, count]) => ({ id, count, name: blockNameOf(id) })),
+    };
+  };
+
   return {
+    mapDesignBrief: tool({
+      description:
+        'Read the authoritative map design brief before planning: terrain surface summary, UI/entity/model counts, revisions and stage guidance. Call this first.',
+      inputSchema: z.object({ sampleStep: z.number().int().min(1).max(64).optional() }),
+      execute: async ({ sampleStep }) => {
+        const overview = readContentOverview(state);
+        const terrain = terrainSummary(sampleStep);
+        const checks = [
+          { id: 'terrain', ok: terrain.filled > 0, detail: `coverage ${Math.round(terrain.coverage * 100)}%, height ${terrain.minHeight}-${terrain.maxHeight}` },
+          { id: 'ui', ok: overview.uiNodeCount > 0, detail: `${overview.uiNodeCount} UI nodes` },
+          { id: 'entities', ok: overview.entityCount > 0, detail: `${overview.entityCount} entities` },
+          { id: 'models', ok: overview.assets.length > 0, detail: `${overview.assets.length} model assets` },
+        ];
+        logger.info({ gameId }, '[AI Tool] mapDesignBrief');
+        return {
+          success: true,
+          terrain,
+          content: overview,
+          revisions: { terrain: computeTerrainRevision(voxelView()), ...overview.contentRevisions },
+          checks,
+          stages: ['terrain', 'ui', 'script', 'models', 'verify'],
+          guidance: [
+            'Inspect before every write; use terrainInfo/terrainRead and revision tokens.',
+            'Build terrain in blockout then refine silhouette/height layers; keep changes reversible.',
+            'UI: read uiContext/uiTreeRead, add nodes, then verify hierarchy and scripts.',
+            'Scripts: use server-script tools; run typecheck before saving.',
+            'Models: only use project model assets; listModels/entity tools place existing VOXA models.',
+            'Finish with mapVerify, then save/publish only when the user explicitly asks.',
+          ],
+        };
+      },
+    }),
+    mapDesignPlan: tool({
+      description:
+        'Create or update a staged map design plan (terrain/ui/script/models/verify). One stage at a time; keep objectives concrete.',
+      inputSchema: z.object({
+        goal: z.string().trim().min(1).max(600),
+        stages: z.array(z.object({
+          id: z.enum(['terrain', 'ui', 'script', 'models', 'verify']),
+          objective: z.string().trim().min(1).max(400),
+          status: z.enum(['pending', 'in_progress', 'done', 'blocked']).optional(),
+        })).min(1).max(8),
+        notes: z.string().trim().max(1000).optional(),
+      }),
+      execute: async ({ goal, stages, notes }) => {
+        const plan = { goal, notes: notes || '', stages: stages.map((stage) => ({ ...stage, status: stage.status || 'pending' })) };
+        return { success: true, plan, nextStage: plan.stages.find((stage) => stage.status !== 'done')?.id || 'verify' };
+      },
+    }),
+    mapVerify: tool({
+      description:
+        'Verify the current map against the design plan: terrain surface/coverage, UI tree, entities, model assets and revisions. Use before declaring a stage done.',
+      inputSchema: z.object({ sampleStep: z.number().int().min(1).max(64).optional() }),
+      execute: async ({ sampleStep }) => {
+        const overview = readContentOverview(state);
+        const terrain = terrainSummary(sampleStep);
+        const checks = [
+          { id: 'terrain', ok: terrain.filled > 0, detail: `coverage ${Math.round(terrain.coverage * 100)}%, height ${terrain.minHeight}-${terrain.maxHeight}`, required: true },
+          { id: 'ui', ok: overview.uiNodeCount > 0, detail: `${overview.uiNodeCount} UI nodes`, required: false },
+          { id: 'entities', ok: overview.entityCount > 0, detail: `${overview.entityCount} entities`, required: false },
+          { id: 'models', ok: overview.assets.length > 0, detail: `${overview.assets.length} model assets`, required: false },
+        ];
+        return {
+          success: true,
+          passed: checks.filter((check) => check.required).every((check) => check.ok),
+          checks,
+          warnings: checks.filter((check) => !check.ok).map((check) => `${check.id}: ${check.detail}`),
+          terrain,
+          content: overview,
+          revisions: { terrain: computeTerrainRevision(voxelView()), ...overview.contentRevisions },
+        };
+      },
+    }),
     uiContext: tool({description:'Read bounded authoritative existing UI nodes and revision for property-only proposals. Names, IDs, hierarchy and scripts are retained.',
       inputSchema:z.object({ids:z.array(z.string()).max(256).optional(),offset:z.number().int().min(0).default(0),limit:z.number().int().min(1).max(256).default(64)}),
       execute:async({ids,offset,limit})=>{
