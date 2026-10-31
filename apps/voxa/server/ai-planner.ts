@@ -4,14 +4,15 @@ import {providerRequestUrl} from '../../../services/game-server/src/edit/ai/prov
 import {parseProviderUsage, cacheHitRate} from '../../../services/game-server/src/edit/ai/provider-usage';
 import {conversationKey, loadConversation, loadConversationContext, saveConversation, type ConversationMessage} from './agent-conversation';
 import {buildContextPayload, canonicalContext, type AgentContext} from './agent-context';
+import {buildProjections, buildQuality, formatModelingBrief} from './modeling-context';
 
 export type VoxaAiCommand = {kind: string; args: Record<string, unknown>};
-export type VoxaAiPlan = {message: string; commands: VoxaAiCommand[]; done: boolean};
+export type VoxaAiPlan = {message: string; commands: VoxaAiCommand[]; done: boolean; stage?: string};
 export type VoxaToolResult = {kind: string; ok: boolean; error?: string};
 export type VoxaHistoryRow = {role: 'user' | 'assistant'; content: string};
 export type VoxaReasoning = 'off' | 'low' | 'medium' | 'high';
 
-const kinds = new Set(['paint', 'erase', 'paint_path', 'fill_box', 'set_color', 'trim', 'part_patch', 'part_create', 'part_select', 'part_delete', 'part_group', 'part_move', 'palette_add', 'workspace_resize']);
+const kinds = new Set(['paint', 'erase', 'paint_path', 'fill_box', 'set_color', 'trim', 'part_patch', 'part_create', 'part_select', 'part_delete', 'part_group', 'part_move', 'palette_add', 'workspace_resize', 'sphere', 'ellipsoid', 'cylinder', 'erase_box', 'replace_color', 'copy_region', 'mirror']);
 const PLAN_TIMEOUT_MS = 180_000;
 
 const KIND_ALIASES: Record<string, string> = {
@@ -160,6 +161,7 @@ export function coercePlanValue(value: unknown): VoxaAiPlan & { rejected: number
   let message = '';
   let rows: unknown[] = [];
   let done: boolean | undefined;
+  let stage: string | undefined;
 
   if (Array.isArray(value)) {
     rows = value;
@@ -189,6 +191,7 @@ export function coercePlanValue(value: unknown): VoxaAiPlan & { rejected: number
     else if (typeof plan.finished === 'boolean') done = plan.finished;
     else if (typeof plan.complete === 'boolean') done = plan.complete;
     else if (typeof plan.isDone === 'boolean') done = plan.isDone;
+    if (typeof plan.stage === 'string' && /^S[0-5]$/.test(plan.stage)) stage = plan.stage;
   }
 
   if (rows.length > 32) throw new Error('Invalid model plan');
@@ -214,6 +217,7 @@ export function coercePlanValue(value: unknown): VoxaAiPlan & { rejected: number
     message: message || (commands.length ? `已生成 ${commands.length} 项修改。` : '没有需要执行的修改。'),
     commands,
     done: done === true || (commands.length === 0 && considered === 0),
+    stage,
     rejected: considered - commands.length,
     rejectedKinds,
   };
@@ -229,7 +233,8 @@ export function validateVoxaAiPlan(value: unknown): VoxaAiPlan {
     if (!cmd || !kinds.has(String(cmd.kind)) || !cmd.args || typeof cmd.args !== 'object' || Array.isArray(cmd.args) || JSON.stringify(cmd.args).length > 64000) throw new Error('Invalid model command');
     return {kind: String(cmd.kind), args: cmd.args as Record<string, unknown>};
   });
-  return {message: plan.message, commands, done: plan.done === true || commands.length === 0};
+  const stage = typeof plan.stage === 'string' && /^S[0-5]$/.test(plan.stage) ? plan.stage : undefined;
+  return {message: plan.message, commands, done: plan.done === true || commands.length === 0, stage};
 }
 
 function historyRows(value: unknown): VoxaHistoryRow[] {
@@ -255,7 +260,7 @@ function toolResultRows(value: unknown): VoxaToolResult[] {
 function stepValue(value: unknown) {
   if (value === undefined) return 0;
   const step = Number(value);
-  if (!Number.isInteger(step) || step < 0 || step > 4) throw new Error('Invalid agent step');
+  if (!Number.isInteger(step) || step < 0 || step > 6) throw new Error('Invalid agent step');
   return step;
 }
 
@@ -299,21 +304,32 @@ export async function authorizeVoxaAiWrite(req: NextApiRequest, res: NextApiResp
   return internal('/api/player-ai-internal/execution',input.runId?{userId,runId:input.runId,event:{phase:input.phase || 'before',action:input.action || 'voxa-batch',snapshot:input.snapshot || ''}}:{userId,scope:`voxa:${String(modelId)}`,mode:input.mode==='review'?'review':'autonomous',providerId:input.providerId,model:input.model},req,res);
 }
 
-export const SYSTEM = `You are the VOXA voxel agent. Work the way a coding agent works: read the supplied context, plan the smallest correct batch, execute it, inspect the execution report, repair failures, and continue only while the goal is unfinished.
+export const SYSTEM = `You are a senior VOXA voxel modeler and agent. Your output must read as a deliberate, hand-built model, not a few giant blocks.
 
-Return ONLY a JSON object: {"commands":[...],"message":"reply in the user language","done":false}.
-- Use exactly {"kind":"part_create","args":{"alias":"$body"}} for every command. Do not use cmd/tool/single-key wrappers.
-- Example: {"commands":[{"kind":"part_create","args":{"alias":"$body","name":"Bat"}},{"kind":"paint","args":{"at":[7,7,7],"colorId":1}}],"message":"已创建","done":false}
-- Put "commands" FIRST in the object so the editor can show tool calls while you are still streaming. Keep "message" under 120 words and do not include reasoning or long prose.
-- done=true only when the user's goal is fully satisfied by the work already applied. Otherwise return the next batch and done=false.
-- If the execution report lists failures, fix those first. Never repeat changes that already succeeded.
-- If the report shows every command succeeded and the goal is met, return commands:[] and done=true.
-- Never claim a change was applied; the editor applies commands after this reply.
-- Prefer a few precise commands over broad rewrites. Re-read voxelContext and parts before editing.
+Workflow (follow it across steps):
+1. Read modelingBrief/projections/quality, parts and voxel cells. Propose a short part tree with target bounds (body, head, ears, wings, eyes, fangs, tail...). Keep independent parts separate.
+2. Blockout with a few primitives/fill_box at the right proportions. Then REFINE the silhouette: erase_box and paint/erase single voxels to shape edges.
+3. Add secondary forms and details: 1-voxel eyes, fangs, claws, wing membrane ridges, ears, joints, shading with 2-5 palette colors. Use mirror/copy_region for symmetry instead of hand-copying.
+4. After each batch inspect projections and quality. If symmetry < 0.85, floating/extra components exist, proportions read poorly, or the front/side/top silhouettes do not resemble the target, fix those first.
+5. done=true only when the model is recognizable from all three projections, parts are proportioned, symmetric where expected, detailed (eyes/fangs/edges), and palette/contrast are coherent. Otherwise continue with a small batch.
 
-Commands: paint/erase {at:[x,y,z],colorId}, paint_path {points:[[x,y,z]],colorId,paceMs:0}, fill_box {from:[x,y,z],to:[x,y,z],colorId,hollow:false,paceMs:0}, set_color {id}, trim {}, palette_add {alias:"$red",rgb:[255,0,0],emissive?:0} adds an RGB color (0..255), workspace_resize {size:[x,y,z]} resizes the active voxel canvas (axes 1..256, at most 1048576 cells; native resize recenters X/Z and may crop voxels), part_patch {id,name?,position?:[x,y,z],scale?:[x,y,z],pivot?:[x,y,z],rotationDegrees?:[x,y,z],alpha?:0.5}, part_create {alias:"$body",name?} creates a part and selects its voxel canvas, part_select {id} selects a part before painting, part_delete {id} removes an existing part or group, part_group {ids:[id,...],alias:"$group",name?} groups sibling parts, part_move {id,parentId} reparents a part/group into an existing group.
+Rules:
+- Never satisfy a character with one or two big boxes. A recognizable character normally needs a blockout plus 2-4 refinement/detail batches. Separate parts for body/head/limbs/wings/eyes; use mirror for paired parts; eyes/fangs/claws should be 1-voxel details (emissive eyes are encouraged).
+- A character part tree is usually: body mass, head, ears, limbs/wings, eyes, fangs/claws, tail. Keep each part named and proportioned; do not merge everything into one part.
+- Stages, one per batch: S0 part tree with names, target bounds and symmetry via part_create; S1 blockout with primitives sized to those bounds; S2 carve the silhouette with erase_box/paint_path; S3 secondary parts (ears, wing fingers, membrane scallops, tail, joints); S4 1-voxel details (eyes, fangs, claws) and 2-3 value steps per material; S5 polish (weld floaters, unify palette). Do not skip straight to S4.
+- Anti-block rules: a single fill_box/sphere/ellipsoid/cylinder should cover less than half of its part bounds; after every two large fills add at least one erase/paint/paint_path; a detail batch must be at least half paint/erase/paint_path; one box per part is forbidden. For symmetric parts build only one side and use mirror/copy_region.
+- Done criteria: projections readable from front/side/top, symmetry score >= 0.9, floatingComponents 0, 4-8 palette colors for a 16^3 character, eyes/fangs/edge details present, and no new quality issue in two consecutive batches. Use modelingBrief/quality numbers; if symmetry is low or floaters exist, fix them before adding more mass.
+- Prefer small precise commands over huge fills. Use fill_box only for solid masses; use sphere/ellipsoid/cylinder for organic masses; use erase_box/paint/erase for carving and edges.
+- Use at most 32 commands per batch. Stay within shape bounds. Prefer symmetry; model one side then mirror/copy.
+- Return ONLY JSON: {"stage":"S1","commands":[...],"message":"short reply in the user language","done":false}. Put commands first; keep message under 120 words; no reasoning or long prose.
+- done=true only when complete; otherwise done=false and give the next batch.
+- If an execution report lists failures, repair them first; never repeat successful changes.
+- Never claim a change was applied; the editor applies commands.
 
-Root nodes cannot be removed or moved; cyclic hierarchy is forbidden. Maximum 32 commands per batch, 8192 cells per fill, 4096 points per path. Coordinates are integer local voxel coordinates within the current shape. Do not generate scripts or arbitrary code. Empty commands for advice. Parts/context describe the currently open unsaved model. voxelContext.cells are occupied cells of the active part only; truncated=true means missing cells are unknown, not empty. Select the correct part before editing. The user message contains either 'context' (full state) or 'contextDelta': for a delta, start from the context in the previous turn, apply 'added'/'removed' cells ([x,y,z,colorId]), treat omitted cells as unchanged, replace parts/palette only when present, and use the current shape/partId. Use existing palette colorId or palette_add and reference its $alias in later commands.`;
+Commands: paint/erase {at:[x,y,z],colorId}, paint_path {points:[[x,y,z]],colorId,paceMs:0}, fill_box {from:[x,y,z],to:[x,y,z],colorId,hollow?:false,paceMs:0}, erase_box {from,to} carves a region, replace_color {fromColorId,toColorId,from?,to?}, sphere {center:[x,y,z],radius:1..64,colorId,hollow?}, ellipsoid {center,radii:[rx,ry,rz],colorId,hollow?}, cylinder {base:[x,y,z],radius,height,axis:'x'|'y'|'z',colorId,hollow?}, copy_region {from,to,offset:[dx,dy,dz],mirrorAxis?:'x'|'y'|'z'}, mirror {axis:'x'|'y'|'z',plane?:number}, set_color {id}, trim {}, palette_add {alias:"$red",rgb:[255,0,0],emissive?:0}, workspace_resize {size:[x,y,z]}, part_patch {id,name?,position?,scale?,pivot?,rotationDegrees?,alpha?}, part_create {alias:"$body",name?}, part_select {id}, part_delete {id}, part_group {ids,alias,name?}, part_move {id,parentId}.
+
+Root nodes cannot be removed or moved; cyclic hierarchy is forbidden. Max 32 commands, 8192 cells per fill/sphere, 4096 points per path. Coordinates are integer local voxels. Do not generate scripts. voxelContext.cells are occupied cells of the active part; truncated=true means unknown, not empty. The user message contains either 'context' (full state) or 'contextDelta': apply added/removed cells to the previous turn, treat omitted cells as unchanged, replace parts/palette only when present, and use current shape/partId. Use existing palette colorId or palette_add with $alias.`;
+
 
 function redact(text: string, secret: string) {
   const value = String(text || '');
@@ -332,8 +348,10 @@ type Prepared = {
   model: string;
   userId: string;
   contextChars: number;
+  projectId?: string;
   context: AgentContext;
   contextMode: 'full' | 'delta';
+  quality: {symmetry: number; floating: number; components: number; colors: number; occupied: number; truncated: boolean};
   conversationKey?: string;
 };
 
@@ -347,15 +365,30 @@ async function prepare(req: NextApiRequest, res: NextApiResponse): Promise<Prepa
   const userId = await voxaAiIdentity(req, res);
   const {provider} = await internal('/api/player-ai-internal/resolve', {userId, providerId: input.providerId}, req, res);
   const conversationId = typeof input.conversationId === 'string' && /^[0-9a-f-]{36}$/i.test(input.conversationId) ? input.conversationId : '';
-  const cacheKey = conversationId ? conversationKey(userId, String(provider.id), String(input.model), SYSTEM, conversationId) : '';
+  const projectId = typeof input.projectId === 'number' && Number.isSafeInteger(input.projectId)
+    ? String(input.projectId)
+    : typeof input.projectId === 'string' && /^[a-zA-Z0-9_-]{1,64}$/.test(input.projectId) ? input.projectId : '';
+  const cacheKey = conversationId ? conversationKey(userId, String(provider.id), String(input.model), SYSTEM, conversationId, projectId) : '';
   const stored = cacheKey ? loadConversation(cacheKey) : undefined;
   const previousRaw = cacheKey ? loadConversationContext(cacheKey) : undefined;
   const context = canonicalContext(input.context);
   const previous = previousRaw ? canonicalContext(previousRaw) : undefined;
   const built = buildContextPayload(context, previous);
+  const projections = buildProjections(context);
+  const quality = buildQuality(context);
+  const modelingBrief = formatModelingBrief(projections, quality);
+  const qualitySummary = {
+    symmetry: Number(quality.symmetryX.toFixed(3)),
+    floating: quality.floatingComponents,
+    components: quality.components,
+    colors: quality.paletteUsage.length,
+    occupied: quality.occupiedCells,
+    truncated: quality.truncated,
+  };
   // Stable context first; the request and step are the volatile tail.
   const prompt = JSON.stringify({
     ...built.payload,
+    modelingBrief,
     execution: execution.length ? execution : undefined,
     request: input.prompt,
     step,
@@ -376,8 +409,10 @@ async function prepare(req: NextApiRequest, res: NextApiResponse): Promise<Prepa
     model: String(input.model),
     userId,
     contextChars: prompt.length,
+    projectId: projectId || undefined,
     context,
     contextMode: built.mode,
+    quality: qualitySummary,
     conversationKey: cacheKey || undefined,
   };
 }
@@ -511,7 +546,7 @@ export async function generateVoxaAiPlan(req: NextApiRequest, res: NextApiRespon
   const prepared = await prepare(req, res);
   const {provider, userId, model} = prepared;
   const started = Date.now();
-  const {runId} = await internal('/api/player-ai-internal/execution', {userId, scope: `voxa:${String(req.body?.context?.snapshot?.project?.modelId || 'planner')}`, mode: 'review', providerId: provider.id, model}, req, res);
+  const {runId} = await internal('/api/player-ai-internal/execution', {userId, scope: `voxa:${prepared.projectId || String(req.body?.context?.snapshot?.project?.modelId || 'planner')}`, mode: 'review', providerId: provider.id, model}, req, res);
   let completed = false;
   let inputTokens = 0;
   let outputTokens = 0;
@@ -548,9 +583,9 @@ export async function generateVoxaAiPlan(req: NextApiRequest, res: NextApiRespon
     try { value = JSON.parse(clean); } catch { completed = true; return {message: text, commands: [], done: true}; }
     const plan = coercePlanValue(value);
     if (plan.commands.length === 0 && plan.rejected > 0) throw new Error(`模型返回的命令格式不受支持：${plan.rejectedKinds.join(', ')}`);
-    console.info('[voxa-ai] plan parsed', { commands: plan.commands.length, rejected: plan.rejected });
+    console.info('[voxa-ai] plan parsed', { commands: plan.commands.length, rejected: plan.rejected, stage: plan.stage });
     completed = true;
-    return { message: plan.message, commands: plan.commands, done: plan.done };
+    return { message: plan.message, commands: plan.commands, done: plan.done, stage: plan.stage, quality: prepared.quality };
   } finally {
     clearTimeout(timer); res.off('close', cancel);
     console.info('[voxa-ai] plan finished', {completed, elapsedMs: Date.now() - started, contextMode: prepared.contextMode, contextChars: prepared.contextChars, inputTokens, outputTokens, cachedTokens, cacheWriteTokens, cacheHitRate: cacheHitRate({input: inputTokens, output: outputTokens, cached: cachedTokens, cacheWrite: cacheWriteTokens, cacheMiss: Math.max(0, inputTokens - cachedTokens)})});
@@ -587,7 +622,7 @@ export async function streamVoxaAiPlan(req: NextApiRequest, res: NextApiResponse
     prepared = await prepare(req, res);
     const {provider, userId, model} = prepared;
     send({type: 'phase', phase: 'waiting'});
-    const lease = await internal('/api/player-ai-internal/execution', {userId, scope: `voxa:${String(req.body?.context?.snapshot?.project?.modelId || 'planner')}`, mode: 'review', providerId: provider.id, model}, req, res);
+    const lease = await internal('/api/player-ai-internal/execution', {userId, scope: `voxa:${prepared.projectId || String(req.body?.context?.snapshot?.project?.modelId || 'planner')}`, mode: 'review', providerId: provider.id, model}, req, res);
     runId = String(lease.runId || '');
     console.info('[voxa-ai] stream start', {contextChars: prepared.contextChars, reasoning: prepared.reasoning});
     const response = await safeProviderFetch(providerRequestUrl(provider.baseUrl, provider.protocol), {
@@ -681,7 +716,7 @@ export async function streamVoxaAiPlan(req: NextApiRequest, res: NextApiResponse
     if (plan.commands.length === 0 && plan.rejected > 0) throw new Error(`模型返回的命令格式不受支持：${plan.rejectedKinds.join(', ')}`);
     completed = true;
     console.info('[voxa-ai] stream done', {firstByteMs, totalMs: Date.now() - started, contextMode: prepared.contextMode, contextChars: prepared.contextChars, chars: text.length, commands: plan.commands.length, rejected: plan.rejected, rejectedKinds: plan.rejectedKinds.slice(0, 6), inputTokens, outputTokens, cachedTokens, cacheWriteTokens, cacheHitRate: cacheHitRate({input: inputTokens, output: outputTokens, cached: cachedTokens, cacheWrite: cacheWriteTokens, cacheMiss: Math.max(0, inputTokens - cachedTokens)})});
-    send({type: 'plan', message: plan.message, commands: plan.commands, done: plan.done, usage: {input: inputTokens, output: outputTokens, cached: cachedTokens, cacheWrite: cacheWriteTokens, hitRate: cacheHitRate({input: inputTokens, output: outputTokens, cached: cachedTokens, cacheWrite: cacheWriteTokens, cacheMiss: Math.max(0, inputTokens - cachedTokens)})}});
+    send({type: 'plan', message: plan.message, commands: plan.commands, done: plan.done, stage: plan.stage, quality: prepared.quality, usage: {input: inputTokens, output: outputTokens, cached: cachedTokens, cacheWrite: cacheWriteTokens, hitRate: cacheHitRate({input: inputTokens, output: outputTokens, cached: cachedTokens, cacheWrite: cacheWriteTokens, cacheMiss: Math.max(0, inputTokens - cachedTokens)})}});
   } catch (error) {
     const message = error instanceof Error ? error.message : 'AI request failed';
     console.info('[voxa-ai] stream failed', {elapsedMs: Date.now() - started, message: message.slice(0, 120)});

@@ -6,6 +6,17 @@ import { vec3, quat } from 'gl-matrix';
 import {RGBToHsv} from '../../utils/color';
 import {DEFAULT_GROUP_ID} from '../../defs';
 import {projectSchemaToBytes, projectV10} from '@box/voxa-project';
+import {
+  copyRegionCells,
+  cylinderCells,
+  dedupeCells,
+  ellipsoidCells,
+  filterCellsInBounds,
+  mirrorCells,
+  normalizeBox,
+  sphereCells,
+} from './geometry-commands';
+import type { Axis, ColoredCell } from './geometry-commands';
 
 import type { VoxelEditor } from '../editor';
 import { store } from '../../redux/store';
@@ -64,6 +75,13 @@ const KIND_LABEL: Record<string, string> = {
   erase: '擦除体素',
   paint_path: '沿路径上色',
   fill_box: '填充区域',
+  sphere: '生成球体',
+  ellipsoid: '生成椭球',
+  cylinder: '生成圆柱',
+  erase_box: '擦除区域',
+  replace_color: '替换颜色',
+  copy_region: '复制区域',
+  mirror: '镜像模型',
   palette: '读取调色板',
   set_color: '切换颜色',
   trim: '裁掉空白',
@@ -77,12 +95,21 @@ const KIND_LABEL: Record<string, string> = {
 
 const MAX_PATH_CELLS = 4_096;
 const MAX_FILL_CELLS = 8_192;
+const MAX_BATCH_CELLS = 32_768;
+const MAX_COLOR_ID = 0x3fff;
 
 const WRITE_KINDS = new Set([
   'paint',
   'erase',
   'paint_path',
   'fill_box',
+  'sphere',
+  'ellipsoid',
+  'cylinder',
+  'erase_box',
+  'replace_color',
+  'copy_region',
+  'mirror',
   'trim',
   'undo',
   'redo',
@@ -106,6 +133,8 @@ type ProgressReceipt = {
   total: number;
   note: string;
 };
+
+type CellWrite = { voxel: Vec3Tuple; color: number };
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, Math.max(0, ms)));
@@ -173,16 +202,22 @@ export class VoxaAgentLiveSession {
     const parts = Object.entries(data.nodes).slice(0,128).map(([id,node]) => ({id,name:node.name,type:node.type,parentId:node.parentId,position:Array.from(node.position),scale:Array.from(node.scale),pivot:Array.from(node.pivot),rotationDegrees:Array.from(node.euler),alpha:node.alpha}));
     const shape=this.shape();
     const voxels=this.model().voxels;
-    const cells:number[][]=[];
+    const occupied:number[][]=[];
     let scanned=0;
     const volume=shape[0]*shape[1]*shape[2];
+    const cellLimit=4096;
     scan: for(let x=0;x<shape[0];x++) for(let y=0;y<shape[1];y++) for(let z=0;z<shape[2];z++) {
-      if(scanned>=262144 || cells.length>=2048) break scan;
+      if(scanned>=262144 || occupied.length>=65536) break scan;
       scanned++;
       const colorId=voxels.getVoxel(x,y,z);
-      if(colorId>0) cells.push([x,y,z,colorId]);
+      if(colorId>0) occupied.push([x,y,z,colorId]);
     }
-    return {voxelContext:{partId:store.getState().app.editingSkinPartId,shape,cells,scanned,totalCells:volume,truncated:scanned<volume,order:'x,y,z; each cell [x,y,z,colorId]'},fingerprint:await this.panelFingerprint(data),snapshot:this.snapshot(),parts,palette:this.paletteInfo({limit:64}),revision:this.modelRevision,humanEpoch:this.humanEpoch,undoDepth:this.voxaDepth().undo};
+    // Sample uniformly instead of returning only the first scanned corner, so
+    // the planner and quality brief see the whole model on detailed projects.
+    const cells=occupied.length>cellLimit
+      ? Array.from({length:cellLimit},(_,i)=>occupied[Math.floor(i*occupied.length/cellLimit)])
+      : occupied;
+    return {voxelContext:{partId:store.getState().app.editingSkinPartId,shape,cells,scanned,totalCells:volume,truncated:scanned<volume || occupied.length>cellLimit,sampled:occupied.length>cellLimit,order:'x,y,z; each cell [x,y,z,colorId]'},fingerprint:await this.panelFingerprint(data),snapshot:this.snapshot(),parts,palette:this.paletteInfo({limit:64}),revision:this.modelRevision,humanEpoch:this.humanEpoch,undoDepth:this.voxaDepth().undo};
   }
 
   public async executePanelPlan(commands: Array<{kind:string;args:Record<string,unknown>}>, expected: {revision:number;humanEpoch:number;undoDepth:number;fingerprint:string}, signal:AbortSignal,metadata:{providerId?:string;model?:string;mode?:'review'|'autonomous'}={},onEvent?:(event:{type:'command-start'|'command-done'|'command-error'|'batch-done';index?:number;kind?:string;message?:string;total?:number})=>void) {
@@ -221,11 +256,110 @@ export class VoxaAgentLiveSession {
         if(command.kind==='fill_box') {
           const a=coordinate(command.args.from),b=coordinate(command.args.to);
           const volume=a.reduce((v,n,i)=>v*(Math.abs(n-b[i])+1),1);
-          if(volume>8192) throw new Error('Voxel fill exceeds budget');
+          if(volume>MAX_FILL_CELLS) throw new Error('Voxel fill exceeds budget');
           cells+=volume;
         }
+        if(command.kind==='sphere') {
+          const center=coordinate(command.args.center) as Vec3Tuple;
+          const radius=Number(command.args.radius);
+          if(!Number.isInteger(radius) || radius<1 || radius>64) throw new Error('Invalid sphere radius');
+          const volume=sphereCells(center,radius,Boolean(command.args.hollow)).length;
+          if(volume>MAX_FILL_CELLS) throw new Error('Voxel sphere exceeds budget');
+          cells+=volume;
+        }
+        if(command.kind==='ellipsoid') {
+          const center=coordinate(command.args.center) as Vec3Tuple;
+          const radii=command.args.radii;
+          if(!Array.isArray(radii) || radii.length!==3 || radii.some(n=>!Number.isInteger(Number(n)) || Number(n)<1 || Number(n)>64)) throw new Error('Invalid ellipsoid radii');
+          const volume=ellipsoidCells(center,radii.map(Number) as Vec3Tuple,Boolean(command.args.hollow)).length;
+          if(volume>MAX_FILL_CELLS) throw new Error('Voxel ellipsoid exceeds budget');
+          cells+=volume;
+        }
+        if(command.kind==='cylinder') {
+          const base=coordinate(command.args.base) as Vec3Tuple;
+          const radius=Number(command.args.radius);
+          const height=Number(command.args.height);
+          const axis=command.args.axis===undefined ? 'y' : command.args.axis;
+          if(!Number.isInteger(radius) || radius<1 || radius>64) throw new Error('Invalid cylinder radius');
+          if(!Number.isInteger(height) || height<1 || height>128) throw new Error('Invalid cylinder height');
+          if(axis!=='x' && axis!=='y' && axis!=='z') throw new Error('Invalid cylinder axis');
+          const volume=cylinderCells(base,radius,height,axis,Boolean(command.args.hollow)).length;
+          if(volume>MAX_FILL_CELLS) throw new Error('Voxel cylinder exceeds budget');
+          cells+=volume;
+        }
+        if(command.kind==='erase_box') {
+          const a=coordinate(command.args.from) as Vec3Tuple,b=coordinate(command.args.to) as Vec3Tuple;
+          const volume=normalizeBox(a,b).volume;
+          if(volume>MAX_FILL_CELLS) throw new Error('Voxel erase exceeds budget');
+          cells+=volume;
+        }
+        if(command.kind==='replace_color') {
+          const fromAlias=typeof command.args.fromColorId==='string' && String(command.args.fromColorId).startsWith('$');
+          const toAlias=typeof command.args.toColorId==='string' && String(command.args.toColorId).startsWith('$');
+          if(!toAlias) {
+            const to=Number(command.args.toColorId);
+            if(!Number.isInteger(to) || to<0 || to>MAX_COLOR_ID) throw new Error('Invalid replace target color');
+          }
+          if(fromAlias) {
+            // Palette aliases only resolve once palette_add has run; the executor still
+            // enforces the 8192 changed-cell cap at execution time.
+          } else {
+            const from=Number(command.args.fromColorId);
+            if(!Number.isInteger(from) || from<1 || from>MAX_COLOR_ID) throw new Error('Invalid replace source color');
+            let min:[number,number,number]=[0,0,0];
+            let max:[number,number,number]=[shape[0]-1,shape[1]-1,shape[2]-1];
+            if(command.args.from!==undefined || command.args.to!==undefined) {
+              if(command.args.from===undefined || command.args.to===undefined) throw new Error('replace_color needs both from and to box corners');
+              const box=normalizeBox(coordinate(command.args.from) as Vec3Tuple,coordinate(command.args.to) as Vec3Tuple);
+              min=box.min;max=box.max;
+            }
+            const voxels=this.model().voxels;
+            let changed=0;
+            for(let x=min[0];x<=max[0];x+=1) for(let y=min[1];y<=max[1];y+=1) for(let z=min[2];z<=max[2];z+=1) {
+              if(voxels.getVoxel(x,y,z)===from) {
+                changed+=1;
+                if(changed>MAX_FILL_CELLS) throw new Error('Voxel replace exceeds budget');
+              }
+            }
+            cells+=changed;
+          }
+        }
+        if(command.kind==='copy_region') {
+          const a=coordinate(command.args.from) as Vec3Tuple,b=coordinate(command.args.to) as Vec3Tuple;
+          const box=normalizeBox(a,b);
+          const offset=asVec3(command.args.offset);
+          if(!offset || !offset.every(n=>Number.isInteger(n)) || offset.some(n=>Math.abs(n)>256)) throw new Error('Invalid copy offset');
+          if(command.args.mirrorAxis!==undefined && !['x','y','z'].includes(String(command.args.mirrorAxis))) throw new Error('Invalid mirror axis');
+          const voxels=this.model().voxels;
+          let occupied=0;
+          for(let x=box.min[0];x<=box.max[0];x+=1) for(let y=box.min[1];y<=box.max[1];y+=1) for(let z=box.min[2];z<=box.max[2];z+=1) {
+            if(voxels.getVoxel(x,y,z)!==0) {
+              occupied+=1;
+              if(occupied>MAX_FILL_CELLS) throw new Error('Voxel copy exceeds budget');
+            }
+          }
+          cells+=occupied;
+        }
+        if(command.kind==='mirror') {
+          const axis=command.args.axis;
+          if(axis!=='x' && axis!=='y' && axis!=='z') throw new Error('Invalid mirror axis');
+          const axisIndex=axis==='x'?0:axis==='y'?1:2;
+          if(command.args.plane!==undefined) {
+            const plane=Number(command.args.plane);
+            if(!Number.isFinite(plane) || plane<0 || plane>shape[axisIndex]-1) throw new Error('Invalid mirror plane');
+          }
+          const data=this.model().voxels.data as unknown as ArrayLike<number>;
+          let occupied=0;
+          for(let index=0;index<data.length;index+=1) {
+            if(data[index]!==0) {
+              occupied+=1;
+              if(occupied>MAX_FILL_CELLS) throw new Error('Voxel mirror exceeds budget');
+            }
+          }
+          cells+=occupied;
+        }
       }
-      if(cells>32768) throw new Error('AI batch exceeds voxel budget');
+      if(cells>MAX_BATCH_CELLS) throw new Error('AI batch exceeds voxel budget');
       const before=await this.editor.projectManager.saveProject({autoSave:false});
       if(!before.isSuccess) throw new Error('Cannot save model snapshot');
       if(await this.panelFingerprint(await this.editor.projectManager.getData())!==expected.fingerprint) throw new Error('Model changed while saving snapshot');
@@ -337,9 +471,9 @@ export class VoxaAgentLiveSession {
           this.modelRevision++;
           this.observedUndoDepth=this.voxaDepth().undo;
         } else {
-          if(!['paint','erase','paint_path','fill_box','set_color','trim'].includes(command.kind)) throw new Error('Unsupported panel command');
+          if(!['paint','erase','paint_path','fill_box','set_color','trim','sphere','ellipsoid','cylinder','erase_box','replace_color','copy_region','mirror'].includes(command.kind)) throw new Error('Unsupported panel command');
           const args={...command.args,paceMs:0} as Record<string,unknown>;
-          for(const key of ['id','colorId']) if(typeof args[key]==='string' && String(args[key]).startsWith('$')) {const color=colorAliases.get(String(args[key]));if(color===undefined) throw new Error('Unknown palette alias');args[key]=color;}
+          for(const key of ['id','colorId','fromColorId','toColorId']) if(typeof args[key]==='string' && String(args[key]).startsWith('$')) {const color=colorAliases.get(String(args[key]));if(color===undefined) throw new Error('Unknown palette alias');args[key]=color;}
           await this.run(command.kind,args);
         }
         currentFingerprint=await this.panelFingerprint(await this.editor.projectManager.getData());
@@ -681,6 +815,20 @@ export class VoxaAgentLiveSession {
         return this.paintPath(args);
       case 'fill_box':
         return this.fillBox(args);
+      case 'sphere':
+        return this.sphere(args);
+      case 'ellipsoid':
+        return this.ellipsoid(args);
+      case 'cylinder':
+        return this.cylinder(args);
+      case 'erase_box':
+        return this.eraseBox(args);
+      case 'replace_color':
+        return this.replaceColor(args);
+      case 'copy_region':
+        return this.copyRegion(args);
+      case 'mirror':
+        return this.mirror(args);
       case 'palette':
         return this.paletteInfo(args);
       case 'set_color':
@@ -998,6 +1146,313 @@ export class VoxaAgentLiveSession {
       revision: this.modelRevision,
       paced: pace > 0,
     };
+  }
+
+  // ---- fine-grained geometry commands -------------------------------------
+  //
+  // All of these share one write path: build the cell list first (pure helpers
+  // in ./geometry-commands), enforce the per-command budget, then write inside
+  // a single history group so the whole shape is one undo step.
+
+  private requireCell(value: unknown, label: string): Vec3Tuple {
+    const raw = asVec3(value);
+    if (!raw) {
+      throw new LiveCommandError('INVALID_ARGS', `${label} 需要 [x,y,z]`, '例如 [8,8,8]');
+    }
+    const voxel = roundTuple(raw);
+    const shape = this.shape();
+    if (
+      voxel[0] < 0 || voxel[1] < 0 || voxel[2] < 0 ||
+      voxel[0] >= shape[0] || voxel[1] >= shape[1] || voxel[2] >= shape[2]
+    ) {
+      throw new LiveCommandError(
+        'OUT_OF_BOUNDS',
+        `${label} [${voxel.join(', ')}] 超出模型范围`,
+        `范围 [0..${shape[0] - 1}, 0..${shape[1] - 1}, 0..${shape[2] - 1}]`,
+      );
+    }
+    return voxel;
+  }
+
+  private integerArg(value: unknown, min: number, max: number, label: string): number {
+    const numeric = Number(value);
+    if (!Number.isInteger(numeric) || numeric < min || numeric > max) {
+      throw new LiveCommandError(
+        'INVALID_ARGS',
+        `${label} 必须是 ${min}..${max} 的整数`,
+        `收到 ${String(value)}`,
+      );
+    }
+    return numeric;
+  }
+
+  private axisArg(value: unknown, label = 'axis'): Axis {
+    const axis = String(value);
+    if (axis !== 'x' && axis !== 'y' && axis !== 'z') {
+      throw new LiveCommandError('INVALID_ARGS', `${label} 必须是 x、y 或 z`, `收到 ${axis}`);
+    }
+    return axis;
+  }
+
+  private isInside(voxel: Vec3Tuple) {
+    const shape = this.shape();
+    return (
+      voxel[0] >= 0 && voxel[1] >= 0 && voxel[2] >= 0 &&
+      voxel[0] < shape[0] && voxel[1] < shape[1] && voxel[2] < shape[2]
+    );
+  }
+
+  /**
+   * Write pre-computed cells in one history group; pointer/history are refreshed
+   * once at the end, matching fill_box's deferred-history pattern.
+   */
+  private commitCellWrites(writes: CellWrite[]) {
+    const startedAt = Date.now();
+    if (!writes.length) return { painted: 0, skipped: 0, durationMs: 0 };
+    this.editor.history.setGroup();
+    this.agentWriteDepth += 1;
+    let grouped = true;
+    let painted = 0;
+    let skipped = 0;
+    try {
+      for (const write of writes) {
+        const outcome = this.applyVoxel(write.voxel, write.color, true);
+        if (outcome.skipped) skipped += 1;
+        else painted += 1;
+      }
+      this.editor.history.unsetGroup();
+      grouped = false;
+      this.editor.voxelApp.pointer.update();
+      this.editor.voxelApp.saveHistory();
+    } finally {
+      if (grouped) this.editor.history.unsetGroup();
+      this.agentWriteDepth -= 1;
+    }
+    return { painted, skipped, durationMs: Date.now() - startedAt };
+  }
+
+  private sphere(args: Record<string, unknown>) {
+    const center = this.requireCell(args.center, 'sphere 的 center');
+    const radius = this.integerArg(args.radius, 1, 64, 'sphere 的 radius');
+    const hollow = Boolean(args.hollow);
+    const color = this.resolveColor(args);
+    const positions = sphereCells(center, radius, hollow);
+    if (positions.length > MAX_FILL_CELLS) {
+      throw new LiveCommandError(
+        'TOO_MANY_CELLS',
+        `球体 ${positions.length} 个体素超过单次上限 ${MAX_FILL_CELLS}`,
+        '减小 radius，或拆成多个小球的组合',
+      );
+    }
+    const inside = positions.filter((voxel) => this.isInside(voxel));
+    const result = this.commitCellWrites(inside.map((voxel) => ({ voxel, color })));
+    const summary = `生成球体 ${result.painted} 个体素（中心 [${center.join(', ')}]，半径 ${radius}${hollow ? '，空心' : ''}${positions.length > inside.length ? `，裁掉 ${positions.length - inside.length} 格越界` : ''}）`;
+    this.recordAgentActivity('sphere', summary);
+    return { summary, painted: result.painted, skipped: result.skipped, clipped: positions.length - inside.length, center, radius, hollow, revision: this.modelRevision };
+  }
+
+  private ellipsoid(args: Record<string, unknown>) {
+    const center = this.requireCell(args.center, 'ellipsoid 的 center');
+    if (!Array.isArray(args.radii) || args.radii.length !== 3) {
+      throw new LiveCommandError('INVALID_ARGS', 'ellipsoid 需要 radii: [rx,ry,rz]');
+    }
+    const radii: Vec3Tuple = [
+      this.integerArg(args.radii[0], 1, 64, 'ellipsoid 的 rx'),
+      this.integerArg(args.radii[1], 1, 64, 'ellipsoid 的 ry'),
+      this.integerArg(args.radii[2], 1, 64, 'ellipsoid 的 rz'),
+    ];
+    const hollow = Boolean(args.hollow);
+    const color = this.resolveColor(args);
+    const positions = ellipsoidCells(center, radii, hollow);
+    if (positions.length > MAX_FILL_CELLS) {
+      throw new LiveCommandError(
+        'TOO_MANY_CELLS',
+        `椭球 ${positions.length} 个体素超过单次上限 ${MAX_FILL_CELLS}`,
+        '减小 radii，或拆成多层',
+      );
+    }
+    const inside = positions.filter((voxel) => this.isInside(voxel));
+    const result = this.commitCellWrites(inside.map((voxel) => ({ voxel, color })));
+    const summary = `生成椭球 ${result.painted} 个体素（中心 [${center.join(', ')}]，半径 ${radii.join('×')}${hollow ? '，空心' : ''}${positions.length > inside.length ? `，裁掉 ${positions.length - inside.length} 格越界` : ''}）`;
+    this.recordAgentActivity('ellipsoid', summary);
+    return { summary, painted: result.painted, skipped: result.skipped, clipped: positions.length - inside.length, center, radii, hollow, revision: this.modelRevision };
+  }
+
+  private cylinder(args: Record<string, unknown>) {
+    const base = this.requireCell(args.base, 'cylinder 的 base');
+    const radius = this.integerArg(args.radius, 1, 64, 'cylinder 的 radius');
+    const height = this.integerArg(args.height, 1, 128, 'cylinder 的 height');
+    const axis = args.axis === undefined ? ('y' as Axis) : this.axisArg(args.axis, 'cylinder 的 axis');
+    const hollow = Boolean(args.hollow);
+    const color = this.resolveColor(args);
+    const positions = cylinderCells(base, radius, height, axis, hollow);
+    if (positions.length > MAX_FILL_CELLS) {
+      throw new LiveCommandError(
+        'TOO_MANY_CELLS',
+        `圆柱 ${positions.length} 个体素超过单次上限 ${MAX_FILL_CELLS}`,
+        '减小 radius/height，或先 observe 再分段生成',
+      );
+    }
+    const inside = positions.filter((voxel) => this.isInside(voxel));
+    const result = this.commitCellWrites(inside.map((voxel) => ({ voxel, color })));
+    const summary = `生成圆柱 ${result.painted} 个体素（base [${base.join(', ')}]，轴 ${axis}，半径 ${radius}，高 ${height}${hollow ? '，空心' : ''}${positions.length > inside.length ? `，裁掉 ${positions.length - inside.length} 格越界` : ''}）`;
+    this.recordAgentActivity('cylinder', summary);
+    return { summary, painted: result.painted, skipped: result.skipped, clipped: positions.length - inside.length, base, radius, height, axis, hollow, revision: this.modelRevision };
+  }
+
+  private eraseBox(args: Record<string, unknown>) {
+    const from = this.requireCell(args.from, 'erase_box 的 from');
+    const to = this.requireCell(args.to, 'erase_box 的 to');
+    const box = normalizeBox(from, to);
+    if (box.volume > MAX_FILL_CELLS) {
+      throw new LiveCommandError(
+        'TOO_MANY_CELLS',
+        `擦除体积 ${box.volume} 超过单次上限 ${MAX_FILL_CELLS}`,
+        '拆成几块分别擦除',
+      );
+    }
+    const writes: CellWrite[] = [];
+    for (let x = box.min[0]; x <= box.max[0]; x += 1) {
+      for (let y = box.min[1]; y <= box.max[1]; y += 1) {
+        for (let z = box.min[2]; z <= box.max[2]; z += 1) {
+          writes.push({ voxel: [x, y, z], color: 0 });
+        }
+      }
+    }
+    const result = this.commitCellWrites(writes);
+    const summary = `擦除区域 ${result.painted} 个体素（体积 ${box.volume}）`;
+    this.recordAgentActivity('erase_box', summary);
+    return { summary, erased: result.painted, skipped: result.skipped, volume: box.volume, revision: this.modelRevision };
+  }
+
+  private replaceColor(args: Record<string, unknown>) {
+    const fromColorId = this.integerArg(args.fromColorId, 1, MAX_COLOR_ID, 'replace_color 的 fromColorId');
+    const toColorId = this.integerArg(args.toColorId, 0, MAX_COLOR_ID, 'replace_color 的 toColorId');
+    if (fromColorId === toColorId) {
+      throw new LiveCommandError('INVALID_ARGS', 'replace_color 的源颜色与目标颜色不能相同');
+    }
+    let min: Vec3Tuple = [0, 0, 0];
+    let max: Vec3Tuple = [this.shape()[0] - 1, this.shape()[1] - 1, this.shape()[2] - 1];
+    if (args.from !== undefined || args.to !== undefined) {
+      if (args.from === undefined || args.to === undefined) {
+        throw new LiveCommandError('INVALID_ARGS', 'replace_color 需要同时提供 from 与 to');
+      }
+      const box = normalizeBox(this.requireCell(args.from, 'replace_color 的 from'), this.requireCell(args.to, 'replace_color 的 to'));
+      min = box.min;
+      max = box.max;
+    }
+    const voxels = this.model().voxels;
+    const writes: CellWrite[] = [];
+    for (let x = min[0]; x <= max[0]; x += 1) {
+      for (let y = min[1]; y <= max[1]; y += 1) {
+        for (let z = min[2]; z <= max[2]; z += 1) {
+          if (voxels.getVoxel(x, y, z) !== fromColorId) continue;
+          if (writes.length >= MAX_FILL_CELLS) {
+            throw new LiveCommandError(
+              'TOO_MANY_CELLS',
+              `替换超过单次上限 ${MAX_FILL_CELLS} 个体素`,
+              '用 from/to 指定更小的区域，分几次替换',
+            );
+          }
+          writes.push({ voxel: [x, y, z], color: toColorId });
+        }
+      }
+    }
+    const result = this.commitCellWrites(writes);
+    const summary = writes.length
+      ? `颜色 ${fromColorId} → ${toColorId}：替换 ${result.painted} 个体素`
+      : `没有颜色 ${fromColorId} 的体素，未写入`;
+    this.recordAgentActivity('replace_color', summary);
+    return { summary, replaced: result.painted, fromColorId, toColorId, revision: this.modelRevision };
+  }
+
+  private copyRegion(args: Record<string, unknown>) {
+    const from = this.requireCell(args.from, 'copy_region 的 from');
+    const to = this.requireCell(args.to, 'copy_region 的 to');
+    const box = normalizeBox(from, to);
+    const rawOffset = asVec3(args.offset);
+    if (!rawOffset || !rawOffset.every((value) => Number.isInteger(value)) || rawOffset.some((value) => Math.abs(value) > 256)) {
+      throw new LiveCommandError('INVALID_ARGS', 'copy_region 需要整数 offset: [dx,dy,dz]', '每个分量 |d| <= 256');
+    }
+    const offset = roundTuple(rawOffset);
+    const mirrorAxis = args.mirrorAxis === undefined ? undefined : this.axisArg(args.mirrorAxis, 'copy_region 的 mirrorAxis');
+    const voxels = this.model().voxels;
+    const source: ColoredCell[] = [];
+    for (let x = box.min[0]; x <= box.max[0]; x += 1) {
+      for (let y = box.min[1]; y <= box.max[1]; y += 1) {
+        for (let z = box.min[2]; z <= box.max[2]; z += 1) {
+          const color = voxels.getVoxel(x, y, z);
+          if (color === 0) continue;
+          if (source.length >= MAX_FILL_CELLS) {
+            throw new LiveCommandError(
+              'TOO_MANY_CELLS',
+              `复制区域占用 ${source.length + 1} 个体素，超过单次上限 ${MAX_FILL_CELLS}`,
+              '缩小 from/to 区域，分几次复制',
+            );
+          }
+          source.push([x, y, z, color]);
+        }
+      }
+    }
+    if (!source.length) {
+      const summary = '复制区域是空的，未写入';
+      this.recordAgentActivity('copy_region', summary);
+      return { summary, copied: 0, sourceCells: 0, revision: this.modelRevision };
+    }
+    const mapped = copyRegionCells(source, offset, mirrorAxis ? { mirrorAxis, center: box.center } : {});
+    const inside = filterCellsInBounds(mapped, this.shape());
+    if (inside.length > MAX_FILL_CELLS) {
+      throw new LiveCommandError('TOO_MANY_CELLS', `复制目标 ${inside.length} 个体素超过单次上限 ${MAX_FILL_CELLS}`);
+    }
+    const result = this.commitCellWrites(
+      inside.map((cell) => ({ voxel: [cell[0], cell[1], cell[2]], color: cell[3] })),
+    );
+    const clipped = mapped.length - inside.length;
+    const summary = `复制 ${result.painted} 个体素（偏移 [${offset.join(', ')}]${mirrorAxis ? `，沿 ${mirrorAxis} 镜像` : ''}${clipped ? `，裁掉 ${clipped} 格越界` : ''}）`;
+    this.recordAgentActivity('copy_region', summary);
+    return { summary, copied: result.painted, sourceCells: source.length, clipped, offset, mirrorAxis, revision: this.modelRevision };
+  }
+
+  private mirror(args: Record<string, unknown>) {
+    const axis = this.axisArg(args.axis, 'mirror 的 axis');
+    const shape = this.shape();
+    const axisIndex = axis === 'x' ? 0 : axis === 'y' ? 1 : 2;
+    const defaultPlane = (shape[axisIndex] - 1) / 2;
+    const plane = args.plane === undefined ? defaultPlane : Number(args.plane);
+    if (!Number.isFinite(plane) || plane < 0 || plane > shape[axisIndex] - 1) {
+      throw new LiveCommandError(
+        'INVALID_ARGS',
+        `mirror 的 plane 必须在 0..${shape[axisIndex] - 1}`,
+        `收到 ${String(args.plane)}`,
+      );
+    }
+    const model = this.model();
+    const occupied = this.countOccupied(model);
+    if (!occupied) {
+      const summary = `模型没有体素，${axis} 轴镜像未写入`;
+      this.recordAgentActivity('mirror', summary);
+      return { summary, mirrored: 0, sourceCells: 0, plane, axis, revision: this.modelRevision };
+    }
+    if (occupied > MAX_FILL_CELLS) {
+      throw new LiveCommandError(
+        'TOO_MANY_CELLS',
+        `当前有 ${occupied} 个占用体素，超过单次镜像上限 ${MAX_FILL_CELLS}`,
+        '先用 trim 去掉空白，或用 copy_region 分区域镜像',
+      );
+    }
+    const voxels = model.voxels;
+    const positions = voxels.getVoxels() as unknown as Vec3Tuple[];
+    const source: ColoredCell[] = positions.map((position) => {
+      const [x, y, z] = position;
+      return [x, y, z, voxels.getVoxel(x, y, z)];
+    });
+    const mirrored = dedupeCells(filterCellsInBounds(mirrorCells(source, axis, plane), shape));
+    const result = this.commitCellWrites(
+      mirrored.map((cell) => ({ voxel: [cell[0], cell[1], cell[2]], color: cell[3] })),
+    );
+    const summary = `沿 ${axis} 轴（平面 ${plane}）镜像 ${result.painted} 个体素`;
+    this.recordAgentActivity('mirror', summary);
+    return { summary, mirrored: result.painted, sourceCells: source.length, plane, axis, revision: this.modelRevision };
   }
 
   private undoAction() {

@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getVoxaAgentLiveSession } from '../../models/agent-live';
+import { store } from '../../redux/store';
+import { loadProjectMessages, saveProjectMessages } from './project-conversation-store';
 import styles from './style.module.scss';
 
 type Provider = {
@@ -31,14 +33,16 @@ type ChatMessage = {
   context?: Context;
   status?: string;
   usage?: { input: number; output: number; cached: number; cacheWrite: number; hitRate: number };
+  stage?: string;
+  quality?: { symmetry: number; floating: number; components: number; colors: number; occupied: number; truncated: boolean };
 };
-type PlanReply = { message: string; commands: Command[]; done: boolean };
+type PlanReply = { message: string; commands: Command[]; done: boolean; stage?: string; quality?: ChatMessage['quality'] };
 type Reasoning = 'off' | 'low' | 'medium' | 'high';
 type StreamEvent =
   | { type: 'phase'; phase: string }
   | { type: 'progress'; chars: number }
   | { type: 'command'; index: number; kind: string; args: Record<string, unknown> }
-  | { type: 'plan'; message: string; commands: Command[]; done: boolean; usage?: { input: number; output: number; cached: number; cacheWrite: number; hitRate: number } }
+  | { type: 'plan'; message: string; commands: Command[]; done: boolean; stage?: string; quality?: { symmetry: number; floating: number; components: number; colors: number; occupied: number; truncated: boolean }; usage?: { input: number; output: number; cached: number; cacheWrite: number; hitRate: number } }
   | { type: 'error'; message: string };
 type Draft = { id?: string; name: string; protocol: string; baseUrl: string; apiKey: string; defaultModel: string; models: string };
 type Tab = 'chat' | 'channels';
@@ -76,6 +80,13 @@ const TOOL_LABELS: Record<string, string> = {
   part_group: '组合部件',
   part_move: '移动部件',
   part_patch: '修改部件',
+  sphere: '球形填充',
+  ellipsoid: '椭球填充',
+  cylinder: '圆柱填充',
+  erase_box: '区域擦除',
+  replace_color: '替换颜色',
+  copy_region: '复制区域',
+  mirror: '镜像',
 };
 const STATUS_LABELS: Record<ToolStatus, string> = {
   pending: '待执行',
@@ -84,6 +95,10 @@ const STATUS_LABELS: Record<ToolStatus, string> = {
   error: '失败',
   cancelled: '已取消',
 };
+
+function conversationStorageKey(projectId: string) {
+  return `voxa.conversation.${projectId}`;
+}
 
 function newConversationId() {
   return typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
@@ -179,6 +194,13 @@ function summarize(kind: string, args: Record<string, unknown>) {
   }
   if (kind === 'part_delete' || kind === 'part_select') return String(args.id ?? '');
   if (kind === 'part_move') return `${String(args.id ?? '')} → ${String(args.parentId ?? '')}`;
+  if (kind === 'sphere') return `${coordinate(args.center)} r=${String(args.radius ?? '')} 颜色 ${String(args.colorId ?? '')}`;
+  if (kind === 'ellipsoid') return `${coordinate(args.center)} r=${Array.isArray(args.radii) ? args.radii.join(',') : '?'} 颜色 ${String(args.colorId ?? '')}`;
+  if (kind === 'cylinder') return `${coordinate(args.base)} r=${String(args.radius ?? '')} h=${String(args.height ?? '')} ${String(args.axis ?? 'y')} 轴`;
+  if (kind === 'erase_box') return `${coordinate(args.from)} → ${coordinate(args.to)}`;
+  if (kind === 'replace_color') return `${String(args.fromColorId ?? '')} → ${String(args.toColorId ?? '')}`;
+  if (kind === 'copy_region') return `${coordinate(args.from)} → ${coordinate(args.to)} 偏移 ${coordinate(args.offset)}`;
+  if (kind === 'mirror') return `${String(args.axis ?? 'x')} 轴镜像${args.plane !== undefined ? ` @${String(args.plane)}` : ''}`;
   return Object.keys(args).slice(0, 3).map((key) => `${key}: ${JSON.stringify(args[key])}`).join(', ');
 }
 
@@ -259,6 +281,8 @@ export function VoxaAiPanel() {
   const conversationId = useRef<string>(newConversationId());
   const transcriptRef = useRef<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
   const mounted = useRef(true);
+  const projectRef = useRef('');
+  const messagesRef = useRef<ChatMessage[]>([]);
   const logRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const startedAt = useRef(0);
@@ -273,6 +297,52 @@ export function VoxaAiPanel() {
 
   useEffect(() => {
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
+  }, [messages]);
+
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  useEffect(() => {
+    const applyProject = (id: string) => {
+      if (!id || id === projectRef.current) return;
+      const previous = projectRef.current;
+      if (previous) void saveProjectMessages(previous, messagesRef.current).catch(() => undefined);
+      projectRef.current = id;
+      abortRef.current?.abort();
+      try {
+        const storageKey = conversationStorageKey(id);
+        const stored = window.localStorage.getItem(storageKey);
+        conversationId.current = stored || newConversationId();
+        if (!stored) window.localStorage.setItem(storageKey, conversationId.current);
+      } catch {
+        conversationId.current = newConversationId();
+      }
+      void loadProjectMessages(id).then((saved) => {
+        if (!mounted.current || projectRef.current !== id) return;
+        const restored = (Array.isArray(saved) ? saved : []) as ChatMessage[];
+        setMessages(restored.map((message) => message.phase === 'thinking' || message.phase === 'executing'
+          ? { ...message, phase: 'cancelled', text: message.text || '上次执行被中断', status: undefined, tools: message.tools?.map((tool) => tool.status === 'running' || tool.status === 'pending' ? { ...tool, status: 'cancelled' } : tool) }
+          : message));
+      }).catch(() => undefined);
+    };
+    const initial = String(store.getState().app.projectId || '');
+    if (initial) applyProject(initial);
+    const unsubscribe = store.subscribe(() => {
+      const id = String(store.getState().app.projectId || '');
+      if (id) applyProject(id);
+    });
+    return () => {
+      unsubscribe();
+      if (projectRef.current) void saveProjectMessages(projectRef.current, messagesRef.current).catch(() => undefined);
+    };
+  }, []);
+
+  useEffect(() => {
+    const id = projectRef.current;
+    if (!id) return;
+    const timer = window.setTimeout(() => { void saveProjectMessages(id, messages).catch(() => undefined); }, 400);
+    return () => window.clearTimeout(timer);
   }, [messages]);
 
   useEffect(() => {
@@ -445,12 +515,15 @@ export function VoxaAiPanel() {
     try {
       const contextStarted = performance.now();
       const context = await session.panelContext();
+      const projectId = String((context as unknown as { snapshot?: { project?: { modelId?: unknown } } })?.snapshot?.project?.modelId || '');
       const modelContext = { ...(context as unknown as Record<string, unknown>) };
       for (const key of ['snapshot', 'fingerprint', 'revision', 'humanEpoch', 'undoDepth']) delete modelContext[key];
       console.info('[voxa-panel] context', { ms: Math.round(performance.now() - contextStarted), bytes: JSON.stringify(modelContext).length });
       patchMessage(assistantId, { status: '准备请求…' });
       void savePreferences(providerId, model, autonomy).catch(() => undefined);
       let planUsage: ChatMessage['usage'];
+    let planStage: string | undefined;
+    let planQuality: ChatMessage['quality'];
     const reply = await streamPlan({
         providerId,
         model,
@@ -460,11 +533,13 @@ export function VoxaAiPanel() {
         toolResults: options.toolResults,
         step,
         reasoning,
+        projectId,
         conversationId: conversationId.current,
       }, controller.signal, (event) => {
         if (event.type === 'phase') patchMessage(assistantId, { status: PHASE_TEXT[event.phase] || '处理中…' });
         if (event.type === 'progress') patchMessage(assistantId, { status: `已接收 ${event.chars} 字符…` });
         if (event.type === 'plan' && event.usage) planUsage = event.usage;
+        if (event.type === 'plan') { planStage = event.stage; planQuality = event.quality; }
         if (event.type === 'command') {
           patchMessage(assistantId, (message) => {
             const tools = message.tools ? [...message.tools] : [];
@@ -485,13 +560,15 @@ export function VoxaAiPanel() {
         context,
         status: undefined,
         usage: planUsage,
+        stage: planStage || reply.stage,
+        quality: planQuality || reply.quality,
         tools: reply.commands.map((command, index) => ({ index, kind: command.kind, args: command.args, status: 'pending' })),
       };
       patchMessage(assistantId, assistant);
       transcriptRef.current = [...transcriptRef.current, { role: 'assistant', content: assistant.text }];
       if (autonomy === 'autonomous' && reply.commands.length) {
         const results = await executePlan(assistant);
-        if (results && !reply.done && step < 2) {
+        if (results && !reply.done && step < 5) {
           const failed = results.filter((item) => !item.ok);
           const next = failed.length ? '上一步有命令执行失败，请修复后继续完成剩余目标。' : '继续完成剩余目标。';
           setBusy(false);
@@ -517,6 +594,9 @@ export function VoxaAiPanel() {
 
   const resetConversation = useCallback(() => {
     conversationId.current = newConversationId();
+    try {
+      if (projectRef.current) window.localStorage.setItem(conversationStorageKey(projectRef.current), conversationId.current);
+    } catch { /* storage may be blocked */ }
   }, []);
 
   const saveChannel = useCallback(async () => {
@@ -700,13 +780,16 @@ export function VoxaAiPanel() {
                     {!!message.tools?.length && (
                       <div className={styles.tools}>
                         <div className={styles.toolsHead}>
-                          <span>工具调用 · {message.tools.length} 项</span>
+                          <span>工具调用 · {message.tools.length} 项{message.stage ? ` · ${message.stage}` : ''}</span>
                           {message.phase === 'executing' && <em>执行中 {message.tools.filter((tool) => tool.status === 'success').length}/{message.tools.length}</em>}
                           {message.phase === 'planned' && autonomy === 'autonomous' && <em>即将执行</em>}
                           {message.phase === 'done' && <em className={styles.doneLabel}><Icon name="check" size={12} /> 已保存</em>}
                           {message.phase === 'error' && <em className={styles.errorLabel}><Icon name="alert" size={12} /> 有错误</em>}
                         </div>
                         <p className={styles.toolFoldSummary}>{summarizeToolGroups(message.tools)}</p>
+                        {message.quality && (
+                          <p className={styles.qualityLine}>质量 · 对称 {Math.round(message.quality.symmetry * 100)}% · 悬浮 {message.quality.floating} · {message.quality.colors} 色{message.quality.truncated ? ' · 样本截断' : ''}</p>
+                        )}
                         {message.usage && message.usage.input > 0 && (
                           <p className={styles.cacheLine}>上下文缓存命中 {Math.round(message.usage.hitRate * 100)}% · {message.usage.cached}/{message.usage.input} tokens</p>
                         )}
@@ -750,14 +833,14 @@ export function VoxaAiPanel() {
                             <span className={styles.reviewHint}>当前为审核模式</span>
                           </div>
                         )}
-                        {message.phase === 'done' && message.step !== undefined && message.step < 2 && (
+                        {message.phase === 'done' && message.step !== undefined && message.step < 5 && (
                           <div className={styles.batchActions}>
                             <button className={styles.ghost} disabled={busy} onClick={() => followUp(message)}>
                               {(message.results || []).some((item) => !item.ok) ? '让 AI 修复' : message.done ? '继续微调' : '继续下一步'}
                             </button>
                           </div>
                         )}
-                        {message.phase === 'error' && message.step !== undefined && message.step < 2 && (
+                        {message.phase === 'error' && message.step !== undefined && message.step < 5 && (
                           <div className={styles.batchActions}>
                             <button className={styles.ghost} disabled={busy} onClick={() => followUp(message)}>让 AI 修复</button>
                           </div>

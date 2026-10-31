@@ -144,3 +144,21 @@ Source of truth: /home/natsume/box3-dev/repo/box3-local-engine, branch dev/serve
 - Mock 会话两步：第二次请求确认为 `[user, assistant(原文), user]`，指令逐字节一致，`contextDelta` 含新增体素且移除为空，计划事件回传 cached 60/100。
 
 已知边界：会话缓存当前为进程内存，重启或多副本会冷启动；DeepSeek 缓存 best-effort，不能作为正确性依赖。崩溃防护：NavBar/hierarchy/node-manager/redux 空节点守卫、AI 删除后清理选中、React error boundary 已加入。
+
+## 精细化建模与项目级会话（2026-11-01 第二轮）
+
+### 建模质量升级
+
+- 新增图元：`sphere`/`ellipsoid`/`cylinder`/`erase_box`/`replace_color`/`copy_region`/`mirror`，执行器统一走 `applyVoxel` + 单次 history group，单条 ≤8192 体素、整批 ≤32768；支持 `$alias` 颜色与越界裁剪报告。
+- 工作流改为 S0 计划（part tree/目标包围盒/对称）→ S1 块面 → S2 剪影修边 → S3 次级形体（耳/翼指/膜缘/尾）→ S4 1 体素细节（眼/牙/爪、2-3 阶色）→ S5 打磨（焊接悬浮、统一调色板）。最多 6 批，禁止“一个部件一个盒子”，要求对称件只建一侧再 mirror/copy。
+- 服务端生成三视图投影 + 质量指标（对称率、6-连通分量、悬浮分量、调色板用量、包围盒），形成 ≤2400 字 modelingBrief 注入提示词；面板显示阶段（S1…）、对称率、悬浮数、色数。
+- 模型上下文改为扫描完整模型后均匀采样 4096 个占用体素（不再只取前 2048 的角落），并标注 `sampled/truncated`，避免细节模型被截断。
+- 参考：Autodesk AREA blockout 流程、80.lv 剪影/明度评价、SceneCraft/Self-Refine/Reflexion 的视觉反馈与迭代、Blender MCP/MagicaVoxel MCP 的“工具即眼睛”模式。
+
+### 会话即模型项目
+
+- 会话 identity 使用模型项目 ID：`userId + provider + model + systemHash + conversationId + projectId`；`agent-conversation` 增加磁盘持久化到 `VOXA_DATA_PATH/ai-conversations/<sha256>.json`（原子写、0600、30 天保留、内存 3h L1）。
+- 面板按模型项目保存/加载对话：IndexedDB 保存消息与执行上下文，localStorage 保存该项目的 conversationId；切换模型自动切换到对应会话，刷新后恢复。
+- 继续使用精确前缀回放 + 上下文增量，因此项目会话在重启后仍能复用 DeepSeek 前缀缓存；面板显示缓存命中率。
+
+验证：图元/投影质量/会话存储/计划契约/命令兼容/上下文增量测试全部通过；DeepSeek 真实蝙蝠测试此前已确认 26 条命令、缓存命中；VOXA 生产构建通过（建模升级主批次；最后的采样改动通过 tsc，随后重建校验）。
