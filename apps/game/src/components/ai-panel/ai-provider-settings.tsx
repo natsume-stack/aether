@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2, Pencil, Plus, RefreshCw, Server, Trash2 } from 'lucide-react';
+import { Copy, Loader2, Pencil, Plus, RefreshCw, Server, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -126,6 +126,11 @@ export function AiProviderSettings({
   const beginEdit = (provider: AiProviderView) => {
     setEditing(provider);
     setForm(formFrom(provider));
+  };
+
+  const beginClone = (provider: AiProviderView) => {
+    setEditing('new');
+    setForm({ ...formFrom(provider), name: `${provider.name}（我的）`, apiKey: '' });
   };
 
   const save = async () => {
@@ -331,7 +336,11 @@ export function AiProviderSettings({
                   <Button size="sm" variant="ghost" onClick={() => test(provider)} disabled={testingId === provider.id}>
                     {testingId === provider.id ? <Loader2 className="size-4 animate-spin" /> : <Server className="size-4" />}测试
                   </Button>
-                  <Button size="icon-sm" variant="ghost" onClick={() => beginEdit(provider)} aria-label="编辑"><Pencil className="size-4" /></Button>
+                  {provider.owner === 'user' ? (
+                    <Button size="icon-sm" variant="ghost" onClick={() => beginEdit(provider)} aria-label="编辑"><Pencil className="size-4" /></Button>
+                  ) : (
+                    <Button size="icon-sm" variant="ghost" onClick={() => beginClone(provider)} aria-label="复制为我的渠道" title="复制为我的渠道"><Copy className="size-4" /></Button>
+                  )}
                   {provider.owner === 'user' ? (
                     <Button size="icon-sm" variant="ghost" onClick={() => remove(provider)} aria-label="删除"><Trash2 className="size-4" /></Button>
                   ) : null}

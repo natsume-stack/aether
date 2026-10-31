@@ -6,7 +6,10 @@ export type VoxaAiCommand = {kind: string; args: Record<string, unknown>};
 export type VoxaAiPlan = {message: string; commands: VoxaAiCommand[]; done: boolean};
 export type VoxaToolResult = {kind: string; ok: boolean; error?: string};
 export type VoxaHistoryRow = {role: 'user' | 'assistant'; content: string};
+export type VoxaReasoning = 'off' | 'low' | 'medium' | 'high';
+
 const kinds = new Set(['paint', 'erase', 'paint_path', 'fill_box', 'set_color', 'trim', 'part_patch', 'part_create', 'part_select', 'part_delete', 'part_group', 'part_move', 'palette_add', 'workspace_resize']);
+const PLAN_TIMEOUT_MS = 180_000;
 
 export function validateVoxaAiPlan(value: unknown): VoxaAiPlan {
   if (!value || typeof value !== 'object') throw new Error('Invalid model plan');
@@ -46,6 +49,12 @@ function stepValue(value: unknown) {
   const step = Number(value);
   if (!Number.isInteger(step) || step < 0 || step > 4) throw new Error('Invalid agent step');
   return step;
+}
+
+function reasoningValue(value: unknown): VoxaReasoning {
+  if (value === undefined || value === 'off') return 'off';
+  if (value === 'low' || value === 'medium' || value === 'high') return value;
+  throw new Error('Invalid reasoning effort');
 }
 
 function base() {
@@ -100,56 +109,320 @@ function redact(text: string, secret: string) {
   return (secret ? value.split(secret).join('***') : value).replace(/\s+/g, ' ').trim().slice(0, 300);
 }
 
-export async function generateVoxaAiPlan(req: NextApiRequest, res: NextApiResponse) {
+type Prepared = {
+  provider: any;
+  prompt: string;
+  messages: Array<{role: 'user' | 'assistant'; content: string}>;
+  history: VoxaHistoryRow[];
+  execution: VoxaToolResult[];
+  step: number;
+  reasoning: VoxaReasoning;
+  model: string;
+  userId: string;
+  contextChars: number;
+};
+
+async function prepare(req: NextApiRequest, res: NextApiResponse): Promise<Prepared> {
   const input = req.body;
   if (!input || typeof input.prompt !== 'string' || !input.prompt.trim() || input.prompt.length > 16000 || typeof input.providerId !== 'string' || !/^[0-9a-f-]{36}$/i.test(input.providerId) || typeof input.model !== 'string' || !input.model.trim() || input.model.length > 200 || JSON.stringify(input.context || {}).length > 200000) throw new Error('Invalid AI request');
   const history = historyRows(input.history);
   const execution = toolResultRows(input.toolResults);
   const step = stepValue(input.step);
+  const reasoning = reasoningValue(input.reasoning);
   const userId = await voxaAiIdentity(req, res);
   const {provider} = await internal('/api/player-ai-internal/resolve', {userId, providerId: input.providerId}, req, res);
   const prompt = JSON.stringify({request: input.prompt, step, context: input.context, execution: execution.length ? execution : undefined});
-  const messages: Array<{role: 'user' | 'assistant'; content: string}> = [
-    ...history,
-    {role: 'user', content: prompt},
-  ];
-  const headers: Record<string,string> = {'Content-Type':'application/json', ...(provider.headers || {})};
-  let body: unknown;
+  const messages = [...history, {role: 'user' as const, content: prompt}];
+  return {
+    provider,
+    prompt,
+    messages,
+    history,
+    execution,
+    step,
+    reasoning,
+    model: String(input.model),
+    userId,
+    contextChars: prompt.length,
+  };
+}
+
+function headersFor(provider: any) {
+  const headers: Record<string, string> = {'Content-Type': 'application/json', ...(provider.headers || {})};
+  if (provider.protocol === 'anthropic-messages') {
+    headers['x-api-key'] = provider.apiKey;
+    headers['anthropic-version'] = '2023-06-01';
+  } else {
+    headers.Authorization = `Bearer ${provider.apiKey}`;
+  }
+  return headers;
+}
+
+function bodyFor(prepared: Prepared, stream: boolean) {
+  const {provider, messages, prompt, history, model, reasoning} = prepared;
   if (provider.protocol === 'chat-completions') {
-    headers.Authorization=`Bearer ${provider.apiKey}`;
-    body={model:input.model, messages:[{role:'system',content:SYSTEM},...messages],max_tokens:4096,stream:false};
-  } else if (provider.protocol === 'responses') {
-    headers.Authorization=`Bearer ${provider.apiKey}`;
+    const body: Record<string, unknown> = {model, messages: [{role: 'system', content: SYSTEM}, ...messages], max_tokens: 4096, stream};
+    if (reasoning !== 'off') body.reasoning_effort = reasoning;
+    return body;
+  }
+  if (provider.protocol === 'responses') {
     const transcript = history.map((row) => `[${row.role}] ${row.content}`).join('\n\n');
-    body={model:input.model,instructions:SYSTEM,input:transcript ? `${transcript}\n\n${prompt}` : prompt,max_output_tokens:4096};
-  } else if (provider.protocol === 'anthropic-messages') {
-    headers['x-api-key']=provider.apiKey;headers['anthropic-version']='2023-06-01';
-    body={model:input.model,system:SYSTEM,messages,max_tokens:4096};
-  } else throw new Error('Unsupported AI protocol');
-  const {runId}=await internal('/api/player-ai-internal/execution',{userId,scope:`voxa:${String(input.context?.snapshot?.project?.modelId || 'planner')}`,mode:'review',providerId:provider.id,model:input.model},req,res);
-  let completed=false;let inputTokens=0;let outputTokens=0;
+    const body: Record<string, unknown> = {model, instructions: SYSTEM, input: transcript ? `${transcript}\n\n${prompt}` : prompt, max_output_tokens: 4096};
+    if (stream) body.stream = true;
+    if (reasoning !== 'off') body.reasoning = {effort: reasoning};
+    return body;
+  }
+  if (provider.protocol === 'anthropic-messages') {
+    const body: Record<string, unknown> = {model, system: SYSTEM, messages, max_tokens: reasoning === 'off' ? 4096 : 8192};
+    if (stream) body.stream = true;
+    if (reasoning !== 'off') body.thinking = {type: 'enabled', budget_tokens: reasoning === 'low' ? 1024 : reasoning === 'medium' ? 2048 : 4096};
+    return body;
+  }
+  throw new Error('Unsupported AI protocol');
+}
+
+function contentText(provider: any, data: any) {
+  if (provider.protocol === 'chat-completions') {
+    const content = data?.choices?.[0]?.message?.content;
+    return typeof content === 'string' ? content : '';
+  }
+  if (provider.protocol === 'responses') {
+    return (data?.output || []).flatMap((item: any) => (item.content || []).filter((part: any) => part.type === 'output_text').map((part: any) => part.text)).join('');
+  }
+  return (data?.content || []).filter((part: any) => part.type === 'text').map((part: any) => part.text).join('');
+}
+
+function usageOf(provider: any, data: any) {
+  const usage = provider.protocol === 'responses' ? data?.response?.usage || data?.usage : data?.usage;
+  const input = Number(usage?.input_tokens ?? usage?.prompt_tokens ?? 0);
+  const output = Number(usage?.output_tokens ?? usage?.completion_tokens ?? 0);
+  return {input: Number.isFinite(input) ? input : 0, output: Number.isFinite(output) ? output : 0};
+}
+
+/** Complete command objects that have already arrived inside the JSON stream. */
+function completeCommands(raw: string): VoxaAiCommand[] {
+  const key = raw.indexOf('"commands"');
+  if (key < 0) return [];
+  const start = raw.indexOf('[', key);
+  if (start < 0) return [];
+  const out: VoxaAiCommand[] = [];
+  let depth = 0;
+  let objStart = -1;
+  let inString = false;
+  let escaped = false;
+  for (let index = start + 1; index < raw.length; index += 1) {
+    const char = raw[index];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (char === '\\') escaped = true;
+      else if (char === '"') inString = false;
+      continue;
+    }
+    if (char === '"') { inString = true; continue; }
+    if (char === '{') { if (depth === 0) objStart = index; depth += 1; continue; }
+    if (char === '}') {
+      depth -= 1;
+      if (depth === 0 && objStart >= 0) {
+        try {
+          const value = JSON.parse(raw.slice(objStart, index + 1));
+          if (value && kinds.has(String(value.kind)) && value.args && typeof value.args === 'object' && !Array.isArray(value.args)) {
+            out.push({kind: String(value.kind), args: value.args});
+          }
+        } catch {
+          // Partial or malformed object: wait for more bytes.
+        }
+        objStart = -1;
+      }
+      continue;
+    }
+    if (char === ']' && depth === 0) break;
+  }
+  return out;
+}
+
+function deltaText(provider: any, payload: any) {
+  if (provider.protocol === 'chat-completions') {
+    const content = payload?.choices?.[0]?.delta?.content;
+    return typeof content === 'string' ? content : '';
+  }
+  if (provider.protocol === 'responses') {
+    return payload?.type === 'response.output_text.delta' && typeof payload.delta === 'string' ? payload.delta : '';
+  }
+  return payload?.type === 'content_block_delta' && payload?.delta?.type === 'text_delta' && typeof payload.delta.text === 'string' ? payload.delta.text : '';
+}
+
+export async function generateVoxaAiPlan(req: NextApiRequest, res: NextApiResponse) {
+  const prepared = await prepare(req, res);
+  const {provider, userId, model} = prepared;
+  const started = Date.now();
+  const {runId} = await internal('/api/player-ai-internal/execution', {userId, scope: `voxa:${String(req.body?.context?.snapshot?.project?.modelId || 'planner')}`, mode: 'review', providerId: provider.id, model}, req, res);
+  let completed = false;
+  let inputTokens = 0;
+  let outputTokens = 0;
   const abort = new AbortController();
   const cancel = () => abort.abort();
-  res.on('close',cancel);
-  const timer=setTimeout(cancel,120000);
+  res.on('close', cancel);
+  const timer = setTimeout(cancel, PLAN_TIMEOUT_MS);
   try {
-    const response=await safeProviderFetch(providerRequestUrl(provider.baseUrl, provider.protocol), {method:'POST',headers,body:JSON.stringify(body),signal:abort.signal,redirect:'error'});
+    const response = await safeProviderFetch(providerRequestUrl(provider.baseUrl, provider.protocol), {
+      method: 'POST', headers: headersFor(provider), body: JSON.stringify(bodyFor(prepared, false)), signal: abort.signal, redirect: 'error',
+    });
+    console.info('[voxa-ai] plan response', {status: response.status, contextChars: prepared.contextChars, elapsedMs: Date.now() - started});
     if (!response.ok) {
-      const text=await response.text().catch(()=> '');
-      let detail='';
-      try {detail=redact((JSON.parse(text)?.error?.message) || (JSON.parse(text)?.message) || '', provider.apiKey);} catch {detail=redact(text, provider.apiKey);}
+      const text = await response.text().catch(() => '');
+      let detail = '';
+      try { detail = redact(JSON.parse(text)?.error?.message || JSON.parse(text)?.message || '', provider.apiKey); } catch { detail = redact(text, provider.apiKey); }
       throw new Error(`AI provider returned HTTP ${response.status}${detail ? `: ${detail}` : ''}`);
     }
-    const data=await response.json();
-    inputTokens=Number(data.usage?.input_tokens ?? data.usage?.prompt_tokens ?? 0);outputTokens=Number(data.usage?.output_tokens ?? data.usage?.completion_tokens ?? 0);
-    const text=provider.protocol==='chat-completions' ? data.choices?.[0]?.message?.content : provider.protocol==='responses' ? (data.output || []).flatMap((item:any)=>(item.content || []).filter((part:any)=>part.type==='output_text').map((part:any)=>part.text)).join('') : (data.content || []).filter((part:any)=>part.type==='text').map((part:any)=>part.text).join('');
-    if (typeof text!=='string' || !text.trim() || text.length>250000) throw new Error('AI provider returned invalid content');
-    const clean=text.trim().replace(/^```(?:json)?\s*/,'').replace(/\s*```$/,'');
+    const data = await response.json();
+    const usage = usageOf(provider, data);
+    inputTokens = usage.input; outputTokens = usage.output;
+    const text = contentText(provider, data);
+    if (typeof text !== 'string' || !text.trim() || text.length > 250000) throw new Error('AI provider returned invalid content');
+    const clean = text.trim().replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
     let value: unknown;
-    try {value=JSON.parse(clean);} catch {completed=true;return {message:text,commands:[],done:true};}
-    const plan=validateVoxaAiPlan(value);completed=true;return plan;
+    try { value = JSON.parse(clean); } catch { completed = true; return {message: text, commands: [], done: true}; }
+    const plan = validateVoxaAiPlan(value);
+    completed = true;
+    return plan;
   } finally {
-    clearTimeout(timer);res.off('close',cancel);
-    await internal('/api/player-ai-internal/execution',{userId,runId,event:{phase:abort.signal.aborted?'cancelled':completed?'complete':'failed',action:'voxa-plan',inputTokens,outputTokens}},req,res).catch(()=>undefined);
+    clearTimeout(timer); res.off('close', cancel);
+    console.info('[voxa-ai] plan finished', {completed, elapsedMs: Date.now() - started, inputTokens, outputTokens});
+    await internal('/api/player-ai-internal/execution', {userId, runId, event: {phase: abort.signal.aborted ? 'cancelled' : completed ? 'complete' : 'failed', action: 'voxa-plan', inputTokens, outputTokens}}, req, res).catch(() => undefined);
+  }
+}
+
+export async function streamVoxaAiPlan(req: NextApiRequest, res: NextApiResponse) {
+  res.status(200);
+  res.setHeader('Content-Type', 'application/x-ndjson; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders?.();
+  const started = Date.now();
+  let closed = false;
+  const send = (value: Record<string, unknown>) => {
+    if (closed || res.writableEnded || res.destroyed) return;
+    res.write(`${JSON.stringify(value)}\n`);
+  };
+  let prepared: Prepared | undefined;
+  let runId = '';
+  let completed = false;
+  let inputTokens = 0;
+  let outputTokens = 0;
+  const abort = new AbortController();
+  const cancel = () => { if (!res.writableEnded) abort.abort(); };
+  res.on('close', cancel);
+  const timer = setTimeout(() => abort.abort(), PLAN_TIMEOUT_MS);
+  try {
+    send({type: 'phase', phase: 'preparing'});
+    prepared = await prepare(req, res);
+    const {provider, userId, model} = prepared;
+    send({type: 'phase', phase: 'waiting'});
+    const lease = await internal('/api/player-ai-internal/execution', {userId, scope: `voxa:${String(req.body?.context?.snapshot?.project?.modelId || 'planner')}`, mode: 'review', providerId: provider.id, model}, req, res);
+    runId = String(lease.runId || '');
+    console.info('[voxa-ai] stream start', {contextChars: prepared.contextChars, reasoning: prepared.reasoning});
+    const response = await safeProviderFetch(providerRequestUrl(provider.baseUrl, provider.protocol), {
+      method: 'POST', headers: headersFor(provider), body: JSON.stringify(bodyFor(prepared, true)),
+      signal: AbortSignal.any([abort.signal, AbortSignal.timeout(PLAN_TIMEOUT_MS)]), redirect: 'error',
+    });
+    if (!response.ok) {
+      const text = await response.text().catch(() => '');
+      let detail = '';
+      try { detail = redact(JSON.parse(text)?.error?.message || JSON.parse(text)?.message || '', provider.apiKey); } catch { detail = redact(text, provider.apiKey); }
+      throw new Error(`AI provider returned HTTP ${response.status}${detail ? `: ${detail}` : ''}`);
+    }
+    const contentType = response.headers.get('content-type') || '';
+    let text = '';
+    let emitted = 0;
+    let firstByteMs = 0;
+    const emitCommands = (raw: string) => {
+      const list = completeCommands(raw);
+      while (emitted < list.length) {
+        const command = list[emitted];
+        send({type: 'command', index: emitted, kind: command.kind, args: command.args});
+        emitted += 1;
+      }
+    };
+    if (contentType.includes('text/event-stream') && response.body) {
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let finished = false;
+      while (!finished) {
+        const {value, done} = await reader.read();
+        if (done) break;
+        if (!firstByteMs) { firstByteMs = Date.now() - started; send({type: 'phase', phase: 'generating'}); }
+        buffer += decoder.decode(value, {stream: true});
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        for (const rawLine of lines) {
+          const line = rawLine.trim();
+          if (!line.startsWith('data:')) continue;
+          const payloadText = line.slice(5).trim();
+          if (!payloadText) continue;
+          if (payloadText === '[DONE]') { finished = true; break; }
+          let payload: any;
+          try { payload = JSON.parse(payloadText); } catch { continue; }
+          const delta = deltaText(provider, payload);
+          if (delta) {
+            text += delta;
+            emitCommands(text);
+            if (text.length % 400 < delta.length) send({type: 'progress', chars: text.length});
+          }
+          const usage = usageOf(provider, payload);
+          if (usage.input || usage.output) { inputTokens = usage.input || inputTokens; outputTokens = usage.output || outputTokens; }
+        }
+      }
+      buffer += decoder.decode();
+      for (const rawLine of buffer.split('\n')) {
+        const line = rawLine.trim();
+        if (!line.startsWith('data:')) continue;
+        const payloadText = line.slice(5).trim();
+        if (!payloadText || payloadText === '[DONE]') continue;
+        try {
+          const payload = JSON.parse(payloadText);
+          const delta = deltaText(provider, payload);
+          if (delta) { text += delta; emitCommands(text); }
+          const usage = usageOf(provider, payload);
+          if (usage.input || usage.output) { inputTokens = usage.input || inputTokens; outputTokens = usage.output || outputTokens; }
+        } catch { /* ignore partial trailing line */ }
+      }
+    } else {
+      const data = await response.json();
+      const usage = usageOf(provider, data);
+      inputTokens = usage.input; outputTokens = usage.output;
+      text = contentText(provider, data);
+      emitCommands(text);
+    }
+    send({type: 'phase', phase: 'parsing'});
+    if (!text.trim() || text.length > 250000) throw new Error('AI provider returned invalid content');
+    const clean = text.trim().replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
+    let value: unknown;
+    try { value = JSON.parse(clean); } catch {
+      completed = true;
+      send({type: 'plan', message: text, commands: [], done: true});
+      return;
+    }
+    const plan = validateVoxaAiPlan(value);
+    completed = true;
+    console.info('[voxa-ai] stream done', {firstByteMs, totalMs: Date.now() - started, chars: text.length, commands: plan.commands.length, inputTokens, outputTokens});
+    send({type: 'plan', ...plan});
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'AI request failed';
+    console.info('[voxa-ai] stream failed', {elapsedMs: Date.now() - started, message: message.slice(0, 120)});
+    send({type: 'error', message: redact(message, prepared?.provider?.apiKey || '') || 'AI request failed'});
+  } finally {
+    clearTimeout(timer);
+    res.off('close', cancel);
+    if (prepared) {
+      await internal('/api/player-ai-internal/execution', {
+        userId: prepared.userId,
+        runId: runId || undefined,
+        event: {phase: abort.signal.aborted ? 'cancelled' : completed ? 'complete' : 'failed', action: 'voxa-plan', inputTokens, outputTokens},
+      }, req, res).catch(() => undefined);
+    }
+    closed = true;
+    if (!res.writableEnded && !res.destroyed) res.end();
   }
 }

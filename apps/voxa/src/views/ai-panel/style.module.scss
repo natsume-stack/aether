@@ -23,6 +23,7 @@ $fillStrong: rgba(255, 255, 255, 0.09);
   backdrop-filter: blur(12px);
   color: c.$textWhitePrimary;
   font-size: 13px;
+  color-scheme: dark;
 }
 
 .pill {
@@ -469,6 +470,45 @@ $fillStrong: rgba(255, 255, 255, 0.09);
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+}
+
+.modelSelect {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 58%;
+  padding: 4px 8px;
+  border: 1px solid $line;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.28);
+  color: c.$textWhitePrimary;
+  font: inherit;
+  font-size: 11px;
+
+  &:focus { outline: none; border-color: rgba(154, 252, 23, 0.45); }
+  &:disabled { opacity: 0.6; }
+}
+
+.modelInput {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 9px;
+  border: 1px solid $lineStrong;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.28);
+  color: c.$textWhitePrimary;
+  font: inherit;
+  font-size: 11.5px;
+
+  &:focus { outline: none; border-color: rgba(154, 252, 23, 0.45); }
+}
+
+.reasoningRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: c.$textWhiteTertiary;
+  font-size: 10.5px;
 }
 
 .modelChip {

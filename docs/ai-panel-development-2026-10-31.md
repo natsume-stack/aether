@@ -85,3 +85,14 @@ Source of truth: /home/natsume/box3-dev/repo/box3-local-engine, branch dev/serve
 - 安全与钩子不变：每次写入仍经过管理员策略、执行租约/配额、全源快照、人工编辑中断、逐命令审计与保存后回滚点。
 
 验证：VOXA 全量 `tsc`、Creator 运行图 `tsc`、VOXA 生产构建通过；使用 mock provider 实测“规划 → 执行结果回传 → 下一步 done”两步链路；`apps/voxa/scripts/check-agent-plan-contract.ts` 覆盖 done 语义与命令白名单。
+
+## 渠道、模型与流式规划（2026-10-31 第三轮）
+
+- 渠道编辑：玩家自己的渠道可在浮窗内编辑；API Key 留空提交不会覆盖已保存密钥。平台渠道只读，提供“复制”另存为自己的渠道（需填自己的密钥）。
+- 模型选择：输入区新增模型下拉（渠道模型列表）+“自定义模型…”输入；拉取模型后自动刷新。
+- 思考强度：关/低/中/高四档，持久化到浏览器本地；按协议映射为 `reasoning_effort`（Chat Completions）、`reasoning.effort`（Responses）、`thinking.budget_tokens`（Anthropic）。默认“关”保持最大兼容性。
+- 规划改为流式 NDJSON（`stream:true`）：事件 `phase`（读取上下文/等待/生成/校验）、`progress`（已接收字符）、`command`（逐条工具调用，完整 JSON 之前出现）、`plan`、`error`。思维链内容不下发，只展示进度与工具调用。
+- 为降低延迟，发给模型的上下文去掉 `snapshot` 等非规划字段；服务端输出 `[voxa-ai] stream start/done/failed` 日志，包含上下文大小、首字节与总耗时，便于定位慢渠道。
+- 客户端显示已用秒数与当前阶段；停止按钮可中断流式请求；失败会带出提供商错误（脱敏）。
+
+验证：VOXA 全量 `tsc` 与生产构建通过；SSE mock 实测首条工具调用 0.25s 出现、完整计划 0.46s 到达；两步循环与 reasoning 参数透传通过；渠道“编辑不改密钥”后测试连接与拉取模型均成功。

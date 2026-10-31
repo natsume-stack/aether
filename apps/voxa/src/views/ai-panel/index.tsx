@@ -29,12 +29,32 @@ type ChatMessage = {
   done?: boolean;
   step?: number;
   context?: Context;
+  status?: string;
 };
 type PlanReply = { message: string; commands: Command[]; done: boolean };
+type Reasoning = 'off' | 'low' | 'medium' | 'high';
+type StreamEvent =
+  | { type: 'phase'; phase: string }
+  | { type: 'progress'; chars: number }
+  | { type: 'command'; index: number; kind: string; args: Record<string, unknown> }
+  | { type: 'plan'; message: string; commands: Command[]; done: boolean }
+  | { type: 'error'; message: string };
 type Draft = { id?: string; name: string; protocol: string; baseUrl: string; apiKey: string; defaultModel: string; models: string };
 type Tab = 'chat' | 'channels';
 
 const emptyDraft: Draft = { name: '', protocol: 'chat-completions', baseUrl: 'https://api.openai.com/v1', apiKey: '', defaultModel: '', models: '' };
+const REASONING_OPTIONS: Array<{ value: Reasoning; label: string }> = [
+  { value: 'off', label: '关' },
+  { value: 'low', label: '低' },
+  { value: 'medium', label: '中' },
+  { value: 'high', label: '高' },
+];
+const PHASE_TEXT: Record<string, string> = {
+  preparing: '读取模型上下文…',
+  waiting: '等待模型响应…',
+  generating: '模型正在生成…',
+  parsing: '校验计划…',
+};
 const PROTOCOLS: Array<{ value: string; label: string }> = [
   { value: 'chat-completions', label: 'Chat Completions' },
   { value: 'responses', label: 'OpenAI Responses' },
@@ -81,6 +101,57 @@ async function request<T>(url: string, method = 'GET', body?: unknown, signal?: 
   const value = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error((value as { message?: string }).message || `请求失败（${response.status}）`);
   return value as T;
+}
+
+async function streamPlan(body: Record<string, unknown>, signal: AbortSignal, onEvent: (event: StreamEvent) => void): Promise<PlanReply> {
+  const response = await fetch('/api/ai/plan', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/x-ndjson' },
+    body: JSON.stringify({ ...body, stream: true }),
+    signal,
+    credentials: 'same-origin',
+  });
+  if (!response.ok) {
+    const text = await response.text().catch(() => '');
+    let message = `请求失败（${response.status}）`;
+    try {
+      const value = JSON.parse(text) as { message?: string };
+      message = value.message || message;
+    } catch {
+      // keep the status message
+    }
+    throw new Error(message);
+  }
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error('浏览器不支持流式响应');
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let plan: PlanReply | undefined;
+  const consume = (line: string) => {
+    const raw = line.trim();
+    if (!raw) return;
+    let event: StreamEvent;
+    try {
+      event = JSON.parse(raw) as StreamEvent;
+    } catch {
+      return;
+    }
+    onEvent(event);
+    if (event.type === 'error') throw new Error(event.message);
+    if (event.type === 'plan') plan = { message: event.message, commands: event.commands, done: event.done };
+  };
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+    for (const line of lines) consume(line);
+  }
+  buffer += decoder.decode();
+  for (const line of buffer.split('\n')) consume(line);
+  if (!plan) throw new Error('AI 流式响应中断，请重试');
+  return plan;
 }
 
 function coordinate(value: unknown) {
@@ -134,6 +205,13 @@ export function VoxaAiPanel() {
   const [model, setModel] = useState('');
   const [autonomy, setAutonomy] = useState<'review' | 'autonomous'>('review');
   const [prompt, setPrompt] = useState('');
+  const [reasoning, setReasoning] = useState<Reasoning>(() => {
+    if (typeof window === 'undefined') return 'off';
+    const saved = window.localStorage.getItem('voxa.aiReasoning');
+    return saved === 'low' || saved === 'medium' || saved === 'high' ? saved : 'off';
+  });
+  const [customModel, setCustomModel] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [busy, setBusy] = useState(false);
   const [channelBusy, setChannelBusy] = useState(false);
@@ -143,6 +221,8 @@ export function VoxaAiPanel() {
   const transcriptRef = useRef<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
   const mounted = useRef(true);
   const logRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const startedAt = useRef(0);
 
   useEffect(() => {
     mounted.current = true;
@@ -156,12 +236,29 @@ export function VoxaAiPanel() {
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [messages]);
 
+  useEffect(() => {
+    try { window.localStorage.setItem('voxa.aiReasoning', reasoning); } catch { /* storage may be blocked */ }
+  }, [reasoning]);
+
+  useEffect(() => {
+    if (!busy) { setElapsed(0); return; }
+    startedAt.current = Date.now();
+    setElapsed(0);
+    const timer = window.setInterval(() => setElapsed(Math.floor((Date.now() - startedAt.current) / 1000)), 1000);
+    return () => window.clearInterval(timer);
+  }, [busy]);
+
+  useEffect(() => {
+    if (draft) formRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [draft]);
+
   const selected = useMemo(() => providers.find((item) => item.id === providerId), [providers, providerId]);
   const available = useMemo(() => providers.filter((item) => item.enabled), [providers]);
   const modelOptions = useMemo(() => {
     const values = [selected?.defaultModel, ...(selected?.models || []).map((item) => item.id)].filter(Boolean) as string[];
     return [...new Set(values)];
   }, [selected]);
+  const isCustomModel = customModel || (!!model && !modelOptions.includes(model)) || (!modelOptions.length && !model);
   const lastAssistant = useMemo(() => [...messages].reverse().find((item) => item.role === 'assistant'), [messages]);
   const status = busy
     ? lastAssistant?.phase === 'executing' ? '正在执行修改' : '正在生成计划'
@@ -305,16 +402,31 @@ export function VoxaAiPanel() {
     abortRef.current = controller;
     try {
       const context = await session.panelContext();
+      const modelContext = { ...(context as unknown as Record<string, unknown>) };
+      delete modelContext.snapshot;
       await savePreferences(providerId, model, autonomy, controller.signal);
-      const reply = await request<PlanReply>('/api/ai/plan', 'POST', {
+      const reply = await streamPlan({
         providerId,
         model,
         prompt: text,
-        context,
+        context: modelContext,
         history,
         toolResults: options.toolResults,
         step,
-      }, controller.signal);
+        reasoning,
+      }, controller.signal, (event) => {
+        if (event.type === 'phase') patchMessage(assistantId, { status: PHASE_TEXT[event.phase] || '处理中…' });
+        if (event.type === 'progress') patchMessage(assistantId, { status: `已接收 ${event.chars} 字符…` });
+        if (event.type === 'command') {
+          patchMessage(assistantId, (message) => {
+            const tools = message.tools ? [...message.tools] : [];
+            if (!tools.some((tool) => tool.index === event.index)) {
+              tools.push({ index: event.index, kind: event.kind, args: event.args, status: 'pending' });
+            }
+            return { tools, status: `已解析 ${tools.length} 项修改…` };
+          });
+        }
+      });
       const assistant: ChatMessage = {
         id: assistantId,
         role: 'assistant',
@@ -323,6 +435,7 @@ export function VoxaAiPanel() {
         step,
         done: reply.done,
         context,
+        status: undefined,
         tools: reply.commands.map((command, index) => ({ index, kind: command.kind, args: command.args, status: 'pending' })),
       };
       patchMessage(assistantId, assistant);
@@ -345,7 +458,7 @@ export function VoxaAiPanel() {
       abortRef.current = undefined;
       if (mounted.current) setBusy(false);
     }
-  }, [append, autonomy, busy, executePlan, model, patchMessage, providerId, savePreferences]);
+  }, [append, autonomy, busy, executePlan, model, patchMessage, providerId, reasoning, savePreferences]);
 
   const followUp = useCallback((message: ChatMessage) => {
     const failures = (message.results || []).filter((item) => !item.ok);
@@ -356,10 +469,12 @@ export function VoxaAiPanel() {
   const saveChannel = useCallback(async () => {
     if (!draft) return;
     const { id, models, ...fields } = draft;
-    const saved = await request<{ provider: Provider }>(id ? `/api/player-ai/providers/${id}` : '/api/player-ai/providers', id ? 'PATCH' : 'POST', {
+    const payload: Record<string, unknown> = {
       ...fields,
       models: models.split(/[,\n]/).map((item) => item.trim()).filter(Boolean),
-    });
+    };
+    if (!String(payload.apiKey || '').trim()) delete payload.apiKey;
+    const saved = await request<{ provider: Provider }>(id ? `/api/player-ai/providers/${id}` : '/api/player-ai/providers', id ? 'PATCH' : 'POST', payload);
     setDraft(undefined);
     await loadChannels();
     if (saved.provider?.id) {
@@ -382,9 +497,22 @@ export function VoxaAiPanel() {
     setNote('模型列表已更新');
   }, [loadChannels]);
 
+  const openDraft = useCallback((provider: Provider, mode: 'edit' | 'clone') => {
+    setDraft({
+      id: mode === 'edit' ? provider.id : undefined,
+      name: mode === 'clone' ? `${provider.name}（我的）` : provider.name,
+      protocol: provider.protocol,
+      baseUrl: provider.baseUrl,
+      apiKey: '',
+      defaultModel: provider.defaultModel,
+      models: provider.models.map((item) => item.id).join('\n'),
+    });
+  }, []);
+
   const chooseProvider = useCallback((provider: Provider) => {
     if (!provider.enabled) return;
     setProviderId(provider.id);
+    setCustomModel(false);
     const nextModel = provider.defaultModel || provider.models[0]?.id || '';
     setModel(nextModel);
     void savePreferences(provider.id, nextModel, autonomy).catch(() => undefined);
@@ -442,7 +570,7 @@ export function VoxaAiPanel() {
             <span>我的 API 渠道</span>
             <button className={styles.primarySmall} onClick={() => setDraft({ ...emptyDraft })}><Icon name="plus" size={13} />新增</button>
           </div>
-          <p className={styles.hint}>渠道按你的账号加密保存，下次打开直接复用；平台渠道也可直接选用。</p>
+          <p className={styles.hint}>渠道按你的账号加密保存，下次打开直接复用；平台渠道只读，可点“复制”另存为自己的渠道后修改。</p>
           <ul className={styles.channelList}>
             {providers.map((provider) => (
               <li key={provider.id} className={`${styles.channel} ${provider.id === providerId ? styles.channelActive : ''}`}>
@@ -458,15 +586,9 @@ export function VoxaAiPanel() {
                 <div className={styles.channelActions}>
                   <button disabled={channelBusy} onClick={() => void runChannel(() => testChannel(provider))}>测试</button>
                   <button disabled={channelBusy} onClick={() => void runChannel(() => pullModels(provider))}>拉取</button>
-                  {provider.owner === 'user' && <button disabled={channelBusy} onClick={() => setDraft({
-                    id: provider.id,
-                    name: provider.name,
-                    protocol: provider.protocol,
-                    baseUrl: provider.baseUrl,
-                    apiKey: '',
-                    defaultModel: provider.defaultModel,
-                    models: provider.models.map((item) => item.id).join('\n'),
-                  })}>编辑</button>}
+                  {provider.owner === 'user'
+                    ? <button disabled={channelBusy} onClick={() => openDraft(provider, 'edit')}>编辑</button>
+                    : <button disabled={channelBusy} onClick={() => openDraft(provider, 'clone')}>复制</button>}
                   {provider.owner === 'user' && <button className={styles.danger} disabled={channelBusy} onClick={() => {
                     if (!window.confirm(`删除渠道“${provider.name}”？`)) return;
                     void runChannel(async () => {
@@ -483,7 +605,7 @@ export function VoxaAiPanel() {
           </ul>
 
           {draft && (
-            <form className={styles.form} onSubmit={(event) => { event.preventDefault(); void runChannel(saveChannel); }}>
+            <form ref={formRef} className={styles.form} onSubmit={(event) => { event.preventDefault(); void runChannel(saveChannel); }}>
               <div className={styles.formTitle}>{draft.id ? '编辑渠道' : '新增渠道'}</div>
               <label>名称<input required maxLength={64} value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} placeholder="例如 我的 GPT" /></label>
               <label>协议<select value={draft.protocol} onChange={(event) => setDraft({ ...draft, protocol: event.target.value })}>
@@ -519,7 +641,7 @@ export function VoxaAiPanel() {
                 ) : (
                   <>
                     {message.text && <p className={styles.bubble}>{message.text}</p>}
-                    {message.phase === 'thinking' && <span className={styles.thinking}>正在读取模型并规划<span /><span /><span /></span>}
+                    {message.phase === 'thinking' && <span className={styles.thinking}>{message.status || '正在读取模型并规划'}{busy && elapsed > 0 ? ` · ${elapsed}s` : ''}<span /><span /><span /></span>}
                     {!!message.tools?.length && (
                       <div className={styles.tools}>
                         <div className={styles.toolsHead}>
@@ -575,10 +697,35 @@ export function VoxaAiPanel() {
 
           <div className={styles.composer}>
             <div className={styles.composerTop}>
-              <span className={styles.modelChip}>{model || '未选模型'}</span>
+              <select
+                className={styles.modelSelect}
+                value={isCustomModel ? '__custom' : model}
+                disabled={busy}
+                onChange={(event) => {
+                  if (event.target.value === '__custom') { setCustomModel(true); return; }
+                  setCustomModel(false);
+                  setModel(event.target.value);
+                }}
+                aria-label="选择模型"
+              >
+                {modelOptions.map((id) => <option key={id} value={id}>{id}</option>)}
+                {!modelOptions.length && <option value="">未选模型</option>}
+                <option value="__custom">自定义模型…</option>
+              </select>
               <div className={styles.segmented} role="group" aria-label="执行方式">
                 <button className={autonomy === 'review' ? styles.segmentActive : styles.segment} disabled={busy} onClick={() => setAutonomy('review')}>审核</button>
                 <button className={autonomy === 'autonomous' ? styles.segmentActive : styles.segment} disabled={busy} onClick={() => setAutonomy('autonomous')}>自主</button>
+              </div>
+            </div>
+            {isCustomModel && (
+              <input className={styles.modelInput} value={model} disabled={busy} onChange={(event) => setModel(event.target.value)} placeholder="输入模型 ID" aria-label="自定义模型 ID" />
+            )}
+            <div className={styles.reasoningRow}>
+              <span>思考强度</span>
+              <div className={styles.segmented} role="group" aria-label="思考强度">
+                {REASONING_OPTIONS.map((item) => (
+                  <button key={item.value} className={reasoning === item.value ? styles.segmentActive : styles.segment} disabled={busy} onClick={() => setReasoning(item.value)}>{item.label}</button>
+                ))}
               </div>
             </div>
             <textarea

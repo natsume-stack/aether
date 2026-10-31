@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import {requireVoxaEditorAccess} from '../../../server/model-management-access';
 import {setLocalCors} from '../../../server/local-cors';
-import {generateVoxaAiPlan, authorizeVoxaAiWrite} from '../../../server/ai-planner';
+import {generateVoxaAiPlan, streamVoxaAiPlan, authorizeVoxaAiWrite} from '../../../server/ai-planner';
 export const config={api:{bodyParser:{sizeLimit:'256kb'}}};
 export default async function handler(req:NextApiRequest,res:NextApiResponse) {
   res.setHeader('Cache-Control','no-store');
@@ -9,7 +9,10 @@ export default async function handler(req:NextApiRequest,res:NextApiResponse) {
   if (req.method!=='POST') {res.setHeader('Allow','POST');return res.status(405).end();}
   if (!await requireVoxaEditorAccess(req,res)) return;
   try {
-    if(req.query.action==='plan') return res.status(200).json(await generateVoxaAiPlan(req,res));
+    if(req.query.action==='plan') {
+      if(req.body?.stream===true) return streamVoxaAiPlan(req,res);
+      return res.status(200).json(await generateVoxaAiPlan(req,res));
+    }
     if(req.query.action==='authorize') {const lease=await authorizeVoxaAiWrite(req,res,req.body?.modelId);return res.status(200).json({allowed:true,...lease});}
     return res.status(404).end();
   } catch(error) {
